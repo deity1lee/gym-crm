@@ -21,7 +21,7 @@ public class TrainerDao {
 
     public void save(Trainer trainer) {
         storage.getTrainerMap().put(trainer.getId(), trainer);
-        logger.debug("Saved trainer with id {} to in-memory storage", trainer.getId());
+        logger.info("Saved trainer with id {} to in-memory storage", trainer.getId());
     }
 
     public Optional<Trainer> findById(Long id) {
@@ -34,14 +34,14 @@ public class TrainerDao {
         return new ArrayList<>(storage.getTrainerMap().values());
     }
 
-    public long countByFullName(String first, String last) {
-        logger.info("countByFullName() invoked for {} {}", first, last);
+    public long countByFullName(String firstName, String lastName) {
+        logger.info("countByFullName() invoked for {} {}", firstName, lastName);
         long count = storage.getTrainerMap().values()
                 .stream()
-                .filter(t -> t.getFirstName().equalsIgnoreCase(first)
-                        && t.getLastName().equalsIgnoreCase(last))
+                .filter(t -> t.getFirstName().equalsIgnoreCase(firstName)
+                        && t.getLastName().equalsIgnoreCase(lastName))
                 .count();
-        logger.info("Number of trainers by first name '{}' and last name '{}': {}", first, last, count);
+        logger.info("Number of trainers by first name '{}' and last name '{}': {}", firstName, lastName, count);
         return count;
     }
 }

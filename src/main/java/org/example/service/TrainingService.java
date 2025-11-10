@@ -11,28 +11,32 @@ import java.util.*;
 @Service
 public class TrainingService {
 
-    private static final Logger logger = LoggerFactory.getLogger(TrainingService.class);
+    private static final Logger LOGGER  = LoggerFactory.getLogger(TrainingService.class);
 
-    private TrainingDao TrainingDao;
+    private TrainingDao trainingDao;
 
     @Autowired
-    public void setTrainingDao(TrainingDao TrainingDao) {
-        this.TrainingDao = TrainingDao;
+    public void setTrainingDao(TrainingDao trainingDao) {
+        this.trainingDao = trainingDao;
     }
 
-    public void createTraining(Training Training) {
-        TrainingDao.save(Training);
-        logger.info("Created training with name: {}", Training.getName());
+    public void createTraining(Training training) {
+        if (trainingDao.findById(training.getId()).isPresent()) {
+            LOGGER.warn("Training with id {} already exists. Creation skipped.", training.getId());
+            return;
+        }
+        trainingDao.save(training);
+        LOGGER.info("Created training with name: {}", training.getName());
     }
 
-    public Optional<Training> getTrainingById(String name) {
-        logger.debug("Fetching training with name: {}", name);
-        return TrainingDao.findByName(name);
+    public Optional<Training> getTrainingById(Long id) {
+        LOGGER.debug("Fetching training with id: {}", id);
+        return trainingDao.findById(id);
     }
 
     public List<Training> getAllTrainings() {
-        logger.debug("Fetching all trainings");
-        return TrainingDao.findAll();
+        LOGGER.debug("Fetching all trainings");
+        return trainingDao.findAll();
     }
 }
 

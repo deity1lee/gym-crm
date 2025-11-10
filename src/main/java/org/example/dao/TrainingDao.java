@@ -20,13 +20,13 @@ public class TrainingDao {
     }
 
     public void save(Training training) {
-        storage.getTrainingMap().put(training.getName(), training);
-        logger.debug("Saved training with name {} to in-memory storage", training.getName());
+        storage.getTrainingMap().put(training.getId(), training);
+        logger.info("Saved training with name {} to in-memory storage", training.getName());
     }
 
-    public Optional<Training> findByName(String name) {
-        logger.debug("Finding trainings by name {}", name);
-        return Optional.ofNullable(storage.getTrainingMap().get(name));
+    public Optional<Training> findById(Long id) {
+        logger.debug("Finding trainings by id {}", id);
+        return Optional.ofNullable(storage.getTrainingMap().get(id));
     }
 
     public List<Training> findAll() {

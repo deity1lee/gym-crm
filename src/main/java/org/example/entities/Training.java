@@ -1,6 +1,7 @@
 package org.example.entities;
 
 public class Training {
+    private Long id;
     private Long traineeId;
     private Long trainerId;
     private String name;
@@ -8,7 +9,8 @@ public class Training {
     private String date;
     private Long duration;
 
-    public Training(Long traineeId, Long trainerId, String name, TrainingType type, String date, Long duration) {
+    public Training(Long id, Long traineeId, Long trainerId, String name, TrainingType type, String date, Long duration) {
+        this.id = id;
         this.traineeId = traineeId;
         this.trainerId = trainerId;
         this.name = name;
@@ -17,19 +19,11 @@ public class Training {
         this.duration = duration;
     }
 
-    public String getName() {
-        return name;
+    public Long getId() {
+        return id;
     }
 
-    @Override
-    public String toString() {
-        return "Training{" +
-                "traineeId=" + traineeId +
-                ", trainerId=" + trainerId +
-                ", name='" + name + '\'' +
-                ", type=" + type +
-                ", date='" + date + '\'' +
-                ", duration=" + duration +
-                '}';
+    public String getName() {
+        return name;
     }
 }

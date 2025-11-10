@@ -12,14 +12,5 @@ public class Trainer extends User {
     public Long getId() {
         return id;
     }
-
-    @Override
-    public String toString() {
-        return "Trainer{" +
-                "id=" + id +
-                ", username='" + getFirstName() + "." + getLastName() + '\'' +
-                ", specialization='" + specialization + '\'' +
-                '}';
-    }
 }
 

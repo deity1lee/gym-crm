@@ -15,15 +15,5 @@ public class Trainee extends User {
     public Long getId() { return id; }
 
     public String getDateOfBirth() { return dateOfBirth; }
-
-    @Override
-    public String toString() {
-        return "Trainee{" +
-                "id=" + id +
-                ", username='" + getFirstName() + "." + getLastName() + '\'' +
-                ", date of birth='" + getDateOfBirth() + '\'' +
-                ", address='" + address + '\'' +
-                '}';
-    }
 }
 

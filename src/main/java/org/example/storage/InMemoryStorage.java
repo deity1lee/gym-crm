@@ -12,16 +12,15 @@ import java.util.Map;
 public class InMemoryStorage {
 
     private final Map<Long, Trainer> trainerMap = new HashMap<>();
+    private final Map<Long, Training> trainingMap = new HashMap<>();
+    private final Map<Long, Trainee> traineeMap = new HashMap<>();
+
     public Map<Long, Trainer> getTrainerMap() {
         return trainerMap;
     }
-
-    private final Map<String, Training> trainingMap = new HashMap<>();
-    public Map<String, Training> getTrainingMap() {
+    public Map<Long, Training> getTrainingMap() {
         return trainingMap;
     }
-
-    private final Map<Long, Trainee> traineeMap = new HashMap<>();
     public Map<Long, Trainee> getTraineeMap() {
         return traineeMap;
     }

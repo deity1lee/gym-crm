@@ -67,6 +67,8 @@ class TraineeServiceTest {
 
     @Test
     void testDeleteTraineeDelegatesToDao() {
+        when(traineeDao.findById(1L))
+                .thenReturn(Optional.of(new Trainee(1L, "John", "Doe", "john@example.com", "pass123")));
         traineeService.deleteTrainee(1L);
 
         verify(traineeDao, times(1)).delete(1L);

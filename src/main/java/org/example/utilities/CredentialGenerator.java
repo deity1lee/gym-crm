@@ -18,10 +18,13 @@ public class CredentialGenerator {
     }
 
     public static String generateUsername(String firstName, String lastName, long existingCount) {
-        String baseUsername = firstName + "." + lastName;
+        StringBuilder baseUsername = new StringBuilder()
+                .append(firstName)
+                .append(".")
+                .append(lastName);
         if (existingCount > 0) {
-            baseUsername += (existingCount + 1);
+            baseUsername.append(existingCount + 1);
         }
-        return baseUsername;
+        return baseUsername.toString();
     }
 }

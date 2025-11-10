@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 
 @Component
 public class StorageInitializer implements BeanPostProcessor {
-    private static final Logger logger = LoggerFactory.getLogger(StorageInitializer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(StorageInitializer.class);
 
     @Value("${trainee.data.file}")
     private String traineeFilePath;
@@ -34,7 +34,8 @@ public class StorageInitializer implements BeanPostProcessor {
                 loadTrainers(storage);
                 loadTrainings(storage);
             } catch (Exception e) {
-                logger.error("Storage initialization failed: {}", e.getMessage());
+                LOGGER.error("Storage initialization failed: {}", e.getMessage());
+                throw new BeansException("Failed to initialize InMemoryStorage", e) {};
             }
         }
         return bean;
@@ -46,7 +47,7 @@ public class StorageInitializer implements BeanPostProcessor {
             Trainee trainee = new Trainee(id, parts[1], parts[2], parts[3], parts[4]);
             storage.getTraineeMap().put(id, trainee);
         });
-        logger.info("Loaded trainees from {}", traineeFilePath);
+        LOGGER.info("Loaded trainees from {}", traineeFilePath);
     }
     private void loadTrainers(InMemoryStorage storage) {
         loadFile(trainerFilePath, line -> {
@@ -55,22 +56,23 @@ public class StorageInitializer implements BeanPostProcessor {
             Trainer trainer = new Trainer(id, parts[1], parts[2], parts[3]);
             storage.getTrainerMap().put(id, trainer);
         });
-        logger.info("Loaded trainers from {}", trainerFilePath);
+        LOGGER.info("Loaded trainers from {}", trainerFilePath);
     }
     private void loadTrainings(InMemoryStorage storage) {
         loadFile(trainingFilePath, line -> {
             String[] parts = line.split(",");
-            Long traineeId = Long.parseLong(parts[0]);
-            Long trainerId = Long.parseLong(parts[1]);
-            Long duration = Long.parseLong(parts[5]);
-            TrainingType type = new TrainingType(parts[3]);
+            Long trainingId = Long.parseLong(parts[0]);
+            Long traineeId = Long.parseLong(parts[1]);
+            Long trainerId = Long.parseLong(parts[2]);
+            Long duration = Long.parseLong(parts[6]);
             Training training = new Training(
+                    trainingId,
                     traineeId,
                     trainerId,
-                    parts[2], type, parts[4], duration);
-            storage.getTrainingMap().put(parts[2], training);
+                    parts[3], TrainingType.valueOf(parts[4]), parts[5], duration);
+            storage.getTrainingMap().put(trainingId, training);
         });
-        logger.info("Loaded trainings from {}", trainingFilePath);
+        LOGGER.info("Loaded trainings from {}", trainingFilePath);
     }
 
     private void loadFile(String path, Consumer<String> lineConsumer) {
@@ -83,7 +85,7 @@ public class StorageInitializer implements BeanPostProcessor {
                         .forEach(lineConsumer);
             }
         } catch (Exception e) {
-            logger.warn("Could not load data from {}: {}", path, e.getMessage());
+            LOGGER.warn("Could not load data from {}: {}", path, e.getMessage());
         }
     }
 }

@@ -11,7 +11,7 @@ import java.util.*;
 @Repository
 public class TraineeDao {
 
-    private static final Logger logger = LoggerFactory.getLogger(TraineeDao.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TraineeDao.class);
     private InMemoryStorage storage;
 
     @Autowired
@@ -21,32 +21,32 @@ public class TraineeDao {
 
     public void save(Trainee trainee) {
         storage.getTraineeMap().put(trainee.getId(), trainee);
-        logger.debug("Saved trainee with id {} to in-memory storage", trainee.getId());
+        LOGGER.info("Saved trainee with id {} to in-memory storage", trainee.getId());
     }
 
     public Optional<Trainee> findById(Long id) {
-        logger.debug("Finding trainee by id {}", id);
+        LOGGER.debug("Finding trainee by id {}", id);
         return Optional.ofNullable(storage.getTraineeMap().get(id));
     }
 
     public List<Trainee> findAll() {
-        logger.debug("Retrieving all trainees from storage");
+        LOGGER.debug("Retrieving all trainees from storage");
         return new ArrayList<>(storage.getTraineeMap().values());
     }
 
     public void delete(Long id) {
         storage.getTraineeMap().remove(id);
-        logger.debug("Removed trainee with id {}", id);
+        LOGGER.info("Removed trainee with id {}", id);
     }
 
-    public long countByFullName(String first, String last) {
-        logger.info("countByFullName() invoked for {} {}", first, last);
+    public long countByFullName(String firstName, String lastName) {
+        LOGGER.info("countByFullName() invoked for {} {}", firstName, lastName);
         long count = storage.getTraineeMap().values()
                 .stream()
-                .filter(t -> t.getFirstName().equalsIgnoreCase(first)
-                        && t.getLastName().equalsIgnoreCase(last))
+                .filter(t -> t.getFirstName().equalsIgnoreCase(firstName)
+                        && t.getLastName().equalsIgnoreCase(lastName))
                 .count();
-        logger.info("Number of trainees by first name '{}' and last name '{}': {}", first, last, count);
+        LOGGER.info("Number of trainees by first name '{}' and last name '{}': {}", firstName, lastName, count);
         return count;
     }
 }

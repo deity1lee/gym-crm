@@ -30,42 +30,46 @@ class TrainingServiceTest {
 
     @Test
     void testCreateTraining() {
-        Training training = new Training(1L, 2L, "Morning Yoga", new TrainingType("yoga"), "2025-11-05", 60L);
-
+        Training training = new Training(
+                100L, 1L, 2L, "Morning Yoga",
+                TrainingType.valueOf("YOGA"), "2025-11-05", 60L);
         trainingService.createTraining(training);
 
         ArgumentCaptor<Training> captor = ArgumentCaptor.forClass(Training.class);
         verify(trainingDao).save(captor.capture());
-        assertEquals("Morning Yoga", captor.getValue().getName());
+        assertEquals(100L, captor.getValue().getId());
     }
 
     @Test
-    void testGetTrainingByNameFound() {
-        Training training = new Training(1L, 2L, "Cardio", new TrainingType("cardio"), "2025-11-05", 45L);
-        when(trainingDao.findByName("Cardio")).thenReturn(Optional.of(training));
+    void testGetTrainingByIdFound() {
+        Training training = new Training(
+                101L, 1L, 2L, "Cardio",
+                TrainingType.valueOf("CARDIO"), "2025-11-05", 45L);
 
-        Optional<Training> result = trainingService.getTrainingById("Cardio");
+        when(trainingDao.findById(101L)).thenReturn(Optional.of(training));
+
+        Optional<Training> result = trainingService.getTrainingById(101L);
 
         assertTrue(result.isPresent());
-        assertEquals("Cardio", result.get().getName());
-        verify(trainingDao).findByName("Cardio");
+        assertEquals(101L, result.get().getId());
+        verify(trainingDao).findById(101L);
     }
 
     @Test
     void testGetTrainingByNameNotFound() {
-        when(trainingDao.findByName("Nonexistent")).thenReturn(Optional.empty());
+        when(trainingDao.findById(999L)).thenReturn(Optional.empty());
 
-        Optional<Training> result = trainingService.getTrainingById("Nonexistent");
+        Optional<Training> result = trainingService.getTrainingById(999L);
 
         assertFalse(result.isPresent());
-        verify(trainingDao).findByName("Nonexistent");
+        verify(trainingDao).findById(999L);
     }
 
     @Test
     void testGetAllTrainings() {
         List<Training> trainings = List.of(
-                new Training(1L, 2L, "Yoga", new TrainingType("yoga"), "2025-11-05", 60L),
-                new Training(3L, 4L, "Boxing", new TrainingType("cardio"), "2025-11-06", 45L)
+                new Training(200L, 1L, 2L, "Yoga", TrainingType.valueOf("YOGA"), "2025-11-05", 60L),
+                new Training(201L, 3L, 4L, "Boxing", TrainingType.valueOf("CARDIO"), "2025-11-06", 45L)
         );
 
         when(trainingDao.findAll()).thenReturn(trainings);
@@ -73,7 +77,7 @@ class TrainingServiceTest {
         List<Training> result = trainingService.getAllTrainings();
 
         assertEquals(2, result.size());
-        assertEquals("Yoga", result.get(0).getName());
+        assertEquals(200L, result.get(0).getId());
         verify(trainingDao).findAll();
     }
 }

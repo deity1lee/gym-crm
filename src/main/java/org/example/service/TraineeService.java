@@ -12,7 +12,7 @@ import java.util.*;
 @Service
 public class TraineeService {
 
-    private static final Logger logger = LoggerFactory.getLogger(TraineeService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TraineeService.class);
 
     private TraineeDao traineeDao;
 
@@ -21,6 +21,40 @@ public class TraineeService {
         this.traineeDao = traineeDao;
     }
 
+    public void createTrainee(Trainee trainee) {
+        if (traineeDao.findById(trainee.getId()).isPresent()) {
+            LOGGER.warn("Trainee with id {} already exists. Creation skipped.", trainee.getId());
+            return;
+        }
+        assignCredentials(trainee);
+        traineeDao.save(trainee);
+        LOGGER.info("Created trainee profile for username: {}", trainee.getUsername());
+    }
+
+
+    public void updateTrainee(Trainee trainee) {
+        traineeDao.save(trainee);
+        LOGGER.info("Updated trainee with id: {}", trainee.getId());
+    }
+
+    public Optional<Trainee> getTraineeById(Long id) {
+        LOGGER.debug("Fetching trainee with id: {}", id);
+        return traineeDao.findById(id);
+    }
+
+    public List<Trainee> getAllTrainees() {
+        LOGGER.debug("Fetching all trainees");
+        return traineeDao.findAll();
+    }
+
+    public void deleteTrainee(Long id) {
+        if (traineeDao.findById(id).isEmpty()) {
+            LOGGER.warn("Trainee with id {} does not exist. Removal skipped.", id);
+            return;
+        }
+        traineeDao.delete(id);
+        LOGGER.info("Deleted trainee with id: {}", id);
+    }
     private void assignCredentials(Trainee trainee) {
         String username = CredentialGenerator.generateUsername(
                 trainee.getFirstName(),
@@ -34,33 +68,7 @@ public class TraineeService {
         trainee.setPassword(password);
         trainee.setActive(true);
 
-        logger.debug("Assigned credentials for {}: username={}, password={}",
+        LOGGER.debug("Assigned credentials for {}: username={}, password={}",
                 trainee.getFirstName(), username, password);
-    }
-
-    public void createTrainee(Trainee trainee) {
-        assignCredentials(trainee);
-        traineeDao.save(trainee);
-        logger.info("Created trainee profile for username: {}", trainee.getUsername());
-    }
-
-    public void updateTrainee(Trainee trainee) {
-        traineeDao.save(trainee);
-        logger.info("Updated trainee with id: {}", trainee.getId());
-    }
-
-    public Optional<Trainee> getTraineeById(Long id) {
-        logger.debug("Fetching trainee with id: {}", id);
-        return traineeDao.findById(id);
-    }
-
-    public List<Trainee> getAllTrainees() {
-        logger.debug("Fetching all trainees");
-        return traineeDao.findAll();
-    }
-
-    public void deleteTrainee(Long id) {
-        logger.info("Deleted trainee with id: {}", id);
-        traineeDao.delete(id);
     }
 }
