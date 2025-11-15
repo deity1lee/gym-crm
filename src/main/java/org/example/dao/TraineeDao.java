@@ -1,6 +1,7 @@
 package org.example.dao;
 
 import org.example.entities.Trainee;
+import org.example.entities.Trainer;
 import org.example.storage.InMemoryStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,9 +20,26 @@ public class TraineeDao {
         this.storage = storage;
     }
 
-    public void save(Trainee trainee) {
+    public void create(Trainee trainee) {
+        if (storage.getTraineeMap().containsKey(trainee.getId())) {
+            LOGGER.warn("Trainee with id {} already exists. Cannot create.", trainee.getId());
+            throw new IllegalArgumentException("Trainee ID already exists");
+        }
+
+        Long newId = getNextId();
+        trainee.setId(newId);
+
+        storage.getTraineeMap().put(newId, trainee);
+        LOGGER.info("Created trainee with id {}", trainee.getId());
+    }
+
+    public void update(Trainee trainee) {
+        if (!storage.getTraineeMap().containsKey(trainee.getId())) {
+            LOGGER.warn("Trainee with id {} does not exist. Cannot update.", trainee.getId());
+            throw new IllegalArgumentException("Trainee ID does not exist");
+        }
         storage.getTraineeMap().put(trainee.getId(), trainee);
-        LOGGER.info("Saved trainee with id {} to in-memory storage", trainee.getId());
+        LOGGER.info("Updated trainee with id {}", trainee.getId());
     }
 
     public Optional<Trainee> findById(Long id) {
@@ -35,6 +53,10 @@ public class TraineeDao {
     }
 
     public void delete(Long id) {
+        if (!storage.getTraineeMap().containsKey(id)) {
+            LOGGER.warn("Trainee with id {} does not exist. Removal skipped.", id);
+            return;
+        }
         storage.getTraineeMap().remove(id);
         LOGGER.info("Removed trainee with id {}", id);
     }
@@ -48,5 +70,11 @@ public class TraineeDao {
                 .count();
         LOGGER.info("Number of trainees by first name '{}' and last name '{}': {}", firstName, lastName, count);
         return count;
+    }
+
+    public Long getNextId() {
+        return storage.getTraineeMap().keySet().stream()
+                .max(Long::compareTo)
+                .orElse(0L) + 1;
     }
 }

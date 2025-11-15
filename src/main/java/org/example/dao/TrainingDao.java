@@ -11,7 +11,7 @@ import java.util.*;
 @Repository
 public class TrainingDao {
 
-    private static final Logger logger = LoggerFactory.getLogger(TrainingDao.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TrainingDao.class);
     private InMemoryStorage storage;
 
     @Autowired
@@ -21,16 +21,16 @@ public class TrainingDao {
 
     public void save(Training training) {
         storage.getTrainingMap().put(training.getId(), training);
-        logger.info("Saved training with name {} to in-memory storage", training.getName());
+        LOGGER.info("Saved training with name {} to in-memory storage", training.getName());
     }
 
     public Optional<Training> findById(Long id) {
-        logger.debug("Finding trainings by id {}", id);
+        LOGGER.debug("Finding trainings by id {}", id);
         return Optional.ofNullable(storage.getTrainingMap().get(id));
     }
 
     public List<Training> findAll() {
-        logger.debug("Retrieving all trainings from storage");
+        LOGGER.debug("Retrieving all trainings from storage");
         return new ArrayList<>(storage.getTrainingMap().values());
     }
 }

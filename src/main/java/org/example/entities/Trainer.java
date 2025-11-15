@@ -9,8 +9,18 @@ public class Trainer extends User {
         this.id = id;
         this.specialization = specialization;
     }
+
+    public Trainer(String firstName, String lastName, String specialization) {
+        super(firstName, lastName);
+        this.specialization = specialization;
+    }
+
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 }
 

@@ -1,6 +1,7 @@
 package trainee;
 
 import org.example.dao.TraineeDao;
+import org.example.dao.TrainerDao;
 import org.example.entities.Trainee;
 import org.example.service.TraineeService;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,27 +16,38 @@ import static org.mockito.Mockito.*;
 class TraineeServiceTest {
 
     private TraineeDao traineeDao;
+    private TrainerDao trainerDao;
     private TraineeService traineeService;
 
     @BeforeEach
     void setUp() {
         traineeDao = mock(TraineeDao.class);
+        trainerDao = mock(TrainerDao.class);
+
         traineeService = new TraineeService();
         traineeService.setTraineeDao(traineeDao);
+        traineeService.setTrainerDao(trainerDao);
     }
 
     @Test
     void testCreateTraineeGeneratesUsernameAndPassword() {
-        Trainee trainee = new Trainee(1L, "John", "Smith", "1998-02-15", "New York");
+        Trainee trainee = new Trainee("John", "Smith", "1998-02-15", "New York");
 
         when(traineeDao.countByFullName("John", "Smith")).thenReturn(0L);
+
+        doAnswer(inv -> {
+            Trainee t = inv.getArgument(0);
+            t.setId(1L);
+            return null;
+        }).when(traineeDao).create(any(Trainee.class));
 
         traineeService.createTrainee(trainee);
 
         ArgumentCaptor<Trainee> captor = ArgumentCaptor.forClass(Trainee.class);
-        verify(traineeDao).save(captor.capture());
+        verify(traineeDao).create(captor.capture());
 
         Trainee saved = captor.getValue();
+        assertEquals(1L, saved.getId());
         assertEquals("John.Smith", saved.getUsername());
         assertNotNull(saved.getPassword());
         assertEquals(10, saved.getPassword().length());
@@ -44,14 +56,17 @@ class TraineeServiceTest {
 
     @Test
     void testCreateTraineeAppendsNumberIfDuplicateName() {
-        Trainee trainee = new Trainee(2L, "John", "Smith", "1999-06-30", "Boston");
+        Trainee trainee = new Trainee("John", "Smith", "1999-06-30", "Boston");
 
+        when(traineeDao.getNextId()).thenReturn(2L);
         when(traineeDao.countByFullName("John", "Smith")).thenReturn(1L);
+        when(trainerDao.countByFullName("John", "Smith")).thenReturn(0L);
+
 
         traineeService.createTrainee(trainee);
 
         ArgumentCaptor<Trainee> captor = ArgumentCaptor.forClass(Trainee.class);
-        verify(traineeDao).save(captor.capture());
+        verify(traineeDao).create(captor.capture());
 
         assertEquals("John.Smith2", captor.getValue().getUsername());
     }
@@ -62,7 +77,7 @@ class TraineeServiceTest {
 
         traineeService.updateTrainee(trainee);
 
-        verify(traineeDao, times(1)).save(trainee);
+        verify(traineeDao, times(1)).update(trainee);
     }
 
     @Test

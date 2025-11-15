@@ -1,5 +1,6 @@
 package org.example.service;
 
+import org.example.dao.TraineeDao;
 import org.example.dao.TrainerDao;
 import org.example.entities.Trainer;
 import org.example.utilities.CredentialGenerator;
@@ -15,24 +16,32 @@ public class TrainerService {
     private static final Logger LOGGER = LoggerFactory.getLogger(TrainerService.class);
 
     private TrainerDao trainerDao;
+    private TraineeDao traineeDao;
 
     @Autowired
     public void setTrainerDao(TrainerDao trainerDao) {
         this.trainerDao = trainerDao;
     }
 
+    @Autowired
+    public void setTraineeDao(TraineeDao traineeDao) {
+        this.traineeDao = traineeDao;
+    }
+
     public void createTrainer(Trainer trainer) {
-        if (trainerDao.findById(trainer.getId()).isPresent()) {
-            LOGGER.warn("Trainer with id {} already exists. Creation skipped.", trainer.getId());
-            return;
+        if (trainer.getId() != null) {
+            throw new IllegalArgumentException("New trainer must not have an id. Use updateTrainer() for existing trainers.");
         }
         assignCredentials(trainer);
-        trainerDao.save(trainer);
+        trainerDao.create(trainer);
         LOGGER.info("Created trainer profile for username: {}", trainer.getUsername());
     }
 
     public void updateTrainer(Trainer trainer) {
-        trainerDao.save(trainer);
+        if (trainer.getId() == null) {
+            throw new IllegalArgumentException("Cannot update trainee without id. Use createTrainee() for new trainees.");
+        }
+        trainerDao.update(trainer);
         LOGGER.info("Updated trainer with id: {}", trainer.getId());
     }
 
@@ -46,10 +55,14 @@ public class TrainerService {
         return trainerDao.findAll();
     }
     private void assignCredentials(Trainer trainer) {
+        long traineeCount = traineeDao.countByFullName(trainer.getFirstName(), trainer.getLastName());
+        long trainerCount = trainerDao.countByFullName(trainer.getFirstName(), trainer.getLastName());
+        long total = traineeCount + trainerCount;
+
         String username = CredentialGenerator.generateUsername(
                 trainer.getFirstName(),
                 trainer.getLastName(),
-                trainerDao.countByFullName(trainer.getFirstName(), trainer.getLastName())
+                total
         );
 
         String password = CredentialGenerator.generateRandomPassword();

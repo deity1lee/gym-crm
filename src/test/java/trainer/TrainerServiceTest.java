@@ -1,5 +1,6 @@
 package trainer;
 
+import org.example.dao.TraineeDao;
 import org.example.dao.TrainerDao;
 import org.example.entities.Trainer;
 import org.example.service.TrainerService;
@@ -14,25 +15,29 @@ import static org.mockito.Mockito.*;
 class TrainerServiceTest {
 
     private TrainerDao trainerDao;
+    private TraineeDao traineeDao;
     private TrainerService trainerService;
 
     @BeforeEach
     void setUp() {
         trainerDao = mock(TrainerDao.class);
+        traineeDao = mock(TraineeDao.class);
+
         trainerService = new TrainerService();
         trainerService.setTrainerDao(trainerDao);
+        trainerService.setTraineeDao(traineeDao);
     }
 
     @Test
-    void testCreatetrainerGeneratesUsernameAndPassword() {
-        Trainer trainer = new Trainer(1L, "John", "Smith", "nutrition coaching");
+    void testCreateTrainerGeneratesUsernameAndPassword() {
+        Trainer trainer = new Trainer("John", "Smith", "nutrition coaching");
 
         when(trainerDao.countByFullName("John", "Smith")).thenReturn(0L);
 
         trainerService.createTrainer(trainer);
 
         ArgumentCaptor<Trainer> captor = ArgumentCaptor.forClass(Trainer.class);
-        verify(trainerDao).save(captor.capture());
+        verify(trainerDao).create(captor.capture());
 
         Trainer saved = captor.getValue();
         assertEquals("John.Smith", saved.getUsername());
@@ -42,30 +47,31 @@ class TrainerServiceTest {
     }
 
     @Test
-    void testCreatetrainerAppendsNumberIfDuplicateName() {
-        Trainer trainer = new Trainer(2L, "John", "Smith", "nutrition coaching");
+    void testCreateTrainerAppendsNumberIfDuplicateName() {
+        Trainer trainer = new Trainer("John", "Smith", "nutrition coaching");
 
-        when(trainerDao.countByFullName("John", "Smith")).thenReturn(1L);
+        when(trainerDao.countByFullName("John", "Smith")).thenReturn(5L);
+        when(traineeDao.countByFullName("John", "Smith")).thenReturn(6L);
 
         trainerService.createTrainer(trainer);
 
         ArgumentCaptor<Trainer> captor = ArgumentCaptor.forClass(Trainer.class);
-        verify(trainerDao).save(captor.capture());
+        verify(trainerDao).create(captor.capture());
 
-        assertEquals("John.Smith2", captor.getValue().getUsername());
+        assertEquals("John.Smith12", captor.getValue().getUsername());
     }
 
     @Test
-    void testUpdatetrainerDelegatesToDao() {
+    void testUpdateTrainerDelegatesToDao() {
         Trainer trainer = new Trainer(1L, "Alice", "Brown", "nutrition coaching");
 
         trainerService.updateTrainer(trainer);
 
-        verify(trainerDao, times(1)).save(trainer);
+        verify(trainerDao, times(1)).update(trainer);
     }
 
     @Test
-    void testGettrainerByIdDelegatesToDao() {
+    void testGetTrainerByIdDelegatesToDao() {
         Trainer trainer = new Trainer(1L, "David", "Lee", "nutrition coaching");
         when(trainerDao.findById(1L)).thenReturn(Optional.of(trainer));
 
@@ -77,7 +83,7 @@ class TrainerServiceTest {
     }
 
     @Test
-    void testGetAlltrainersDelegatesToDao() {
+    void testGetAllTrainersDelegatesToDao() {
         List<Trainer> trainers = List.of(
                 new Trainer(1L, "John", "Smith", "nutrition coaching"),
                 new Trainer(2L, "Alice", "Brown", "youth fitness")

@@ -1,6 +1,7 @@
 package org.example.service;
 
 import org.example.dao.TraineeDao;
+import org.example.dao.TrainerDao;
 import org.example.entities.Trainee;
 import org.example.utilities.CredentialGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,25 +16,32 @@ public class TraineeService {
     private static final Logger LOGGER = LoggerFactory.getLogger(TraineeService.class);
 
     private TraineeDao traineeDao;
+    private TrainerDao trainerDao;
 
     @Autowired
     public void setTraineeDao(TraineeDao traineeDao) {
         this.traineeDao = traineeDao;
     }
 
+    @Autowired
+    public void setTrainerDao(TrainerDao trainerDao) {
+        this.trainerDao = trainerDao;
+    }
+
     public void createTrainee(Trainee trainee) {
-        if (traineeDao.findById(trainee.getId()).isPresent()) {
-            LOGGER.warn("Trainee with id {} already exists. Creation skipped.", trainee.getId());
-            return;
+        if (trainee.getId() != null) {
+            throw new IllegalArgumentException("New trainee must not have an id. Use updateTrainee() for existing trainees.");
         }
         assignCredentials(trainee);
-        traineeDao.save(trainee);
+        traineeDao.create(trainee);
         LOGGER.info("Created trainee profile for username: {}", trainee.getUsername());
     }
 
-
     public void updateTrainee(Trainee trainee) {
-        traineeDao.save(trainee);
+        if (trainee.getId() == null) {
+            throw new IllegalArgumentException("Cannot update trainee without id. Use createTrainee() for new trainees.");
+        }
+        traineeDao.update(trainee);
         LOGGER.info("Updated trainee with id: {}", trainee.getId());
     }
 
@@ -48,18 +56,18 @@ public class TraineeService {
     }
 
     public void deleteTrainee(Long id) {
-        if (traineeDao.findById(id).isEmpty()) {
-            LOGGER.warn("Trainee with id {} does not exist. Removal skipped.", id);
-            return;
-        }
         traineeDao.delete(id);
         LOGGER.info("Deleted trainee with id: {}", id);
     }
     private void assignCredentials(Trainee trainee) {
+        long traineeCount = traineeDao.countByFullName(trainee.getFirstName(), trainee.getLastName());
+        long trainerCount = trainerDao.countByFullName(trainee.getFirstName(), trainee.getLastName());
+        long total = traineeCount + trainerCount;
+
         String username = CredentialGenerator.generateUsername(
                 trainee.getFirstName(),
                 trainee.getLastName(),
-                traineeDao.countByFullName(trainee.getFirstName(), trainee.getLastName())
+                total
         );
 
         String password = CredentialGenerator.generateRandomPassword();
