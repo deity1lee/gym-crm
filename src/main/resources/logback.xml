@@ -1,0 +1,24 @@
+<configuration>
+
+    <!-- Console output -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Your app logs (TRACE+) -->
+    <logger name="org.example" level="TRACE"/>
+
+    <!-- Reduce Spring noise -->
+    <logger name="org.springframework" level="WARN"/>
+
+    <!-- Reduce Hibernate noise -->
+    <logger name="org.hibernate" level="WARN"/>
+
+    <!-- Root logger -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+</configuration>

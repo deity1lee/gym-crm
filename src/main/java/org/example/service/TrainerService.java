@@ -2,8 +2,12 @@ package org.example.service;
 
 import org.example.dao.TraineeDao;
 import org.example.dao.TrainerDao;
+import org.example.entities.Trainee;
 import org.example.entities.Trainer;
+import org.example.entities.Training;
+import org.example.entities.User;
 import org.example.utilities.CredentialGenerator;
+import org.example.utilities.TrainingSearchCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
@@ -17,6 +21,8 @@ public class TrainerService {
 
     private TrainerDao trainerDao;
     private TraineeDao traineeDao;
+    private AuthService authService;
+    private ValidatorService validatorService;
 
     @Autowired
     public void setTrainerDao(TrainerDao trainerDao) {
@@ -28,32 +34,78 @@ public class TrainerService {
         this.traineeDao = traineeDao;
     }
 
+    @Autowired
+    public void setAuthService(AuthService authService) {
+        this.authService = authService;
+    }
+
+    @Autowired
+    public void setValidatorService(ValidatorService validatorService) {
+        this.validatorService = validatorService;
+    }
+
     public void createTrainer(Trainer trainer) {
-        if (trainer.getId() != null) {
-            throw new IllegalArgumentException("New trainer must not have an id. Use updateTrainer() for existing trainers.");
-        }
+        validatorService.validateFirstName(trainer.getFirstName());
+        validatorService.validateLastName(trainer.getLastName());
         assignCredentials(trainer);
         trainerDao.create(trainer);
-        LOGGER.info("Created trainer profile for username: {}", trainer.getUsername());
+        LOGGER.info("Created trainee profile for username: {}", trainer.getUsername());
     }
 
-    public void updateTrainer(Trainer trainer) {
-        if (trainer.getId() == null) {
-            throw new IllegalArgumentException("Cannot update trainee without id. Use createTrainee() for new trainees.");
+    public Trainer selectByUsername(String username, String password, String usernameForSearch) {
+        authService.authenticateTrainer(username, password)
+                .orElseThrow(() -> new IllegalArgumentException("Not authenticated trainer for doing select."));
+        Trainer trainer = trainerDao.findByUsername(usernameForSearch)
+                .orElseThrow(() -> new IllegalArgumentException("Trainer by this username is not found."));
+        LOGGER.info("Trainer by username {} is found", usernameForSearch);
+        return trainer;
+    }
+
+    public void changePassword(String username, String oldPassword, String newPassword) {
+        Trainer trainer = authService.authenticateTrainer(username, oldPassword)
+                .orElseThrow(() -> new IllegalArgumentException("Not authenticated trainer for password update"));
+        if (!validatorService.isStrongPassword(newPassword)) {
+            LOGGER.info("Password was not updated. Provided password is not strong");
+            return;
         }
-        trainerDao.update(trainer);
-        LOGGER.info("Updated trainer with id: {}", trainer.getId());
+        trainer.setPassword(newPassword);
+        trainerDao.updatePassword(trainer.getId(), newPassword);
+        LOGGER.info("Password was changed successfully!");
     }
 
-    public Optional<Trainer> getTrainerById(Long id) {
-        LOGGER.debug("Fetching trainer with id: {}", id);
-        return trainerDao.findById(id);
+    public void updateTrainer(String username, String password, Trainer newTrainer) {
+        User existing = authService.authenticateTrainer(username,password)
+                .orElseThrow(() -> new IllegalArgumentException("Not authenticated trainer for updating profile."));
+        validatorService.validateFirstName(newTrainer.getFirstName());
+        existing.setFirstName(newTrainer.getFirstName());
+        validatorService.validateLastName(newTrainer.getLastName());
+        existing.setLastName(newTrainer.getLastName());
+        trainerDao.updateProfile((Trainer) existing);
     }
 
-    public List<Trainer> getAllTrainers() {
-        LOGGER.debug("Fetching all trainers");
-        return trainerDao.findAll();
+    public void activateTrainer(String username, String password) {
+        Trainer trainer1 = authService.authenticateTrainer(username, password)
+                .orElseThrow(() -> new IllegalArgumentException("Not authenticated trainer for doing status change"));
+        trainerDao.activateTrainer(trainer1);
     }
+
+    public void deActivateTrainer(String username, String password) {
+        Trainer trainer1 = authService.authenticateTrainer(username, password)
+                .orElseThrow(() -> new IllegalArgumentException("Not authenticated trainer for doing status change"));
+        trainerDao.deActivateTrainer(trainer1);
+    }
+
+    public List<Training> getTrainerTrainings(String username, String password, TrainingSearchCriteria criteria) {
+        authService.authenticateTrainer(username, password)
+                .orElseThrow(() -> new IllegalArgumentException("Not authenticated trainer for searching trainings."));
+        List<Training> trainings = trainerDao.findByTrainerUsernameAndCriteria(username, criteria);
+        LOGGER.info("Training names for trainer {}:", username);
+        trainings.forEach(t ->
+                LOGGER.info(" - {}", t.getName())
+        );
+        return trainings;
+    }
+
     private void assignCredentials(Trainer trainer) {
         long traineeCount = traineeDao.countByFullName(trainer.getFirstName(), trainer.getLastName());
         long trainerCount = trainerDao.countByFullName(trainer.getFirstName(), trainer.getLastName());

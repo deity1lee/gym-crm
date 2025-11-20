@@ -1,16 +1,32 @@
 package org.example.entities;
 
 
+import javax.persistence.*;
+
+@Entity
+@Inheritance(strategy = InheritanceType.JOINED)
+@Table(name = "users")
 public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @Column(nullable = false)
     private String firstName;
+    @Column(nullable = false)
     private String lastName;
+    @Column(nullable = false)
     private String username;
+    @Column(nullable = false)
     private String password;
+    @Column(nullable = false)
     private boolean isActive;
 
-    public User(String firstName, String lastName) {
+    public User() {}
+
+    public User(String firstName, String lastName, boolean isActive) {
         this.firstName = firstName;
         this.lastName = lastName;
+        this.isActive = isActive;
     }
 
     public String getFirstName() { return firstName; }
@@ -26,4 +42,20 @@ public class User {
 
     public boolean isActive() { return isActive; }
     public void setActive(boolean active) { isActive = active; }
+
+    protected Long getId() {
+        return id;
+    }
+
+    protected void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
 }

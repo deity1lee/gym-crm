@@ -1,83 +1,90 @@
 package training;
 
+import org.example.dao.TraineeDao;
+import org.example.dao.TrainerDao;
 import org.example.dao.TrainingDao;
+import org.example.dao.TrainingTypeDao;
+import org.example.entities.Trainee;
+import org.example.entities.Trainer;
 import org.example.entities.Training;
 import org.example.entities.TrainingType;
 import org.example.service.TrainingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import java.util.List;
-import java.util.Optional;
-import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.*;
+
 import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 class TrainingServiceTest {
 
-    @Mock
+    private TraineeDao traineeDao;
+    private TrainerDao trainerDao;
+    private TrainingTypeDao trainingTypeDao;
     private TrainingDao trainingDao;
 
     private TrainingService trainingService;
 
     @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        trainingService = new TrainingService();
-        trainingService.setTrainingDao(trainingDao);
+    void setup() {
+        traineeDao = mock(TraineeDao.class);
+        trainerDao = mock(TrainerDao.class);
+        trainingTypeDao = mock(TrainingTypeDao.class);
+        trainingDao = mock(TrainingDao.class);
+
+        trainingService = new TrainingService(traineeDao, trainerDao, trainingTypeDao, trainingDao);
     }
 
     @Test
-    void testCreateTraining() {
-        Training training = new Training(
-                100L, 1L, 2L, "Morning Yoga",
-                TrainingType.valueOf("YOGA"), "2025-11-05", 60L);
-        trainingService.createTraining(training);
+    void addTraining_Success() {
+        Trainee trainee = new Trainee();
+        Trainer trainer = new Trainer();
+        TrainingType type = new TrainingType();
 
-        ArgumentCaptor<Training> captor = ArgumentCaptor.forClass(Training.class);
-        verify(trainingDao).save(captor.capture());
-        assertEquals(100L, captor.getValue().getId());
+        when(traineeDao.findByUsername("t1")).thenReturn(Optional.of(trainee));
+        when(trainerDao.findByUsername("tr1")).thenReturn(Optional.of(trainer));
+        when(trainingTypeDao.findByName("Yoga")).thenReturn(Optional.of(type));
+
+        trainingService.addTraining("t1", "tr1", "Yoga", new Date(), 30L, "Morning");
+
+        verify(trainingDao).addTraining(any(Training.class));
     }
 
     @Test
-    void testGetTrainingByIdFound() {
-        Training training = new Training(
-                101L, 1L, 2L, "Cardio",
-                TrainingType.valueOf("CARDIO"), "2025-11-05", 45L);
+    void addTraining_NoTrainee_ShouldThrow() {
+        when(traineeDao.findByUsername("missing")).thenReturn(Optional.empty());
 
-        when(trainingDao.findById(101L)).thenReturn(Optional.of(training));
-
-        Optional<Training> result = trainingService.getTrainingById(101L);
-
-        assertTrue(result.isPresent());
-        assertEquals(101L, result.get().getId());
-        verify(trainingDao).findById(101L);
+        assertThrows(IllegalArgumentException.class, () ->
+                trainingService.addTraining("missing", "tr1", "Yoga", new Date(), 10L, "X"));
     }
 
     @Test
-    void testGetTrainingByNameNotFound() {
-        when(trainingDao.findById(999L)).thenReturn(Optional.empty());
+    void addTraining_NoTrainer_ShouldThrow() {
+        when(traineeDao.findByUsername("t1")).thenReturn(Optional.of(new Trainee()));
+        when(trainerDao.findByUsername("missing")).thenReturn(Optional.empty());
 
-        Optional<Training> result = trainingService.getTrainingById(999L);
-
-        assertFalse(result.isPresent());
-        verify(trainingDao).findById(999L);
+        assertThrows(IllegalArgumentException.class, () ->
+                trainingService.addTraining("t1", "missing", "Yoga", new Date(), 10L, "X"));
     }
 
     @Test
-    void testGetAllTrainings() {
-        List<Training> trainings = List.of(
-                new Training(200L, 1L, 2L, "Yoga", TrainingType.valueOf("YOGA"), "2025-11-05", 60L),
-                new Training(201L, 3L, 4L, "Boxing", TrainingType.valueOf("CARDIO"), "2025-11-06", 45L)
-        );
+    void addTraining_NoTrainingType_ShouldThrow() {
+        when(traineeDao.findByUsername("t1")).thenReturn(Optional.of(new Trainee()));
+        when(trainerDao.findByUsername("t2")).thenReturn(Optional.of(new Trainer()));
+        when(trainingTypeDao.findByName("BadType")).thenReturn(Optional.empty());
 
-        when(trainingDao.findAll()).thenReturn(trainings);
+        assertThrows(IllegalArgumentException.class, () ->
+                trainingService.addTraining("t1", "t2", "BadType", new Date(), 10L, "X"));
+    }
 
-        List<Training> result = trainingService.getAllTrainings();
+    @Test
+    void addTraining_InvalidDuration_ShouldThrow() {
+        when(traineeDao.findByUsername("t1")).thenReturn(Optional.of(new Trainee()));
+        when(trainerDao.findByUsername("t2")).thenReturn(Optional.of(new Trainer()));
+        when(trainingTypeDao.findByName("Yoga")).thenReturn(Optional.of(new TrainingType()));
 
-        assertEquals(2, result.size());
-        assertEquals(200L, result.get(0).getId());
-        verify(trainingDao).findAll();
+        assertThrows(IllegalArgumentException.class, () ->
+                trainingService.addTraining("t1", "t2", "Yoga", new Date(), -5L, "X"));
     }
 }

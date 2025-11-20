@@ -1,20 +1,45 @@
 package org.example.entities;
 
+import javax.persistence.*;
+import java.util.Date;
+
+@Entity
+@Table(name = "trainings")
 public class Training {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long traineeId;
-    private Long trainerId;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "traineeId", nullable = false)
+    private Trainee trainee;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "trainerId", nullable = false)
+    private Trainer trainer;
+
+    @Column(name = "trainingName", nullable = false)
     private String name;
-    private TrainingType type;
-    private String date;
+
+    @ManyToOne
+    @JoinColumn(name = "trainingTypeId", nullable = false)
+    private TrainingType trainingType;
+
+    @Temporal(TemporalType.DATE)
+    @Column(name = "trainingDate", nullable = false)
+    private Date date;
+
+    @Column(name = "trainingDuration", nullable = false)
     private Long duration;
 
-    public Training(Long id, Long traineeId, Long trainerId, String name, TrainingType type, String date, Long duration) {
+    public Training() {}
+
+    public Training(Long id, Trainee trainee, Trainer trainer, String name, TrainingType type, Date date, Long duration) {
         this.id = id;
-        this.traineeId = traineeId;
-        this.trainerId = trainerId;
+        this.trainee = trainee;
+        this.trainer = trainer;
         this.name = name;
-        this.type = type;
+        this.trainingType = type;
         this.date = date;
         this.duration = duration;
     }
