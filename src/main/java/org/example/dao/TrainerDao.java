@@ -87,10 +87,7 @@ public class TrainerDao {
                 .filter(s -> !s.isEmpty())
                 .ifPresent(v -> hql.append(" AND tr.trainee.lastName = :userLastName"));
 
-        Query<Training> query = sessionFactory
-                .getCurrentSession()
-                .createQuery(hql.toString(), Training.class);
-
+        Query<Training> query = sessionFactory.getCurrentSession().createQuery(hql.toString(), Training.class);
         query.setParameter("username", username);
 
         Optional.ofNullable(criteria.getFromDate())
