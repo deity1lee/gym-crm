@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.function.Consumer;
 
 @Component
@@ -46,7 +47,12 @@ public class StorageInitializer implements BeanPostProcessor {
             Long id = Long.parseLong(parts[0]);
             Trainee trainee = new Trainee(id, parts[1], parts[2], parts[3], parts[4]);
             storage.getTraineeMap().put(id, trainee);
+
         });
+        long maxId = storage.getTraineeMap().keySet().stream()
+                .max(Long::compareTo)
+                .orElse(0L);
+        storage.setTraineeMaxId(maxId);
         LOGGER.info("Loaded trainees from {}", traineeFilePath);
     }
     private void loadTrainers(InMemoryStorage storage) {
@@ -56,6 +62,10 @@ public class StorageInitializer implements BeanPostProcessor {
             Trainer trainer = new Trainer(id, parts[1], parts[2], parts[3]);
             storage.getTrainerMap().put(id, trainer);
         });
+        long maxId = storage.getTrainerMap().keySet().stream()
+                .max(Long::compareTo)
+                .orElse(0L);
+        storage.setTrainerMaxId(maxId);
         LOGGER.info("Loaded trainers from {}", trainerFilePath);
     }
     private void loadTrainings(InMemoryStorage storage) {
@@ -72,6 +82,10 @@ public class StorageInitializer implements BeanPostProcessor {
                     parts[3], TrainingType.valueOf(parts[4]), parts[5], duration);
             storage.getTrainingMap().put(trainingId, training);
         });
+        long maxId = storage.getTrainingMap().keySet().stream()
+                .max(Long::compareTo)
+                .orElse(0L);
+        storage.setTrainingMaxId(maxId);
         LOGGER.info("Loaded trainings from {}", trainingFilePath);
     }
 

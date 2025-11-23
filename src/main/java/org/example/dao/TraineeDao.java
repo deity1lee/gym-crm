@@ -1,7 +1,6 @@
 package org.example.dao;
 
 import org.example.entities.Trainee;
-import org.example.entities.Trainer;
 import org.example.storage.InMemoryStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,8 +53,7 @@ public class TraineeDao {
 
     public void delete(Long id) {
         if (!storage.getTraineeMap().containsKey(id)) {
-            LOGGER.warn("Trainee with id {} does not exist. Removal skipped.", id);
-            return;
+            throw new NoSuchElementException("Trainee with id " + id + " does not exist");
         }
         storage.getTraineeMap().remove(id);
         LOGGER.info("Removed trainee with id {}", id);
@@ -73,8 +71,6 @@ public class TraineeDao {
     }
 
     public Long getNextId() {
-        return storage.getTraineeMap().keySet().stream()
-                .max(Long::compareTo)
-                .orElse(0L) + 1;
+        return storage.getTraineeMaxId().incrementAndGet();
     }
 }

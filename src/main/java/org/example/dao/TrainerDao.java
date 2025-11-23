@@ -61,10 +61,9 @@ public class TrainerDao {
         LOGGER.info("Number of trainers by first name '{}' and last name '{}': {}", firstName, lastName, count);
         return count;
     }
+
     public Long getNextId() {
-        return storage.getTrainerMap().keySet().stream()
-                .max(Long::compareTo)
-                .orElse(0L) + 1;
+        return storage.getTrainerMaxId().incrementAndGet();
     }
 }
 

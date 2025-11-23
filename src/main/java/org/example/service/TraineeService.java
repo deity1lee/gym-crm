@@ -38,9 +38,8 @@ public class TraineeService {
     }
 
     public void updateTrainee(Trainee trainee) {
-        if (trainee.getId() == null) {
-            throw new IllegalArgumentException("Cannot update trainee without id. Use createTrainee() for new trainees.");
-        }
+        Optional.ofNullable(trainee.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Cannot update trainee without id. Use createTrainee() for new trainees"));
         traineeDao.update(trainee);
         LOGGER.info("Updated trainee with id: {}", trainee.getId());
     }
@@ -56,8 +55,12 @@ public class TraineeService {
     }
 
     public void deleteTrainee(Long id) {
-        traineeDao.delete(id);
-        LOGGER.info("Deleted trainee with id: {}", id);
+        try {
+            traineeDao.delete(id);
+            LOGGER.info("Deleted trainee with id: {}", id);
+        } catch (NoSuchElementException e) {
+            throw new IllegalArgumentException("Trainee with provided ID does not exist");
+        }
     }
     private void assignCredentials(Trainee trainee) {
         long traineeCount = traineeDao.countByFullName(trainee.getFirstName(), trainee.getLastName());
@@ -76,7 +79,7 @@ public class TraineeService {
         trainee.setPassword(password);
         trainee.setActive(true);
 
-        LOGGER.debug("Assigned credentials for {}: username={}, password={}",
-                trainee.getFirstName(), username, password);
+        LOGGER.debug("Assigned credentials for {}: username={}",
+                trainee.getFirstName(), username);
     }
 }
