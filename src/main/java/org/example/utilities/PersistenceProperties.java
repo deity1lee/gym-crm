@@ -36,6 +36,7 @@ public class PersistenceProperties {
     public String getPassword() {
         return password;
     }
+
     public String getDriver() {
         return driver;
     }

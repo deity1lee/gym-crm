@@ -16,7 +16,19 @@ Before running the project, make sure you have the following installed:
 | **IntelliJ IDEA** | (optional)       | Recommended IDE for running and debugging the application |
 | **MySQL**         |     8.0.34          |                                                           |
 
+
 ---
+## Before running the app
+
+### Add your DB settings into:
+
+src/main/resources/application-mysql.properties
+
+### create your schema:
+
+CREATE DATABASE gymdb;
+
+
 ## Before running the app
 
 ### Add your DB settings into:

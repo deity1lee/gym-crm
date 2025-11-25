@@ -103,6 +103,7 @@ public class TrainerDao {
         return query.getResultList();
     }
 
+
     public Optional<Trainer> findByUsername(String username) {
         String hql = "SELECT t FROM Trainer t WHERE t.username = :username";
 
