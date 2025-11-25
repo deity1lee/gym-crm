@@ -42,9 +42,6 @@ class TraineeServiceTest {
         traineeService.setValidatorService(validatorService);
     }
 
-    // -------------------------------------------------------
-    // createTrainee
-    // -------------------------------------------------------
     @Test
     void createTrainee_ShouldValidateNames_AndCallDaoCreate() {
         Trainee trainee = new Trainee("John", "Doe", Date.valueOf( "2000-01-01"), "NY");
@@ -54,8 +51,7 @@ class TraineeServiceTest {
 
         traineeService.createTrainee(trainee);
 
-        verify(validatorService).validateFirstName("John");
-        verify(validatorService).validateLastName("Doe");
+        verify(validatorService).validate(trainee);
         verify(traineeDao).create(any(Trainee.class));
     }
 

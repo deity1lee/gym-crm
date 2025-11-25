@@ -47,8 +47,7 @@ class TrainerServiceTest {
 
         trainerService.createTrainer(trainer);
 
-        verify(validatorService).validateFirstName("John");
-        verify(validatorService).validateLastName("Doe");
+        verify(validatorService).validate(trainer);
         verify(trainerDao).create(any(Trainer.class));
     }
 
