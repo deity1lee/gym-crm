@@ -7,14 +7,15 @@ import org.example.entities.Training;
 import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 public class InMemoryStorage {
 
-    private final Map<Long, Trainer> trainerMap = new HashMap<>();
-    private final Map<Long, Training> trainingMap = new HashMap<>();
-    private final Map<Long, Trainee> traineeMap = new HashMap<>();
+    private final Map<Long, Trainer> trainerMap = new ConcurrentHashMap<>();
+    private final Map<Long, Training> trainingMap = new ConcurrentHashMap<>();
+    private final Map<Long, Trainee> traineeMap = new ConcurrentHashMap<>();
 
     private final AtomicLong traineeMaxId = new AtomicLong(0);
     private final AtomicLong trainerMaxId = new AtomicLong(0);

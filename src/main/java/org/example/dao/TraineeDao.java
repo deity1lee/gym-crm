@@ -53,7 +53,7 @@ public class TraineeDao {
 
     public void delete(Long id) {
         if (!storage.getTraineeMap().containsKey(id)) {
-            throw new NoSuchElementException("Trainee with id " + id + " does not exist");
+            throw new NoSuchElementException(String.format("Trainee with id %d does not exist", id));
         }
         storage.getTraineeMap().remove(id);
         LOGGER.info("Removed trainee with id {}", id);
