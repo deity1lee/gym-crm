@@ -49,14 +49,13 @@ public class TraineeService {
     }
 
     public void createTrainee(Trainee trainee) {
-        validatorService.validateFirstName(trainee.getFirstName());
-        validatorService.validateLastName(trainee.getLastName());
+        validatorService.validate(trainee);
         assignCredentials(trainee);
         traineeDao.create(trainee);
         LOGGER.info("Created trainee profile for username: {}", trainee.getUsername());
     }
 
-    public Trainee selectByUsername(String username, String password, String usernameForSearch) {
+    public Trainee selectTraineeByUsernameForAuthTrainees(String username, String password, String usernameForSearch) {
         authService.authenticateTrainee(username, password)
                 .orElseThrow(() -> new IllegalArgumentException("Not authenticated trainee for doing select."));
         Trainee trainee = traineeDao.findByUsername(usernameForSearch)
@@ -78,14 +77,14 @@ public class TraineeService {
     }
 
     public void updateTrainee(String username, String password, Trainee newTrainee) {
-        User existing = authService.authenticateTrainee(username,password)
+        Trainee existing = authService.authenticateTrainee(username,password)
                 .orElseThrow(() -> new IllegalArgumentException("Not authenticated trainee for updating profile."));
-        validatorService.validateFirstName(newTrainee.getFirstName());
+        validatorService.validate(newTrainee);
         existing.setFirstName(newTrainee.getFirstName());
         validatorService.validateLastName(newTrainee.getLastName());
         existing.setLastName(newTrainee.getLastName());
-        ((Trainee) existing).setAddress(newTrainee.getAddress());
-        traineeDao.updateProfile((Trainee) existing);
+        existing.setAddress(newTrainee.getAddress());
+        traineeDao.updateProfile(existing);
     }
 
     public void activateTrainee(String username, String password) {
@@ -118,7 +117,7 @@ public class TraineeService {
     }
 
     public List<Trainer> getUnassignedTrainers(String username, String password) {
-        Trainee trainee = authService.authenticateTrainee(username, password)
+        authService.authenticateTrainee(username, password)
                 .orElseThrow(() -> new IllegalArgumentException("Not authenticated trainee"));
         List<Trainer> trainers = traineeDao.findUnassignedTrainers(username);
         LOGGER.info("Trainers (usernames) that are not assigned to trainee {}:", username);

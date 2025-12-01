@@ -4,7 +4,6 @@ import org.example.entities.Trainee;
 import org.example.entities.Trainer;
 import org.example.entities.Training;
 import org.example.utilities.TrainingSearchCriteria;
-import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.slf4j.Logger;
@@ -23,17 +22,14 @@ public class TraineeDao {
         this.sessionFactory = sf;
     }
 
-    private Session getSession() {
-        return sessionFactory.getCurrentSession();
-    }
 
     public void create(Trainee trainee) {
-        getSession().save(trainee);
+        sessionFactory.getCurrentSession().save(trainee);
         LOGGER.info("Created trainee with id {}", trainee.getId());
     }
 
     public void updatePassword(Long traineeId, String newPassword) {
-        Query query = getSession().createQuery(
+        Query query = sessionFactory.getCurrentSession().createQuery(
                 "UPDATE Trainee t SET t.password = :password WHERE t.id = :id"
         );
         query.setParameter("password", newPassword);
@@ -42,7 +38,6 @@ public class TraineeDao {
     }
 
     public void updateProfile(Trainee trainee) {
-//        getSession().merge(trainee);
         LOGGER.info("Updated trainee profile with id {}", trainee.getId());
     }
 
@@ -65,7 +60,7 @@ public class TraineeDao {
     }
 
     public void deleteTrainee(Trainee trainee) {
-        getSession().delete(trainee);
+        sessionFactory.getCurrentSession().delete(trainee);
         LOGGER.info("Deleted trainee and related trainings for username {}", trainee.getUsername());
     }
 
@@ -77,56 +72,51 @@ public class TraineeDao {
                 "SELECT tr FROM Training tr WHERE tr.trainee.username = :username"
         );
 
-        if (criteria.getFromDate() != null) {
-            hql.append(" AND tr.date >= :fromDate");
-        }
+        Optional.ofNullable(criteria.getFromDate())
+                .ifPresent(value -> hql.append(" AND tr.date >= :fromDate"));
 
-        if (criteria.getToDate() != null) {
-            hql.append(" AND tr.date <= :toDate");
-        }
+        Optional.ofNullable(criteria.getToDate())
+                .ifPresent(value -> hql.append(" AND tr.date <= :toDate"));
 
-        if (criteria.getUserLastName() != null && !criteria.getUserLastName().isEmpty()) {
-            hql.append(" AND tr.trainer.lastName = :userLastName");
-        }
+        Optional.ofNullable(criteria.getUserLastName())
+                .filter(s -> !s.isEmpty())
+                .ifPresent(value -> hql.append(" AND tr.trainer.lastName = :userLastName"));
 
-        if (criteria.getTrainingType() != null && !criteria.getTrainingType().isEmpty()) {
-            hql.append(" AND tr.trainingType.trainingTypeName = :trainingType");
-        }
+        Optional.ofNullable(criteria.getTrainingType())
+                .filter(s -> !s.isEmpty())
+                .ifPresent(value -> hql.append(" AND tr.trainingType.trainingTypeName = :trainingType"));
 
-        Query<Training> query = getSession().createQuery(hql.toString(), Training.class);
-
+        Query<Training> query = sessionFactory.getCurrentSession().createQuery(hql.toString(), Training.class);
         query.setParameter("username", username);
 
-        if (criteria.getFromDate() != null) {
-            query.setParameter("fromDate", criteria.getFromDate());
-        }
+        Optional.ofNullable(criteria.getFromDate())
+                .ifPresent(value -> query.setParameter("fromDate", value));
 
-        if (criteria.getToDate() != null) {
-            query.setParameter("toDate", criteria.getToDate());
-        }
+        Optional.ofNullable(criteria.getToDate())
+                .ifPresent(value -> query.setParameter("toDate", value));
 
-        if (criteria.getUserLastName() != null && !criteria.getUserLastName().isEmpty()) {
-            query.setParameter("userLastName", criteria.getUserLastName());
-        }
+        Optional.ofNullable(criteria.getUserLastName())
+                .filter(s -> !s.isEmpty())
+                .ifPresent(value -> query.setParameter("userLastName", value));
 
-        if (criteria.getTrainingType() != null && !criteria.getTrainingType().isEmpty()) {
-            query.setParameter("trainingType", criteria.getTrainingType());
-        }
+        Optional.ofNullable(criteria.getTrainingType())
+                .filter(s -> !s.isEmpty())
+                .ifPresent(value -> query.setParameter("trainingType", value));
         return query.getResultList();
     }
 
     public List<Trainer> findUnassignedTrainers(String traineeUsername) {
 
         LOGGER.debug("Fetching trainers that are not assigned on trainee by username: {}", traineeUsername);
-        String hql =
-                "SELECT tr FROM Trainer tr " +
-                        "WHERE tr.id NOT IN (" +
-                        "   SELECT t.id FROM Trainee tn " +
-                        "   JOIN tn.trainers t " +
-                        "   WHERE tn.username = :username" +
-                        ")";
-
-        return getSession()
+        String hql = """
+        SELECT tr FROM Trainer tr
+        WHERE tr.id NOT IN (
+            SELECT t.id FROM Trainee tn
+            JOIN tn.trainers t
+            WHERE tn.username = :username
+        )
+        """;
+        return sessionFactory.getCurrentSession()
                 .createQuery(hql, Trainer.class)
                 .setParameter("username", traineeUsername)
                 .getResultList();
@@ -135,7 +125,7 @@ public class TraineeDao {
     public Optional<Trainee> findByUsername(String username) {
         String hql = "select t from Trainee t where t.username = :username";
         LOGGER.debug("Fetching trainee with username: {}", username);
-        return getSession()
+        return sessionFactory.getCurrentSession()
                 .createQuery(hql, Trainee.class)
                 .setParameter("username", username)
                 .uniqueResultOptional();
@@ -143,7 +133,7 @@ public class TraineeDao {
 
     public long countByFullName(String firstName, String lastName) {
         LOGGER.info("Counting number of trainees with full name {} {}", firstName, lastName);
-        long count = getSession().createQuery(
+        long count = sessionFactory.getCurrentSession().createQuery(
                         "SELECT COUNT(t) FROM Trainee t WHERE t.firstName = :firstName AND t.lastName = :lastName",
                         Long.class
                 )

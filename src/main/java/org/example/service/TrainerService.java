@@ -2,7 +2,6 @@ package org.example.service;
 
 import org.example.dao.TraineeDao;
 import org.example.dao.TrainerDao;
-import org.example.entities.Trainee;
 import org.example.entities.Trainer;
 import org.example.entities.Training;
 import org.example.entities.User;
@@ -45,14 +44,13 @@ public class TrainerService {
     }
 
     public void createTrainer(Trainer trainer) {
-        validatorService.validateFirstName(trainer.getFirstName());
-        validatorService.validateLastName(trainer.getLastName());
+        validatorService.validate(trainer);
         assignCredentials(trainer);
         trainerDao.create(trainer);
         LOGGER.info("Created trainee profile for username: {}", trainer.getUsername());
     }
 
-    public Trainer selectByUsername(String username, String password, String usernameForSearch) {
+    public Trainer selectTrainerByUsernameForAuthTrainers(String username, String password, String usernameForSearch) {
         authService.authenticateTrainer(username, password)
                 .orElseThrow(() -> new IllegalArgumentException("Not authenticated trainer for doing select."));
         Trainer trainer = trainerDao.findByUsername(usernameForSearch)
@@ -76,7 +74,7 @@ public class TrainerService {
     public void updateTrainer(String username, String password, Trainer newTrainer) {
         User existing = authService.authenticateTrainer(username,password)
                 .orElseThrow(() -> new IllegalArgumentException("Not authenticated trainer for updating profile."));
-        validatorService.validateFirstName(newTrainer.getFirstName());
+        validatorService.validate(newTrainer);
         existing.setFirstName(newTrainer.getFirstName());
         validatorService.validateLastName(newTrainer.getLastName());
         existing.setLastName(newTrainer.getLastName());

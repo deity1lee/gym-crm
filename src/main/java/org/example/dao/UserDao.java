@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 @Repository
-@Transactional
 public class UserDao {
 
     private final SessionFactory sessionFactory;
@@ -18,13 +17,9 @@ public class UserDao {
         this.sessionFactory = sf;
     }
 
-    private Session getSession() {
-        return sessionFactory.getCurrentSession();
-    }
-
     public Optional<User> findByUsername(String username) {
         String hql = "FROM User u WHERE u.username = :username";
-        return getSession().createQuery(hql, User.class)
+        return sessionFactory.getCurrentSession().createQuery(hql, User.class)
                 .setParameter("username", username)
                 .uniqueResultOptional();
     }

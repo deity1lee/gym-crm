@@ -5,7 +5,6 @@ import org.example.dao.TrainerDao;
 import org.example.entities.Trainee;
 import org.example.entities.Trainer;
 import org.example.entities.Training;
-import org.example.entities.User;
 import org.example.service.AuthService;
 import org.example.service.TraineeService;
 import org.example.service.ValidatorService;
@@ -66,7 +65,7 @@ class TraineeServiceTest {
         when(traineeDao.findByUsername("TargetUser"))
                 .thenReturn(Optional.of(trainingUser));
 
-        Trainee found = traineeService.selectByUsername(
+        Trainee found = traineeService.selectTraineeByUsernameForAuthTrainees(
                 "john", "pass", "TargetUser"
         );
 
@@ -79,7 +78,7 @@ class TraineeServiceTest {
                 .thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class, () ->
-                traineeService.selectByUsername("john", "wrong", "TargetUser")
+                traineeService.selectTraineeByUsernameForAuthTrainees("john", "wrong", "TargetUser")
         );
     }
 
@@ -92,7 +91,7 @@ class TraineeServiceTest {
                 .thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class, () ->
-                traineeService.selectByUsername("john", "pass", "TargetUser")
+                traineeService.selectTraineeByUsernameForAuthTrainees("john", "pass", "TargetUser")
         );
     }
 

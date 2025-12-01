@@ -3,7 +3,6 @@ package org.example.dao;
 import org.example.entities.Trainer;
 import org.example.entities.Training;
 import org.example.utilities.TrainingSearchCriteria;
-import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.slf4j.Logger;
@@ -21,17 +20,13 @@ public class TrainerDao {
         this.sessionFactory = sf;
     }
 
-    private Session getSession() {
-        return sessionFactory.getCurrentSession();
-    }
-
     public void create(Trainer trainer) {
-        getSession().save(trainer);
+        sessionFactory.getCurrentSession().save(trainer);
         LOGGER.info("Created trainer with id {}", trainer.getId());
     }
 
     public void updatePassword(Long trainerId, String newPassword) {
-        Query query = getSession().createQuery(
+        Query query = sessionFactory.getCurrentSession().createQuery(
                 "UPDATE Trainer t SET t.password = :password WHERE t.id = :id"
         );
         query.setParameter("password", newPassword);
@@ -68,51 +63,42 @@ public class TrainerDao {
         StringBuilder hql = new StringBuilder(
                 "SELECT tr FROM Training tr WHERE tr.trainer.username = :username"
         );
+        Optional.ofNullable(criteria.getFromDate())
+                .ifPresent(value -> hql.append(" AND tr.date >= :fromDate"));
 
-        if (criteria.getFromDate() != null) {
-            hql.append(" AND tr.date >= :fromDate");
-        }
+        Optional.ofNullable(criteria.getToDate())
+                .ifPresent(value -> hql.append(" AND tr.date <= :toDate"));
 
-        if (criteria.getToDate() != null) {
-            hql.append(" AND tr.date <= :toDate");
-        }
+        Optional.ofNullable(criteria.getUserLastName())
+                .filter(s -> !s.isEmpty())
+                .ifPresent(value -> hql.append(" AND tr.trainee.lastName = :userLastName"));
 
-        if (criteria.getUserLastName() != null && !criteria.getUserLastName().isEmpty()) {
-            hql.append(" AND tr.trainee.lastName = :userLastName");
-        }
+        Query<Training> query = sessionFactory.getCurrentSession().createQuery(hql.toString(), Training.class);        query.setParameter("username", username);
 
-        Query<Training> query = getSession().createQuery(hql.toString(), Training.class);
+        Optional.ofNullable(criteria.getFromDate())
+                .ifPresent(value -> query.setParameter("fromDate", value));
 
-        query.setParameter("username", username);
+        Optional.ofNullable(criteria.getToDate())
+                .ifPresent(value -> query.setParameter("toDate", value));
 
-        if (criteria.getFromDate() != null) {
-            query.setParameter("fromDate", criteria.getFromDate());
-        }
-
-        if (criteria.getToDate() != null) {
-            query.setParameter("toDate", criteria.getToDate());
-        }
-
-        if (criteria.getUserLastName() != null && !criteria.getUserLastName().isEmpty()) {
-            query.setParameter("userLastName", criteria.getUserLastName());
-        }
-
+        Optional.ofNullable(criteria.getUserLastName())
+                .filter(s -> !s.isEmpty())
+                .ifPresent(value -> query.setParameter("userLastName", value));
         return query.getResultList();
     }
 
     public Optional<Trainer> findByUsername(String username) {
         String hql = "select t from Trainer t where t.username = :username";
         LOGGER.debug("Fetching trainer with username: {}", username);
-        return getSession()
+        return sessionFactory.getCurrentSession()
                 .createQuery(hql, Trainer.class)
                 .setParameter("username", username)
                 .uniqueResultOptional();
     }
 
-
     public long countByFullName(String firstName, String lastName) {
         LOGGER.info("Counting number of trainers with full name {} {}", firstName, lastName);
-        long count = getSession().createQuery(
+        long count = sessionFactory.getCurrentSession().createQuery(
                         "SELECT COUNT(t) FROM Trainer t WHERE t.firstName = :firstName AND t.lastName = :lastName",
                         Long.class
                 )
@@ -123,4 +109,3 @@ public class TrainerDao {
         return count;
     }
 }
-

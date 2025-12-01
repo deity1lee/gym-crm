@@ -20,15 +20,15 @@ public class TrainingSearchCriteria {
     private String userLastName;
     private String trainingType;
 
-    public Object getFromDate() {
+    public Date getFromDate() {
         return fromDate;
     }
 
-    public Object getToDate() {
+    public Date getToDate() {
         return toDate;
     }
 
-    public CharSequence getTrainingType() {
+    public String getTrainingType() {
         return trainingType;
     }
 

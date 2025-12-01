@@ -1,7 +1,6 @@
 package org.example.dao;
 
 import org.example.entities.Training;
-import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;
 
@@ -13,11 +12,7 @@ public class TrainingDao {
         this.sessionFactory = sessionFactory;
     }
 
-    private Session getSession() {
-        return sessionFactory.getCurrentSession();
-    }
-
     public void addTraining(Training training) {
-        getSession().save(training);
+        sessionFactory.getCurrentSession().save(training);
     }
 }

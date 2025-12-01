@@ -13,8 +13,12 @@
     <!-- Reduce Spring noise -->
     <logger name="org.springframework" level="WARN"/>
 
-    <!-- Reduce Hibernate noise -->
-    <logger name="org.hibernate" level="WARN"/>
+<!--    &lt;!&ndash; Reduce Hibernate noise &ndash;&gt;-->
+<!--    <logger name="org.hibernate" level="WARN"/>-->
+
+    <logger name="org.hibernate" level="INFO"/>
+    <logger name="org.hibernate.SQL" level="DEBUG"/>
+    <logger name="org.hibernate.tool.hbm2ddl" level="DEBUG"/>
 
     <!-- Root logger -->
     <root level="INFO">

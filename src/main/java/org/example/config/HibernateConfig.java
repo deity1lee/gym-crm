@@ -1,5 +1,6 @@
 package org.example.config;
 
+import org.example.utilities.JdbcProperties;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -16,25 +17,20 @@ import java.util.Properties;
 @EnableTransactionManagement
 public class HibernateConfig {
 
-    @Value("${jdbc.url}")
-    private String jdbcUrl;
+    private final JdbcProperties jdbcProperties;
 
-    @Value("${jdbc.username}")
-    private String username;
-
-    @Value("${jdbc.password}")
-    private String password;
-
-    @Value("${jdbc.driver}")
-    private String driver;
+    public HibernateConfig(JdbcProperties jdbcProperties) {
+        this.jdbcProperties = jdbcProperties;
+    }
 
     @Bean
     public DataSource dataSource() {
         DriverManagerDataSource ds = new DriverManagerDataSource();
-        ds.setDriverClassName(driver);
-        ds.setUrl(jdbcUrl);
-        ds.setUsername(username);
-        ds.setPassword(password);
+
+        ds.setDriverClassName(jdbcProperties.getDriver());
+        ds.setUrl(jdbcProperties.getUrl());
+        ds.setUsername(jdbcProperties.getUsername());
+        ds.setPassword(jdbcProperties.getPassword());
         return ds;
     }
 
@@ -49,8 +45,8 @@ public class HibernateConfig {
 
     private Properties hibernateProperties() {
         Properties props = new Properties();
-        props.put("hibernate.hbm2ddl.auto", "update");
-        props.put("hibernate.show_sql", false);
+        props.put("hibernate.hbm2ddl.auto", "create");
+        props.put("hibernate.show_sql", true);
         props.put("hibernate.dialect", "org.hibernate.dialect.MySQL8Dialect");
         return props;
     }

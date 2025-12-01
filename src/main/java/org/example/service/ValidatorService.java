@@ -1,5 +1,6 @@
 package org.example.service;
 
+import org.example.entities.User;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -31,5 +32,10 @@ public class ValidatorService {
         if (lastName.matches(".*\\d.*")) {
             throw new IllegalArgumentException("Last name cannot contain digits: " + lastName);
         }
+    }
+
+    public void validate(User user) {
+        validateFirstName(user.getFirstName());
+        validateLastName(user.getLastName());
     }
 }
