@@ -50,9 +50,9 @@ public class TrainerService {
         LOGGER.info("Created trainee profile for username: {}", trainer.getUsername());
     }
 
-    public Trainer selectTrainerByUsernameForAuthTrainers(String username, String password, String usernameForSearch) {
-        authService.authenticateTrainer(username, password)
-                .orElseThrow(() -> new IllegalArgumentException("Not authenticated trainer for doing select."));
+    public Trainer selectTrainerByUsername(String username, String password, String usernameForSearch) {
+        authService.authenticateUser(username, password)
+                .orElseThrow(() -> new IllegalArgumentException("Not authenticated user for searching trainer."));
         Trainer trainer = trainerDao.findByUsername(usernameForSearch)
                 .orElseThrow(() -> new IllegalArgumentException("Trainer by this username is not found."));
         LOGGER.info("Trainer by username {} is found", usernameForSearch);

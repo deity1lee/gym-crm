@@ -5,7 +5,6 @@ import org.example.dao.TrainerDao;
 import org.example.entities.Trainee;
 import org.example.entities.Trainer;
 import org.example.entities.Training;
-import org.example.entities.User;
 import org.example.utilities.CredentialGenerator;
 import org.example.utilities.TrainingSearchCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,9 +54,9 @@ public class TraineeService {
         LOGGER.info("Created trainee profile for username: {}", trainee.getUsername());
     }
 
-    public Trainee selectTraineeByUsernameForAuthTrainees(String username, String password, String usernameForSearch) {
-        authService.authenticateTrainee(username, password)
-                .orElseThrow(() -> new IllegalArgumentException("Not authenticated trainee for doing select."));
+    public Trainee selectTraineeByUsername(String username, String password, String usernameForSearch) {
+        authService.authenticateUser(username, password)
+                .orElseThrow(() -> new IllegalArgumentException("Not authenticated user for searching trainee."));
         Trainee trainee = traineeDao.findByUsername(usernameForSearch)
                 .orElseThrow(() -> new IllegalArgumentException("Trainee by this username is not found."));
         LOGGER.info("Trainee by username {} is found", usernameForSearch);

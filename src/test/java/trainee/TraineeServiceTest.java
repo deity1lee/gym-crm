@@ -59,13 +59,13 @@ class TraineeServiceTest {
         Trainee trainingUser = new Trainee();
         trainingUser.setUsername("TargetUser");
 
-        when(authService.authenticateTrainee("john", "pass"))
+        when(authService.authenticateUser("john", "pass"))
                 .thenReturn(Optional.of(new Trainee()));
 
         when(traineeDao.findByUsername("TargetUser"))
                 .thenReturn(Optional.of(trainingUser));
 
-        Trainee found = traineeService.selectTraineeByUsernameForAuthTrainees(
+        Trainee found = traineeService.selectTraineeByUsername(
                 "john", "pass", "TargetUser"
         );
 
@@ -78,7 +78,7 @@ class TraineeServiceTest {
                 .thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class, () ->
-                traineeService.selectTraineeByUsernameForAuthTrainees("john", "wrong", "TargetUser")
+                traineeService.selectTraineeByUsername("john", "wrong", "TargetUser")
         );
     }
 
@@ -91,7 +91,7 @@ class TraineeServiceTest {
                 .thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class, () ->
-                traineeService.selectTraineeByUsernameForAuthTrainees("john", "pass", "TargetUser")
+                traineeService.selectTraineeByUsername("john", "pass", "TargetUser")
         );
     }
 

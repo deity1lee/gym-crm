@@ -3,6 +3,7 @@ package org.example.service;
 import org.example.dao.UserDao;
 import org.example.entities.Trainee;
 import org.example.entities.Trainer;
+import org.example.entities.User;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -27,5 +28,9 @@ public class AuthService {
                 .filter(u -> u instanceof Trainer)
                 .filter(u -> u.getPassword().equals(password))
                 .map(u -> (Trainer) u);
+    }
+    public Optional<User> authenticateUser(String username, String password) {
+        return userDao.findByUsername(username)
+                .filter(u -> u.getPassword().equals(password));
     }
 }

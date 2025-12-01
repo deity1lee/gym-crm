@@ -56,10 +56,10 @@ class TrainerServiceTest {
         Trainer found = new Trainer();
         found.setUsername("X");
 
-        when(authService.authenticateTrainer("john", "pass")).thenReturn(Optional.of(new Trainer()));
+        when(authService.authenticateUser("john", "pass")).thenReturn(Optional.of(new User()));
         when(trainerDao.findByUsername("X")).thenReturn(Optional.of(found));
 
-        Trainer result = trainerService.selectTrainerByUsernameForAuthTrainers("john", "pass", "X");
+        Trainer result = trainerService.selectTrainerByUsername("john", "pass", "X");
 
         assertEquals("X", result.getUsername());
     }
@@ -69,7 +69,7 @@ class TrainerServiceTest {
         when(authService.authenticateTrainer("john", "wrong")).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class, () ->
-                trainerService.selectTrainerByUsernameForAuthTrainers("john", "wrong", "X"));
+                trainerService.selectTrainerByUsername("john", "wrong", "X"));
     }
 
     @Test
