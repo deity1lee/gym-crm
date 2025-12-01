@@ -18,6 +18,7 @@ public class Main {
             LOGGER.info("All data has been loaded into in-memory storage.");
         } catch (Exception e) {
             LOGGER.error("Application failed to start: {}", e.getMessage(), e);
+            throw e;
         }
     }
 }

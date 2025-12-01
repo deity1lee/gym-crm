@@ -15,11 +15,11 @@ This project demonstrates:
 
 Before running the project, make sure you have the following installed:
 
-| Tool | Minimum Version | Description |
+| Tool | Required Version | Description |
 |------|------------------|-------------|
-| **Java** | 17 | Required JDK version |
-| **Maven** | 3.8+ | For building and dependency management |
-| **IntelliJ IDEA** | (optional) | Recommended IDE for running and debugging the application |
+| **Java** | 17               | Required JDK version |
+| **Maven** | 3.9.10             | For building and dependency management |
+| **IntelliJ IDEA** | (optional)       | Recommended IDE for running and debugging the application |
 
 ---
 

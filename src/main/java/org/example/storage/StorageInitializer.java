@@ -99,7 +99,7 @@ public class StorageInitializer implements BeanPostProcessor {
                         .forEach(lineConsumer);
             }
         } catch (Exception e) {
-            LOGGER.warn("Could not load data from {}: {}", path, e.getMessage());
+            throw new IllegalStateException("Could not load required data file: " + path, e);
         }
     }
 }
