@@ -1,6 +1,7 @@
 package org.example.entities;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -27,8 +28,8 @@ public class Trainee extends User {
 
     public Trainee() {}
 
-    public Trainee(String firstName, String lastName, Date dateOfBirth, String address) {
-        super(firstName, lastName, true);
+    public Trainee(String firstName, String lastName, Date dateOfBirth, String address, boolean isActive) {
+        super(firstName, lastName, isActive);
         this.dateOfBirth = dateOfBirth;
         this.address = address;
     }
@@ -38,7 +39,9 @@ public class Trainee extends User {
     public void setId(Long id) {
         super.setId(id);
     }
-
+    public void setDateOfBirth(Date dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
     public String getAddress() {
         return address;
     }
@@ -53,6 +56,10 @@ public class Trainee extends User {
 
     public List<Trainer> getTrainers() {
         return trainers;
+    }
+
+    public Date getDateOfBirth() {
+        return dateOfBirth;
     }
 }
 

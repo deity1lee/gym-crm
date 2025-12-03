@@ -8,6 +8,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -26,8 +27,10 @@ public class TraineeDao {
 
     public void create(Trainee trainee) {
         sessionFactory.getCurrentSession().save(trainee);
-
-        LOGGER.info("Created trainee with id {}", trainee.getId());
+        LOGGER.info(String.format(
+                "Created trainee with id %d",
+                trainee.getId()
+        ));
     }
 
     public void updatePassword(Long traineeId, String newPassword) {
@@ -40,48 +43,30 @@ public class TraineeDao {
     }
 
     public void updateProfile(Trainee trainee) {
+        String txId = MDC.get("transactionId");
+        LOGGER.info("[{}] Updated trainee profile with username {}", txId, trainee.getUsername());
         sessionFactory.getCurrentSession().merge(trainee);
-
-        LOGGER.info("Updated trainee profile with id {}", trainee.getId());
     }
 
-    public void activateTrainee(Trainee trainee) {
-        if (trainee.isActive()) {
-            throw new IllegalStateException(String.format("Trainee with username '%s' is already active",
-                    trainee.getUsername()
-            ));
-        }
+    public void deleteTrainee(String username) {
+        String txId = MDC.get("transactionId");
+        LOGGER.info("[{}] Trying to delete trainee profile with username '{}'", txId, username);
+        Trainee trainee = findByUsername(username)
+                .orElseThrow(() -> {
+                    LOGGER.warn("[{}] Deletion failed: trainee '{}' not found", txId, username);
+                    return new IllegalArgumentException("Trainee not found: " + username);
+                });
 
-        trainee.setActive(true);
-
-        LOGGER.debug("Trainee profile activated: {}", trainee.getUsername());
-    }
-
-    public void deactivateTrainee(Trainee trainee) {
-        if (!trainee.isActive()) {
-            throw new IllegalStateException(String.format(
-                    "Trainee with username '%s' is already deactivated",
-                    trainee.getUsername()
-            ));
-        }
-
-        trainee.setActive(false);
-
-        LOGGER.debug("Trainee profile deactivated: {}", trainee.getUsername());
-    }
-
-    public void deleteTrainee(Trainee trainee) {
         sessionFactory.getCurrentSession().delete(trainee);
 
-        LOGGER.info("Deleted trainee and related trainings for username {}", trainee.getUsername());
+        LOGGER.info("[{}] Deleted trainee and related trainings for username '{}'", txId, username);
     }
 
     public List<Training> findByTraineeUsernameAndCriteria(
-            String username,
             TrainingSearchCriteria criteria
     ) {
         StringBuilder hql = new StringBuilder(
-                "SELECT tr FROM Training tr WHERE tr.trainee.username = :username"
+                "SELECT tr FROM Training tr WHERE tr.trainee.username = :traineeUsername"
         );
 
         Optional.ofNullable(criteria.getFromDate())
@@ -90,19 +75,16 @@ public class TraineeDao {
         Optional.ofNullable(criteria.getToDate())
                 .ifPresent(v -> hql.append(" AND tr.date <= :toDate"));
 
-        Optional.ofNullable(criteria.getUserLastName())
+        Optional.ofNullable(criteria.getTrainerUsername())
                 .filter(s -> !s.isEmpty())
-                .ifPresent(v -> hql.append(" AND tr.trainer.lastName = :userLastName"));
+                .ifPresent(value -> hql.append(" AND tr.trainer.username = :trainerUsername"));
 
-        Optional.ofNullable(criteria.getTrainingType())
-                .filter(s -> !s.isEmpty())
-                .ifPresent(v -> hql.append(" AND tr.trainingType.trainingTypeName = :trainingType"));
+        Optional.ofNullable(criteria.getTrainingTypeId())
+                .ifPresent(value -> hql.append(" AND tr.trainingType.id = :trainingTypeId"));
 
-        Query<Training> query = sessionFactory
-                .getCurrentSession()
-                .createQuery(hql.toString(), Training.class);
+        Query<Training> query = sessionFactory.getCurrentSession().createQuery(hql.toString(), Training.class);
 
-        query.setParameter("username", username);
+        query.setParameter("traineeUsername", criteria.getTraineeUsername());
 
         Optional.ofNullable(criteria.getFromDate())
                 .ifPresent(v -> query.setParameter("fromDate", v));
@@ -110,30 +92,28 @@ public class TraineeDao {
         Optional.ofNullable(criteria.getToDate())
                 .ifPresent(v -> query.setParameter("toDate", v));
 
-        Optional.ofNullable(criteria.getUserLastName())
+        Optional.ofNullable(criteria.getTrainerUsername())
                 .filter(s -> !s.isEmpty())
-                .ifPresent(v -> query.setParameter("userLastName", v));
+                .ifPresent(value -> query.setParameter("trainerUsername", value));
 
-        Optional.ofNullable(criteria.getTrainingType())
-                .filter(s -> !s.isEmpty())
-                .ifPresent(v -> query.setParameter("trainingType", v));
-
+        Optional.ofNullable(criteria.getTrainingTypeId())
+                .ifPresent(value -> query.setParameter("trainingTypeId", value));
         return query.getResultList();
     }
 
     public List<Trainer> findUnassignedTrainers(String traineeUsername) {
-
-        LOGGER.debug("Fetching trainers not assigned to trainee with username: {}", traineeUsername);
-
+        String txId = MDC.get("transactionId");
+        LOGGER.debug("[{}] Fetching trainers that are not assigned on trainee by username: {}", txId, traineeUsername);
         String hql = """
-            SELECT tr FROM Trainer tr
-            WHERE tr.id NOT IN (
-                SELECT t.id FROM Trainee tn
-                JOIN tn.trainers t
-                WHERE tn.username = :username
-            )
-            """;
-
+        SELECT tr FROM Trainer tr
+        WHERE tr.id NOT IN (
+            SELECT t.id FROM Trainee tn
+            JOIN tn.trainers t
+            WHERE tn.username = :username
+        )
+            AND tr.isActive = true
+        
+        """;
         return sessionFactory.getCurrentSession()
                 .createQuery(hql, Trainer.class)
                 .setParameter("username", traineeUsername)
@@ -141,10 +121,9 @@ public class TraineeDao {
     }
 
     public Optional<Trainee> findByUsername(String username) {
-        String hql = "SELECT t FROM Trainee t WHERE t.username = :username";
-
-        LOGGER.debug("Fetching trainee with username: {}", username);
-
+        String hql = "select t from Trainee t where t.username = :username";
+        String txId = MDC.get("transactionId");
+        LOGGER.debug("[{}] Fetching trainee with username: {}", txId, username);
         return sessionFactory.getCurrentSession()
                 .createQuery(hql, Trainee.class)
                 .setParameter("username", username)
@@ -152,20 +131,13 @@ public class TraineeDao {
     }
 
     public long countByFullName(String firstName, String lastName) {
-
-        LOGGER.info("Counting number of trainees with full name {} {}", firstName, lastName);
-
-        long count = sessionFactory.getCurrentSession()
-                .createQuery(
+        long count = sessionFactory.getCurrentSession().createQuery(
                         "SELECT COUNT(t) FROM Trainee t WHERE t.firstName = :firstName AND t.lastName = :lastName",
                         Long.class
                 )
                 .setParameter("firstName", firstName)
                 .setParameter("lastName", lastName)
                 .uniqueResult();
-
-        LOGGER.info("Number of trainees by first name '{}' and last name '{}': {}", firstName, lastName, count);
-
         return count;
     }
 }

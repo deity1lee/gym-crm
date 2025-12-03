@@ -1,6 +1,8 @@
 package org.example.entities;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Entity
@@ -25,13 +27,37 @@ public class Trainer extends User {
         super(firstName, lastName, true);
         this.trainingType = trainingType;
     }
-
+    public Trainer(String username, String firstName, String lastName,
+                   TrainingType trainingType) {
+        super(username, firstName, lastName, true);
+        this.trainingType = trainingType;
+    }
+    public Trainer(String username, String firstName, String lastName,
+                   TrainingType trainingType, boolean isActive) {
+        super(username, firstName, lastName, isActive);
+        this.trainingType = trainingType;
+    }
     public Long getId() {
         return super.getId();
     }
 
     public void setId(Long id) {
         super.setId(id);
+    }
+
+    public TrainingType getTrainingType() {
+        return trainingType;
+    }
+    public void setTrainingType(TrainingType trainingType) {
+        this.trainingType = trainingType;
+    }
+
+    public List<Trainee> getTrainees() {
+        return trainees;
+    }
+
+    public void setTrainees(List<Trainee> objects) {
+        this.trainees = objects;
     }
 }
 
