@@ -2,7 +2,8 @@ package trainer;
 
 import org.example.dao.TraineeDao;
 import org.example.dao.TrainerDao;
-import org.example.entities.*;
+import org.example.entities.Trainer;
+import org.example.entities.Training;
 import org.example.service.AuthService;
 import org.example.service.TrainerService;
 import org.example.service.ValidatorService;
@@ -10,10 +11,11 @@ import org.example.utilities.TrainingSearchCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
-import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class TrainerServiceTest {
 
@@ -25,7 +27,7 @@ class TrainerServiceTest {
     private TrainerService trainerService;
 
     @BeforeEach
-    void setup() {
+    void setUp() {
         trainerDao = mock(TrainerDao.class);
         traineeDao = mock(TraineeDao.class);
         authService = mock(AuthService.class);
@@ -39,8 +41,10 @@ class TrainerServiceTest {
     }
 
     @Test
-    void createTrainer_ShouldValidate_AndCallDao() {
-        Trainer trainer = new Trainer("John", "Doe", new TrainingType("fitness"));
+    void testCreateTrainer() {
+        Trainer trainer = new Trainer();
+        trainer.setFirstName("John");
+        trainer.setLastName("Doe");
 
         when(traineeDao.countByFullName("John", "Doe")).thenReturn(0L);
         when(trainerDao.countByFullName("John", "Doe")).thenReturn(0L);
@@ -48,108 +52,120 @@ class TrainerServiceTest {
         trainerService.createTrainer(trainer);
 
         verify(validatorService).validate(trainer);
-        verify(trainerDao).create(any(Trainer.class));
+        verify(trainerDao).create(trainer);
     }
 
     @Test
-    void selectByUsername_ReturnsTrainer() {
-        Trainer found = new Trainer();
-        found.setUsername("X");
+    void testSelectTrainerByUsername_Success() {
+        Trainer trainer = new Trainer();
+        trainer.setUsername("trainer1");
 
-        when(authService.authenticateUser("john", "pass")).thenReturn(Optional.of(new User()));
-        when(trainerDao.findByUsername("X")).thenReturn(Optional.of(found));
+        when(authService.authenticateUser("admin", "pass")).thenReturn(null);
+        when(trainerDao.findByUsername("trainer1")).thenReturn(Optional.of(trainer));
 
-        Trainer result = trainerService.selectTrainerByUsername("john", "pass", "X");
+        Trainer result = trainerService.selectTrainerByUsername("admin", "pass", "trainer1");
 
-        assertEquals("X", result.getUsername());
+        assertEquals(trainer, result);
     }
 
     @Test
-    void selectByUsername_NotAuthenticated() {
-        when(authService.authenticateTrainer("john", "wrong")).thenReturn(Optional.empty());
+    void testSelectTrainerByUsername_NotFound() {
+        when(authService.authenticateUser("admin", "pass")).thenReturn(null);
+        when(trainerDao.findByUsername("trainer1")).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class, () ->
-                trainerService.selectTrainerByUsername("john", "wrong", "X"));
+                trainerService.selectTrainerByUsername("admin", "pass", "trainer1"));
     }
 
     @Test
-    void changePassword_Strong_ShouldUpdate() {
+    void testChangePassword_StrongPassword() {
         Trainer trainer = new Trainer();
         trainer.setId(1L);
-        trainer.setPassword("old");
+        trainer.setUsername("trainer1");
+        trainer.setPassword("oldPass");
 
-        when(authService.authenticateTrainer("john", "old")).thenReturn(Optional.of(trainer));
-        when(validatorService.isStrongPassword("NEW")).thenReturn(true);
+        when(authService.authenticateUser("admin", "adminPass")).thenReturn(null);
+        when(trainerDao.findByUsername("trainer1")).thenReturn(Optional.of(trainer));
+        when(validatorService.isStrongPassword("newPass")).thenReturn(true);
 
-        trainerService.changePassword("john", "old", "NEW");
+        trainerService.changePassword("admin", "adminPass", "trainer1", "oldPass", "newPass");
 
-        verify(trainerDao).updatePassword(1L, "NEW");
+        verify(trainerDao).updatePassword(1L, "newPass");
     }
 
     @Test
-    void changePassword_Weak_ShouldNotUpdate() {
+    void testChangePassword_WeakPassword() {
         Trainer trainer = new Trainer();
         trainer.setId(1L);
+        trainer.setUsername("trainer1");
+        trainer.setPassword("oldPass");
 
-        when(authService.authenticateTrainer("john", "old")).thenReturn(Optional.of(trainer));
+        when(authService.authenticateUser("admin", "adminPass")).thenReturn(null);
+        when(trainerDao.findByUsername("trainer1")).thenReturn(Optional.of(trainer));
         when(validatorService.isStrongPassword("weak")).thenReturn(false);
 
-        trainerService.changePassword("john", "old", "weak");
+        trainerService.changePassword("admin", "adminPass", "trainer1", "oldPass", "weak");
 
         verify(trainerDao, never()).updatePassword(anyLong(), anyString());
     }
 
     @Test
-    void updateTrainer_ShouldCallDao() {
+    void testUpdateTrainer() {
+        Trainer newTrainer = new Trainer();
+        newTrainer.setUsername("trainer1");
+        newTrainer.setFirstName("New");
+        newTrainer.setLastName("Name");
+
         Trainer existing = new Trainer();
-        Trainer updated = new Trainer("A", "B", new TrainingType("x"));
+        existing.setUsername("trainer1");
 
-        when(authService.authenticateTrainer("john", "pass")).thenReturn(Optional.of(existing));
+        when(authService.authenticateUser("admin", "adminPass")).thenReturn(null);
+        when(trainerDao.findByUsername("trainer1")).thenReturn(Optional.of(existing));
 
-        trainerService.updateTrainer("john", "pass", updated);
+        trainerService.updateTrainer("admin", "adminPass", newTrainer);
 
-        assertEquals("A", existing.getFirstName());
-        assertEquals("B", existing.getLastName());
-        verify(trainerDao).updateProfile(existing);
+        verify(validatorService).validate(newTrainer);
+        verify(trainerDao).updateProfile(newTrainer);
     }
 
     @Test
-    void activateTrainer_CallsDao() {
-        Trainer tr = new Trainer();
+    void testActivateTrainer() {
+        Trainer trainer = new Trainer();
 
-        when(authService.authenticateTrainer("john", "pass")).thenReturn(Optional.of(tr));
+        when(authService.authenticateUser("admin", "adminPass")).thenReturn(null);
+        when(trainerDao.findByUsername("trainer1")).thenReturn(Optional.of(trainer));
 
-        trainerService.activateTrainer("john", "pass");
+        trainerService.activateTrainer("admin", "adminPass", "trainer1");
 
-        verify(trainerDao).activateTrainer(tr);
+        verify(trainerDao).activateTrainer(trainer);
     }
 
     @Test
-    void deActivateTrainer_CallsDao() {
-        Trainer tr = new Trainer();
+    void testDeactivateTrainer() {
+        Trainer trainer = new Trainer();
 
-        when(authService.authenticateTrainer("john", "pass")).thenReturn(Optional.of(tr));
+        when(authService.authenticateUser("admin", "adminPass")).thenReturn(null);
+        when(trainerDao.findByUsername("trainer1")).thenReturn(Optional.of(trainer));
 
-        trainerService.deActivateTrainer("john", "pass");
+        trainerService.deActivateTrainer("admin", "adminPass", "trainer1");
 
-        verify(trainerDao).deActivateTrainer(tr);
+        verify(trainerDao).deactivateTrainer(trainer);
     }
 
     @Test
-    void getTrainerTrainings_ShouldReturnList() {
-        Trainer tr = new Trainer();
-
-        when(authService.authenticateTrainer("john", "pass")).thenReturn(Optional.of(tr));
-
+    void testGetTrainerTrainings() {
+        TrainingSearchCriteria criteria = new TrainingSearchCriteria();
         Training training = new Training();
-        List<Training> list = List.of(training);
+        training.setName("Sprint");
 
-        TrainingSearchCriteria crit = new TrainingSearchCriteria();
+        when(authService.authenticateUser("admin", "adminPass")).thenReturn(null);
+        when(trainerDao.findByUsername("trainer1")).thenReturn(Optional.of(new Trainer()));
+        when(traineeDao.findByTraineeUsernameAndCriteria("trainer1", criteria))
+                .thenReturn(List.of(training));
 
-        when(trainerDao.findByTrainerUsernameAndCriteria("john", crit)).thenReturn(list);
-
-        List<Training> result = trainerService.getTrainerTrainings("john", "pass", crit);
+        List<Training> result = trainerService.getTrainerTrainings("admin", "adminPass", "trainer1", criteria);
 
         assertEquals(1, result.size());
+        assertEquals("Sprint", result.get(0).getName());
     }
 }

@@ -1,8 +1,7 @@
 package org.example.config;
 
-import org.example.utilities.JdbcProperties;
+import org.example.utilities.PersistenceProperties;
 import org.hibernate.SessionFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
@@ -17,20 +16,20 @@ import java.util.Properties;
 @EnableTransactionManagement
 public class HibernateConfig {
 
-    private final JdbcProperties jdbcProperties;
+    private final PersistenceProperties persistenceProperties;
 
-    public HibernateConfig(JdbcProperties jdbcProperties) {
-        this.jdbcProperties = jdbcProperties;
+    public HibernateConfig(PersistenceProperties jdbcProperties) {
+        this.persistenceProperties = jdbcProperties;
     }
 
     @Bean
     public DataSource dataSource() {
         DriverManagerDataSource ds = new DriverManagerDataSource();
 
-        ds.setDriverClassName(jdbcProperties.getDriver());
-        ds.setUrl(jdbcProperties.getUrl());
-        ds.setUsername(jdbcProperties.getUsername());
-        ds.setPassword(jdbcProperties.getPassword());
+        ds.setDriverClassName(persistenceProperties.getDriver());
+        ds.setUrl(persistenceProperties.getUrl());
+        ds.setUsername(persistenceProperties.getUsername());
+        ds.setPassword(persistenceProperties.getPassword());
         return ds;
     }
 
@@ -45,9 +44,9 @@ public class HibernateConfig {
 
     private Properties hibernateProperties() {
         Properties props = new Properties();
-        props.put("hibernate.hbm2ddl.auto", "create");
-        props.put("hibernate.show_sql", true);
-        props.put("hibernate.dialect", "org.hibernate.dialect.MySQL8Dialect");
+        props.put("hibernate.hbm2ddl.auto", persistenceProperties.getDdlAuto());
+        props.put("hibernate.show_sql", persistenceProperties.isShowSql());
+        props.put("hibernate.dialect", persistenceProperties.getDialect());
         return props;
     }
 

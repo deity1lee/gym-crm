@@ -1,4 +1,4 @@
-package training;
+package org.example.service;
 
 import org.example.dao.TraineeDao;
 import org.example.dao.TrainerDao;
@@ -8,14 +8,14 @@ import org.example.entities.Trainee;
 import org.example.entities.Trainer;
 import org.example.entities.Training;
 import org.example.entities.TrainingType;
-import org.example.service.TrainingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.*;
+import java.util.Date;
+import java.util.Optional;
 
-import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class TrainingServiceTest {
 
@@ -27,7 +27,7 @@ class TrainingServiceTest {
     private TrainingService trainingService;
 
     @BeforeEach
-    void setup() {
+    void setUp() {
         traineeDao = mock(TraineeDao.class);
         trainerDao = mock(TrainerDao.class);
         trainingTypeDao = mock(TrainingTypeDao.class);
@@ -37,54 +37,98 @@ class TrainingServiceTest {
     }
 
     @Test
-    void addTraining_Success() {
+    void testAddTraining_Success() {
         Trainee trainee = new Trainee();
         Trainer trainer = new Trainer();
         TrainingType type = new TrainingType();
 
-        when(traineeDao.findByUsername("t1")).thenReturn(Optional.of(trainee));
-        when(trainerDao.findByUsername("tr1")).thenReturn(Optional.of(trainer));
-        when(trainingTypeDao.findByName("Yoga")).thenReturn(Optional.of(type));
+        when(traineeDao.findByUsername("trainee1")).thenReturn(Optional.of(trainee));
+        when(trainerDao.findByUsername("trainer1")).thenReturn(Optional.of(trainer));
+        when(trainingTypeDao.findByName("yoga")).thenReturn(Optional.of(type));
 
-        trainingService.addTraining("t1", "tr1", "Yoga", new Date(), 30L, "Morning");
+        trainingService.addTraining(
+                "trainee1",
+                "trainer1",
+                "yoga",
+                new Date(),
+                60L,
+                "Morning Yoga"
+        );
 
         verify(trainingDao).addTraining(any(Training.class));
     }
 
     @Test
-    void addTraining_NoTrainee_ShouldThrow() {
-        when(traineeDao.findByUsername("missing")).thenReturn(Optional.empty());
+    void testAddTraining_TraineeNotFound() {
+        when(traineeDao.findByUsername("trainee1")).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class, () ->
-                trainingService.addTraining("missing", "tr1", "Yoga", new Date(), 10L, "X"));
+                trainingService.addTraining(
+                        "trainee1",
+                        "trainer1",
+                        "yoga",
+                        new Date(),
+                        60L,
+                        "Morning Yoga"
+                ));
     }
 
     @Test
-    void addTraining_NoTrainer_ShouldThrow() {
-        when(traineeDao.findByUsername("t1")).thenReturn(Optional.of(new Trainee()));
-        when(trainerDao.findByUsername("missing")).thenReturn(Optional.empty());
+    void testAddTraining_TrainerNotFound() {
+        Trainee trainee = new Trainee();
+
+        when(traineeDao.findByUsername("trainee1")).thenReturn(Optional.of(trainee));
+        when(trainerDao.findByUsername("trainer1")).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class, () ->
-                trainingService.addTraining("t1", "missing", "Yoga", new Date(), 10L, "X"));
+                trainingService.addTraining(
+                        "trainee1",
+                        "trainer1",
+                        "yoga",
+                        new Date(),
+                        60L,
+                        "Morning Yoga"
+                ));
     }
 
     @Test
-    void addTraining_NoTrainingType_ShouldThrow() {
-        when(traineeDao.findByUsername("t1")).thenReturn(Optional.of(new Trainee()));
-        when(trainerDao.findByUsername("t2")).thenReturn(Optional.of(new Trainer()));
-        when(trainingTypeDao.findByName("BadType")).thenReturn(Optional.empty());
+    void testAddTraining_TrainingTypeNotFound() {
+        Trainee trainee = new Trainee();
+        Trainer trainer = new Trainer();
+
+        when(traineeDao.findByUsername("trainee1")).thenReturn(Optional.of(trainee));
+        when(trainerDao.findByUsername("trainer1")).thenReturn(Optional.of(trainer));
+        when(trainingTypeDao.findByName("yoga")).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class, () ->
-                trainingService.addTraining("t1", "t2", "BadType", new Date(), 10L, "X"));
+                trainingService.addTraining(
+                        "trainee1",
+                        "trainer1",
+                        "yoga",
+                        new Date(),
+                        60L,
+                        "Morning Yoga"
+                ));
     }
 
     @Test
-    void addTraining_InvalidDuration_ShouldThrow() {
-        when(traineeDao.findByUsername("t1")).thenReturn(Optional.of(new Trainee()));
-        when(trainerDao.findByUsername("t2")).thenReturn(Optional.of(new Trainer()));
-        when(trainingTypeDao.findByName("Yoga")).thenReturn(Optional.of(new TrainingType()));
+    void testAddTraining_InvalidDuration() {
+        Trainee trainee = new Trainee();
+        Trainer trainer = new Trainer();
+        TrainingType type = new TrainingType();
+
+        when(traineeDao.findByUsername("trainee1")).thenReturn(Optional.of(trainee));
+        when(trainerDao.findByUsername("trainer1")).thenReturn(Optional.of(trainer));
+        when(trainingTypeDao.findByName("yoga")).thenReturn(Optional.of(type));
 
         assertThrows(IllegalArgumentException.class, () ->
-                trainingService.addTraining("t1", "t2", "Yoga", new Date(), -5L, "X"));
+                trainingService.addTraining(
+                        "trainee1",
+                        "trainer1",
+                        "yoga",
+                        new Date(),
+                        0L,
+                        "Morning Yoga"
+                ));
     }
 }

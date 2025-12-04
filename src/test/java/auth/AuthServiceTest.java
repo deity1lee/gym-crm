@@ -1,8 +1,7 @@
 package auth;
 
 import org.example.dao.UserDao;
-import org.example.entities.Trainee;
-import org.example.entities.Trainer;
+import org.example.entities.User;
 import org.example.service.AuthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,117 +23,51 @@ class AuthServiceTest {
     }
 
     @Test
-    void authenticateTrainee_Success() {
-        Trainee trainee = new Trainee();
-        trainee.setUsername("john.doe");
-        trainee.setPassword("pass123");
+    void testAuthenticateUser_Success() {
+        String username = "john";
+        String password = "pass123";
+        User user = new User();
+        user.setUsername(username);
+        user.setPassword(password);
 
-        when(userDao.findByUsername("john.doe"))
-                .thenReturn(Optional.of(trainee));
+        when(userDao.findByUsername(username)).thenReturn(Optional.of(user));
 
-        Optional<Trainee> result =
-                authService.authenticateTrainee("john.doe", "pass123");
+        User result = authService.authenticateUser(username, password);
 
-        assertTrue(result.isPresent());
-        assertEquals("john.doe", result.get().getUsername());
+        assertEquals(user, result);
+        verify(userDao, times(1)).findByUsername(username);
     }
 
     @Test
-    void authenticateTrainee_FailsWrongPassword() {
-        Trainee trainee = new Trainee();
-        trainee.setUsername("john.doe");
-        trainee.setPassword("correct");
+    void testAuthenticateUser_InvalidPassword_ThrowsException() {
+        String username = "john";
+        String correctPassword = "pass123";
+        String wrongPassword = "wrongPass";
 
-        when(userDao.findByUsername("john.doe"))
-                .thenReturn(Optional.of(trainee));
+        User user = new User();
+        user.setUsername(username);
+        user.setPassword(correctPassword);
 
-        Optional<Trainee> result =
-                authService.authenticateTrainee("john.doe", "wrong");
+        when(userDao.findByUsername(username)).thenReturn(Optional.of(user));
 
-        assertTrue(result.isEmpty());
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> authService.authenticateUser(username, wrongPassword)
+        );
+
+        assertTrue(ex.getMessage().contains("Not authenticated user"));
     }
 
     @Test
-    void authenticateTrainee_FailsUserIsTrainerNotTrainee() {
-        Trainer trainer = new Trainer();
-        trainer.setUsername("john");
-        trainer.setPassword("pass");
+    void testAuthenticateUser_UserNotFound_ThrowsException() {
+        String username = "unknown";
+        String password = "pass";
 
-        when(userDao.findByUsername("john"))
-                .thenReturn(Optional.of(trainer));
+        when(userDao.findByUsername(username)).thenReturn(Optional.empty());
 
-        Optional<Trainee> result =
-                authService.authenticateTrainee("john", "pass");
-
-        assertTrue(result.isEmpty());
-    }
-
-    @Test
-    void authenticateTrainee_FailsUserNotFound() {
-        when(userDao.findByUsername("unknown"))
-                .thenReturn(Optional.empty());
-
-        Optional<Trainee> result =
-                authService.authenticateTrainee("unknown", "any");
-
-        assertTrue(result.isEmpty());
-    }
-
-    @Test
-    void authenticateTrainer_Success() {
-        Trainer trainer = new Trainer();
-        trainer.setUsername("trainerA");
-        trainer.setPassword("abc123");
-
-        when(userDao.findByUsername("trainerA"))
-                .thenReturn(Optional.of(trainer));
-
-        Optional<Trainer> result =
-                authService.authenticateTrainer("trainerA", "abc123");
-
-        assertTrue(result.isPresent());
-        assertEquals("trainerA", result.get().getUsername());
-    }
-
-    @Test
-    void authenticateTrainer_FailsWrongPassword() {
-        Trainer trainer = new Trainer();
-        trainer.setUsername("trainerA");
-        trainer.setPassword("correct");
-
-        when(userDao.findByUsername("trainerA"))
-                .thenReturn(Optional.of(trainer));
-
-        Optional<Trainer> result =
-                authService.authenticateTrainer("trainerA", "wrong");
-
-        assertTrue(result.isEmpty());
-    }
-
-    @Test
-    void authenticateTrainer_FailsUserIsTraineeNotTrainer() {
-        Trainee trainee = new Trainee();
-        trainee.setUsername("someone");
-        trainee.setPassword("123");
-
-        when(userDao.findByUsername("someone"))
-                .thenReturn(Optional.of(trainee));
-
-        Optional<Trainer> result =
-                authService.authenticateTrainer("someone", "123");
-
-        assertTrue(result.isEmpty());
-    }
-
-    @Test
-    void authenticateTrainer_FailsUserNotFound() {
-        when(userDao.findByUsername("unknown"))
-                .thenReturn(Optional.empty());
-
-        Optional<Trainer> result =
-                authService.authenticateTrainer("unknown", "pass");
-
-        assertTrue(result.isEmpty());
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> authService.authenticateUser(username, password)
+        );
     }
 }
-

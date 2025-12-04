@@ -1,24 +1,16 @@
 package org.example.utilities;
 
-import javax.xml.crypto.Data;
-import java.sql.DatabaseMetaData;
 import java.sql.Date;
-import java.time.LocalDate;
 
 public class TrainingSearchCriteria {
     private Date fromDate;
     private Date toDate;
+    private String userLastName;
+    private String trainingType;
 
     public String getUserLastName() {
         return userLastName;
     }
-
-    public void setUserLastName(String userLastName) {
-        this.userLastName = userLastName;
-    }
-
-    private String userLastName;
-    private String trainingType;
 
     public Date getFromDate() {
         return fromDate;
@@ -30,18 +22,6 @@ public class TrainingSearchCriteria {
 
     public String getTrainingType() {
         return trainingType;
-    }
-
-    public void setFromDate(Date fromDate) {
-        this.fromDate = fromDate;
-    }
-
-    public void setToDate(Date toDate) {
-        this.toDate = toDate;
-    }
-
-    public void setTrainingType(String trainingType) {
-        this.trainingType = trainingType;
     }
 }
 

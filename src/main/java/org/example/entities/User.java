@@ -10,14 +10,19 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Column(nullable = false)
     private String firstName;
+
     @Column(nullable = false)
     private String lastName;
+
     @Column(nullable = false)
     private String username;
+
     @Column(nullable = false)
     private String password;
+
     @Column(nullable = false)
     private boolean isActive;
 
@@ -29,19 +34,37 @@ public class User {
         this.isActive = isActive;
     }
 
-    public String getFirstName() { return firstName; }
+    public String getFirstName() {
+        return firstName;
+    }
 
-    public String getLastName() { return lastName; }
+    public String getLastName() {
+        return lastName;
+    }
 
-    public String getUsername() { return username; }
+    public String getUsername() {
+        return username;
+    }
+
     public void setUsername(String username) {
-        this.username = username; }
+        this.username = username;
+    }
 
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
+    public String getPassword() {
+        return password;
+    }
 
-    public boolean isActive() { return isActive; }
-    public void setActive(boolean active) { isActive = active; }
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
+    }
 
     protected Long getId() {
         return id;

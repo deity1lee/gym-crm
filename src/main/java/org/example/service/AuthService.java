@@ -17,20 +17,11 @@ public class AuthService {
         this.userDao = userDao;
     }
 
-    public Optional<Trainee> authenticateTrainee(String username, String password) {
+    public User authenticateUser(String username, String password) {
         return userDao.findByUsername(username)
-                .filter(u -> u instanceof Trainee)
                 .filter(u -> u.getPassword().equals(password))
-                .map(u -> (Trainee) u);
-    }
-    public Optional<Trainer> authenticateTrainer(String username, String password) {
-        return userDao.findByUsername(username)
-                .filter(u -> u instanceof Trainer)
-                .filter(u -> u.getPassword().equals(password))
-                .map(u -> (Trainer) u);
-    }
-    public Optional<User> authenticateUser(String username, String password) {
-        return userDao.findByUsername(username)
-                .filter(u -> u.getPassword().equals(password));
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                String.format("Not authenticated user: %s", username)));
     }
 }

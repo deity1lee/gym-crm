@@ -22,7 +22,6 @@ public class TraineeDao {
         this.sessionFactory = sf;
     }
 
-
     public void create(Trainee trainee) {
         sessionFactory.getCurrentSession().save(trainee);
         LOGGER.info("Created trainee with id {}", trainee.getId());
@@ -38,6 +37,7 @@ public class TraineeDao {
     }
 
     public void updateProfile(Trainee trainee) {
+        sessionFactory.getCurrentSession().merge(trainee);
         LOGGER.info("Updated trainee profile with id {}", trainee.getId());
     }
 
@@ -50,7 +50,7 @@ public class TraineeDao {
         LOGGER.debug("Trainee profile with username is already activated: {}", trainee.getUsername());
     }
 
-    public void deActivateTrainee(Trainee trainee) {
+    public void deactivateTrainee(Trainee trainee) {
         if (!trainee.isActive()) {
             trainee.setActive(true);
             LOGGER.debug("Trainee profile with username is activated: {}", trainee.getUsername());

@@ -43,14 +43,19 @@ public class TrainingService {
                             String trainingName) {
 
         Trainee trainee = traineeDao.findByUsername(traineeUsername)
-                .orElseThrow(() -> new IllegalArgumentException("Trainee not found: " + traineeUsername));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        String.format("Trainee not found: %s", traineeUsername)));
         Trainer trainer = trainerDao.findByUsername(trainerUsername)
-                .orElseThrow(() -> new IllegalArgumentException("Trainer not found: " + trainerUsername));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        String.format("Trainer not found: %s", trainerUsername)));
         TrainingType type = trainingTypeDao.findByName(trainingTypeName)
-                .orElseThrow(() -> new IllegalArgumentException("Training type not found: " + trainingTypeName));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        String.format("Training type not found: %s", trainingTypeName)));
+
         if (duration == null || duration <= 0) {
             throw new IllegalArgumentException("Duration must be positive");
         }
+
         Training training = new Training(
                 null,
                 trainee,

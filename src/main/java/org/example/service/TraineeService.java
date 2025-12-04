@@ -5,6 +5,7 @@ import org.example.dao.TrainerDao;
 import org.example.entities.Trainee;
 import org.example.entities.Trainer;
 import org.example.entities.Training;
+import org.example.entities.User;
 import org.example.utilities.CredentialGenerator;
 import org.example.utilities.TrainingSearchCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,18 +55,17 @@ public class TraineeService {
         LOGGER.info("Created trainee profile for username: {}", trainee.getUsername());
     }
 
-    public Trainee selectTraineeByUsername(String username, String password, String usernameForSearch) {
-        authService.authenticateUser(username, password)
-                .orElseThrow(() -> new IllegalArgumentException("Not authenticated user for searching trainee."));
-        Trainee trainee = traineeDao.findByUsername(usernameForSearch)
+    public Trainee selectTraineeByUsername(String username, String password, String traineeUsernameForSearch) {
+        authService.authenticateUser(username, password);
+        Trainee trainee = traineeDao.findByUsername(traineeUsernameForSearch)
                 .orElseThrow(() -> new IllegalArgumentException("Trainee by this username is not found."));
-        LOGGER.info("Trainee by username {} is found", usernameForSearch);
+        LOGGER.info("Trainee by username {} is found", traineeUsernameForSearch);
         return trainee;
     }
 
-    public void changePassword(String username, String oldPassword, String newPassword) {
-        Trainee trainee = authService.authenticateTrainee(username, oldPassword)
-                .orElseThrow(() -> new IllegalArgumentException("Not authenticated trainee for password update"));
+    public void changePassword(String username,String password,String traineeUsername, String oldPassword, String newPassword) {
+        authService.authenticateUser(username, password);
+        Trainee trainee = selectTraineeByUsername(traineeUsername, oldPassword, traineeUsername);
         if (!validatorService.isStrongPassword(newPassword)) {
             LOGGER.info("Password was not updated. Provided password is not strong");
             return;
@@ -76,38 +76,32 @@ public class TraineeService {
     }
 
     public void updateTrainee(String username, String password, Trainee newTrainee) {
-        Trainee existing = authService.authenticateTrainee(username,password)
-                .orElseThrow(() -> new IllegalArgumentException("Not authenticated trainee for updating profile."));
         validatorService.validate(newTrainee);
+        Trainee existing = selectTraineeByUsername(username, password, newTrainee.getUsername());
         existing.setFirstName(newTrainee.getFirstName());
-        validatorService.validateLastName(newTrainee.getLastName());
         existing.setLastName(newTrainee.getLastName());
         existing.setAddress(newTrainee.getAddress());
-        traineeDao.updateProfile(existing);
+        traineeDao.updateProfile(newTrainee);
     }
 
-    public void activateTrainee(String username, String password) {
-        Trainee trainee1 = authService.authenticateTrainee(username, password)
-                .orElseThrow(() -> new IllegalArgumentException("Not authenticated trainee for doing status change"));
-        traineeDao.activateTrainee(trainee1);
+    public void activateTrainee(String username, String password, String traineeUsername) {
+        Trainee trainee = selectTraineeByUsername(username, password, traineeUsername);
+        traineeDao.activateTrainee(trainee);
     }
 
-    public void deActivateTrainee(String username, String password) {
-        Trainee trainee1 = authService.authenticateTrainee(username, password)
-                .orElseThrow(() -> new IllegalArgumentException("Not authenticated trainee for doing status change"));
-        traineeDao.deActivateTrainee(trainee1);
+    public void deActivateTrainee(String username, String password, String traineeUsername) {
+        Trainee trainee = selectTraineeByUsername(username, password, traineeUsername);
+        traineeDao.deactivateTrainee(trainee);
     }
 
-    public void deleteTraineeByUsername(String username, String password) {
-        Trainee trainee = authService.authenticateTrainee(username, password)
-                .orElseThrow(() -> new IllegalArgumentException("Not authenticated trainee for deleting a profile"));
+    public void deleteTraineeByUsername(String username, String password, String traineeUsername) {
+        Trainee trainee = selectTraineeByUsername(username, password, traineeUsername);
         traineeDao.deleteTrainee(trainee);
     }
 
-    public List<Training> getTraineeTrainings(String username, String password, TrainingSearchCriteria criteria) {
-        authService.authenticateTrainee(username, password)
-                .orElseThrow(() -> new IllegalArgumentException("Not authenticated trainee for searching trainings."));
-        List<Training> trainings = traineeDao.findByTraineeUsernameAndCriteria(username, criteria);
+    public List<Training> getTraineeTrainings(String username, String password, String traineeUsername, TrainingSearchCriteria criteria) {
+        selectTraineeByUsername(username, password, traineeUsername);
+        List<Training> trainings = traineeDao.findByTraineeUsernameAndCriteria(traineeUsername, criteria);
         LOGGER.info("Training names for trainee {}:", username);
         trainings.forEach(t ->
                 LOGGER.info(" - {}", t.getName())
@@ -115,20 +109,18 @@ public class TraineeService {
         return trainings;
     }
 
-    public List<Trainer> getUnassignedTrainers(String username, String password) {
-        authService.authenticateTrainee(username, password)
-                .orElseThrow(() -> new IllegalArgumentException("Not authenticated trainee"));
-        List<Trainer> trainers = traineeDao.findUnassignedTrainers(username);
-        LOGGER.info("Trainers (usernames) that are not assigned to trainee {}:", username);
+    public List<Trainer> getUnassignedTrainers(String username, String password, String traineeUsername) {
+        selectTraineeByUsername(username, password, traineeUsername);
+        List<Trainer> trainers = traineeDao.findUnassignedTrainers(traineeUsername);
+        LOGGER.info("Trainers (usernames) that are not assigned to trainee {}:", traineeUsername);
         trainers.forEach(t ->
                 LOGGER.info(" - {}", t.getUsername())
         );
         return trainers;
     }
 
-    public void updateTraineeTrainers(String traineeUsername, String password, List<Trainer> newTrainers) {
-        Trainee trainee = authService.authenticateTrainee(traineeUsername, password)
-                .orElseThrow(() -> new IllegalArgumentException("Not authenticated trainee"));
+    public void updateTraineeTrainers(String username, String password, String traineeUsername, List<Trainer> newTrainers) {
+        Trainee trainee = selectTraineeByUsername(username, password, traineeUsername);
         List<Trainer> newTrainerList = newTrainers.stream()
                 .map(trainer -> trainerDao.findByUsername(trainer.getUsername())
                         .orElseThrow(() -> new IllegalArgumentException("Trainer not found: " + trainer.getUsername())))

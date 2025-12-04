@@ -14,9 +14,6 @@ public class TrainingType {
     private String trainingTypeName;
 
     @OneToMany(mappedBy = "trainingType")
-    private List<Trainer> trainers;
-
-    @OneToMany(mappedBy = "trainingType")
     private List<Training> trainings;
 
     public TrainingType() {}

@@ -35,6 +35,7 @@ public class TrainerDao {
     }
 
     public void updateProfile(Trainer trainer) {
+        sessionFactory.getCurrentSession().merge(trainer);
         LOGGER.info("Updated trainer profile with id {}", trainer.getId());
     }
 
@@ -47,7 +48,7 @@ public class TrainerDao {
         LOGGER.debug("Trainer profile with username is already activated: {}", trainer.getUsername());
     }
 
-    public void deActivateTrainer(Trainer trainer) {
+    public void deactivateTrainer(Trainer trainer) {
         if (!trainer.isActive()) {
             trainer.setActive(true);
             LOGGER.debug("Trainer profile with username is activated: {}", trainer.getUsername());
