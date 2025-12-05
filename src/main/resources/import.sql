@@ -7,9 +7,9 @@ INSERT INTO trainingTypes (trainingTypeName) VALUES ('yoga');
 
 INSERT INTO trainingTypes (trainingTypeName) VALUES ('cardio');
 
-INSERT INTO trainees (id, dateOfBirth, address) VALUES (2, '1999-05-12', 'NY, USA');
+INSERT INTO trainees (user_id, dateOfBirth, address) VALUES (2, '1999-05-12', 'NY, USA');
 
-INSERT INTO trainers (id, specialization) VALUES (1, 1);
+INSERT INTO trainers (user_id, training_type_id) VALUES (1, 1);
 
 INSERT INTO trainings (traineeId, trainerId, trainingName, trainingTypeId, trainingDate, trainingDuration) VALUES (2, 1, 'aaa', 1, '1999-05-12', 10);
 

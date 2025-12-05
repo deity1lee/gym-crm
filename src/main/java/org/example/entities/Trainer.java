@@ -5,13 +5,14 @@ import java.util.List;
 
 @Entity
 @Table(name = "trainers")
+@PrimaryKeyJoinColumn(name = "user_id")
 public class Trainer extends User {
 
     @OneToMany(mappedBy = "trainer")
     private List<Training> trainings;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "specialization", nullable = false)
+    @JoinColumn(name = "training_type_id", nullable = false)
     private TrainingType trainingType;
 
     @ManyToMany(mappedBy = "trainers")

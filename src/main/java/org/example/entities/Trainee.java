@@ -6,6 +6,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "trainees")
+@PrimaryKeyJoinColumn(name = "user_id")
 public class Trainee extends User {
 
     @Temporal(TemporalType.DATE)
