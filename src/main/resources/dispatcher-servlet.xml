@@ -10,10 +10,18 @@
           http://www.springframework.org/schema/mvc
           http://www.springframework.org/schema/mvc/spring-mvc.xsd">
 
-    <context:component-scan base-package="org.example"/>
-    <mvc:annotation-driven/>
-<!--    //swagger-->
+<!--    <context:component-scan base-package="org.example"/>-->
+<!--    <mvc:annotation-driven/>-->
+<!--&lt;!&ndash;    //swagger&ndash;&gt;-->
+<!--    <mvc:resources mapping="swagger-ui.html" location="classpath:/META-INF/resources/"/>-->
+<!--    <mvc:resources mapping="/webjars/**" location="classpath:/META-INF/resources/webjars/"/>-->
+    <mvc:annotation-driven />
+
+    <!-- Swagger -->
     <mvc:resources mapping="swagger-ui.html" location="classpath:/META-INF/resources/"/>
     <mvc:resources mapping="/webjars/**" location="classpath:/META-INF/resources/webjars/"/>
+
+    <!-- Scan controllers only -->
+    <context:component-scan base-package="org.example.controller"/>
 
 </beans>

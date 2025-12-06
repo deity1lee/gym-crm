@@ -23,30 +23,41 @@ public class TrainingService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TrainingService.class);
 
-    private final TrainerService trainerService;
-    private final TraineeService traineeService;
-    private final TrainingDao trainingDao;
+    private TrainerService trainerService;
+    private TraineeService traineeService;
+    private TrainingDao trainingDao;
     private TraineeDao traineeDao;
     private TrainerDao trainerDao;
-    private final TrainingTypeDao trainingTypeDao;
+    private TrainingTypeDao trainingTypeDao;
+
+    @Autowired
+    public void setTrainerService(TrainerService trainerService) {
+        this.trainerService = trainerService;
+    }
+
+    @Autowired
+    public void setTraineeService(TraineeService traineeService) {
+        this.traineeService = traineeService;
+    }
+
+    @Autowired
+    public void setTrainingTypeDao(TrainingTypeDao trainingTypeDao){
+        this.trainingTypeDao = trainingTypeDao;
+    }
+
+    @Autowired
+    public void setTrainingDao(TrainingDao trainingDao) {
+        this.trainingDao = trainingDao;
+    }
 
     @Autowired
     public void setTraineeDao(TraineeDao traineeDao) {
         this.traineeDao = traineeDao;
     }
+
     @Autowired
     public void setTrainerDao(TrainerDao trainerDao) {
         this.trainerDao = trainerDao;
-    }
-
-    public TrainingService(TraineeService traineeService,
-                           TrainerService trainerService,
-                           TrainingDao trainingDao,
-                           TrainingTypeDao trainingTypeDao) {
-        this.traineeService = traineeService;
-        this.trainerService = trainerService;
-        this.trainingDao = trainingDao;
-        this.trainingTypeDao = trainingTypeDao;
     }
 
     public void addTraining(String traineeUsername,

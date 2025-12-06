@@ -4,6 +4,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.example.dao.UserDao;
+import org.example.dto.ChangePasswordRequest;
 import org.example.dto.TraineeRegistrationRequest;
 import org.example.dto.TrainingCreationRequest;
 import org.example.dto.UserCredentials;
@@ -26,18 +28,18 @@ import java.util.List;
 
 @Api(tags = "Users")
 @RestController
-@RequestMapping("/user")
+@RequestMapping
 public class UserController {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserController.class);
 
-    private AuthService authService;
     private TrainingService trainingService;
     private TrainingTypeService trainingTypeService;
+    private AuthService authService;
 
-    public UserController(AuthService authService, TrainingService trainingService, TrainingTypeService trainingTypeService) {
-        this.authService = authService;
+    public UserController(TrainingService trainingService, TrainingTypeService trainingTypeService, AuthService authService) {
         this.trainingService = trainingService;
         this.trainingTypeService = trainingTypeService;
+        this.authService = authService;
     }
 
     @ApiOperation(value = "Add a new training", notes = "Creates a new training session for a trainee and trainer")
@@ -48,19 +50,13 @@ public class UserController {
             @ApiResponse(code = 500, message = "Internal server error")
     })
     @PostMapping("/trainings")
-    public ResponseEntity<Void> addTraining(
-            @RequestHeader("X-Auth-Username") String username,
-            @RequestHeader("X-Auth-Password") String password,
-            @Valid @RequestBody TrainingCreationRequest request
-    ) {
+    public ResponseEntity<Void> addTraining(@Valid @RequestBody TrainingCreationRequest request) {
 
         String txId = MDC.get("transactionId");
         LOGGER.info("[{}] POST /trainings - addTraining(trainee={}, trainer={}, typeId={})",
                 txId, request.getTraineeUsername(), request.getTrainerUsername(), request.getTrainingTypeId());
 
         try {
-            authService.authenticateUser(username, password);
-
             trainingService.addTraining(
                     request.getTraineeUsername(),
                     request.getTrainerUsername(),
@@ -72,10 +68,6 @@ public class UserController {
 
             LOGGER.info("[{}] addTraining success - 201 CREATED", txId);
             return ResponseEntity.status(HttpStatus.CREATED).build();
-
-        } catch (UnauthorizedException ex) {
-            LOGGER.warn("[{}] addTraining failed - 401 UNAUTHORIZED", txId);
-            throw ex;
 
         } catch (Exception ex) {
             LOGGER.error("[{}] addTraining failed - 400 BAD REQUEST - {}", txId, ex.getMessage());
@@ -101,6 +93,38 @@ public class UserController {
 
         } catch (Exception ex) {
             LOGGER.error("[{}] getTrainingTypes failed - {}", txId, ex.getMessage());
+            throw ex;
+        }
+    }
+
+    @ApiOperation(
+            value = "Change user password",
+            notes = "Authenticates the user and updates the password"
+    )
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Password changed successfully"),
+            @ApiResponse(code = 400, message = "Validation/business error"),
+            @ApiResponse(code = 500, message = "Internal server error")
+    })
+    @PutMapping("/users/{username}/password")
+    public ResponseEntity<String> changePassword(@PathVariable String username, @Valid @RequestBody ChangePasswordRequest request) {
+
+        String txId = MDC.get("transactionId");
+        LOGGER.info("[{}] PUT /users/{}/password - changePassword(username={})", txId, username, username);
+
+        try {
+            LOGGER.debug("[{}] Trying to change password of user {}", txId, username);
+
+            authService.changePassword(
+                    username,
+                    request.getOldPassword(),
+                    request.getNewPassword()
+            );
+
+            LOGGER.info("[{}] changePassword success - 200 OK - username={}", txId, username);
+            return ResponseEntity.ok("Password changed successfully");
+        } catch (Exception ex) {
+            LOGGER.error("[{}] changePassword failed - 400 BAD REQUEST - username={}", txId, username);
             throw ex;
         }
     }

@@ -1,6 +1,5 @@
 package unit;
 
-
 import org.example.dao.TraineeDao;
 import org.example.dao.TrainerDao;
 import org.example.dao.TrainingDao;
@@ -14,6 +13,9 @@ import org.example.service.TrainerService;
 import org.example.service.TrainingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.util.Date;
 import java.util.Optional;
@@ -23,40 +25,29 @@ import static org.mockito.Mockito.*;
 
 class TrainingServiceTest {
 
+    @Mock
     private TraineeDao traineeDao;
+    @Mock
     private TrainerDao trainerDao;
+    @Mock
     private TrainingDao trainingDao;
+    @Mock
     private TrainingTypeDao trainingTypeDao;
-
+    @Mock
     private TraineeService traineeService;
+    @Mock
     private TrainerService trainerService;
 
+    @InjectMocks
     private TrainingService trainingService;
 
     @BeforeEach
     void setUp() {
-        traineeDao = mock(TraineeDao.class);
-        trainerDao = mock(TrainerDao.class);
-        trainingDao = mock(TrainingDao.class);
-        trainingTypeDao = mock(TrainingTypeDao.class);
-
-        traineeService = mock(TraineeService.class);
-        trainerService = mock(TrainerService.class);
-
-        trainingService = new TrainingService(
-                traineeService,
-                trainerService,
-                trainingDao,
-                trainingTypeDao
-        );
-
-        // inject DAOs via setters
-        trainingService.setTraineeDao(traineeDao);
-        trainingService.setTrainerDao(trainerDao);
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    void testAddTraining_Success() {
+    void testAddTrainingSuccess() {
         Trainee trainee = new Trainee();
         Trainer trainer = new Trainer();
         TrainingType type = new TrainingType();
@@ -74,7 +65,7 @@ class TrainingServiceTest {
     }
 
     @Test
-    void testAddTraining_TraineeNotFound() {
+    void testAddTrainingTraineeNotFound() {
         when(traineeDao.findByUsername("trainee1")).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class, () ->
@@ -90,7 +81,7 @@ class TrainingServiceTest {
     }
 
     @Test
-    void testAddTraining_TrainerNotFound() {
+    void testAddTrainingTrainerNotFound() {
         Trainee trainee = new Trainee();
 
         when(traineeDao.findByUsername("trainee1")).thenReturn(Optional.of(trainee));
@@ -109,7 +100,7 @@ class TrainingServiceTest {
     }
 
     @Test
-    void addTraining_InvalidDuration_ShouldThrow() {
+    void testAddTrainingInvalidDurationThrows() {
         when(traineeDao.findByUsername("t1")).thenReturn(Optional.of(new Trainee()));
         when(trainerDao.findByUsername("t2")).thenReturn(Optional.of(new Trainer()));
 
@@ -126,7 +117,7 @@ class TrainingServiceTest {
     }
 
     @Test
-    void addTraining_NoDate_ShouldThrow() {
+    void testAddTrainingMissingDateThrows() {
         when(traineeDao.findByUsername("t1")).thenReturn(Optional.of(new Trainee()));
         when(trainerDao.findByUsername("t2")).thenReturn(Optional.of(new Trainer()));
 

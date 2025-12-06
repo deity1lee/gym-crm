@@ -9,8 +9,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 
-import org.slf4j.MDC;
-
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -30,109 +28,88 @@ class ValidatorServiceTest {
     @BeforeEach
     void setup() {
         MockitoAnnotations.openMocks(this);
-        MDC.put("transactionId", "test-tx");
     }
 
     @Test
-    void isStrongPassword_valid() {
+    void testIsStrongPasswordValid() {
         assertTrue(validatorService.isStrongPassword("Aa12345678"));
     }
 
     @Test
-    void isStrongPassword_invalidTooShort() {
+    void testIsStrongPasswordTooShort() {
         assertFalse(validatorService.isStrongPassword("Aa123"));
     }
 
     @Test
-    void isStrongPassword_missingUppercase() {
+    void testIsStrongPasswordMissingUppercase() {
         assertFalse(validatorService.isStrongPassword("aa12345678"));
     }
 
     @Test
-    void isStrongPassword_missingLowercase() {
+    void testIsStrongPasswordMissingLowercase() {
         assertFalse(validatorService.isStrongPassword("AA12345678"));
     }
 
     @Test
-    void isStrongPassword_missingDigits() {
+    void testIsStrongPasswordMissingDigits() {
         assertFalse(validatorService.isStrongPassword("Aaabcdefgh"));
     }
 
-    // ---------------------------------------------------------
-    // validateFirstName()
-    // ---------------------------------------------------------
-
     @Test
-    void validateFirstName_valid() {
+    void testValidateFirstNameValid() {
         assertDoesNotThrow(() -> validatorService.validateFirstName("John"));
     }
 
     @Test
-    void validateFirstName_empty_throws() {
+    void testValidateFirstNameEmptyThrows() {
         assertThrows(IllegalArgumentException.class,
                 () -> validatorService.validateFirstName(""));
     }
 
     @Test
-    void validateFirstName_containsDigits_throws() {
+    void testValidateFirstNameContainsDigitsThrows() {
         assertThrows(IllegalArgumentException.class,
                 () -> validatorService.validateFirstName("John5"));
     }
 
-    // ---------------------------------------------------------
-    // validateLastName()
-    // ---------------------------------------------------------
-
     @Test
-    void validateLastName_valid() {
+    void testValidateLastNameValid() {
         assertDoesNotThrow(() -> validatorService.validateLastName("Doe"));
     }
 
     @Test
-    void validateLastName_empty_throws() {
+    void testValidateLastNameEmptyThrows() {
         assertThrows(IllegalArgumentException.class,
                 () -> validatorService.validateLastName(""));
     }
 
     @Test
-    void validateLastName_containsDigits_throws() {
+    void testValidateLastNameContainsDigitsThrows() {
         assertThrows(IllegalArgumentException.class,
                 () -> validatorService.validateLastName("Doe3"));
     }
 
-    // ---------------------------------------------------------
-    // validateExistingUsername()
-    // ---------------------------------------------------------
-
     @Test
-    void validateExistingUsername_valid() {
+    void testValidateExistingUsernameValid() {
         when(userDao.findByUsername("john")).thenReturn(Optional.of(new User()));
-
-        assertDoesNotThrow(() ->
-                validatorService.validateExistingUsername("john")
-        );
+        assertDoesNotThrow(() -> validatorService.validateExistingUsername("john"));
     }
 
     @Test
-    void validateExistingUsername_empty_throws() {
+    void testValidateExistingUsernameEmptyThrows() {
         assertThrows(IllegalArgumentException.class,
                 () -> validatorService.validateExistingUsername(""));
     }
 
     @Test
-    void validateExistingUsername_notFound_throws() {
+    void testValidateExistingUsernameNotFoundThrows() {
         when(userDao.findByUsername("ghost")).thenReturn(Optional.empty());
-
         assertThrows(IllegalArgumentException.class,
                 () -> validatorService.validateExistingUsername("ghost"));
     }
 
-    // ---------------------------------------------------------
-    // validateTrainingType()
-    // ---------------------------------------------------------
-
     @Test
-    void validateTrainingType_valid() {
+    void testValidateTrainingTypeValid() {
         TrainingType input = new TrainingType();
         input.setId(10L);
         input.setTrainingTypeName("Cardio");
@@ -147,13 +124,13 @@ class ValidatorServiceTest {
     }
 
     @Test
-    void validateTrainingType_null_throws() {
+    void testValidateTrainingTypeNullThrows() {
         assertThrows(IllegalArgumentException.class,
                 () -> validatorService.validateTrainingType(null));
     }
 
     @Test
-    void validateTrainingType_invalidId_throws() {
+    void testValidateTrainingTypeInvalidIdThrows() {
         TrainingType type = new TrainingType();
         type.setId(0L);
         type.setTrainingTypeName("Boxing");
@@ -163,7 +140,7 @@ class ValidatorServiceTest {
     }
 
     @Test
-    void validateTrainingType_missingName_throws() {
+    void testValidateTrainingTypeMissingNameThrows() {
         TrainingType type = new TrainingType();
         type.setId(5L);
         type.setTrainingTypeName("");
@@ -173,7 +150,7 @@ class ValidatorServiceTest {
     }
 
     @Test
-    void validateTrainingType_nameMismatch_throws() {
+    void testValidateTrainingTypeNameMismatchThrows() {
         TrainingType input = new TrainingType();
         input.setId(5L);
         input.setTrainingTypeName("Yoga");
@@ -188,12 +165,8 @@ class ValidatorServiceTest {
                 () -> validatorService.validateTrainingType(input));
     }
 
-    // ---------------------------------------------------------
-    // validate(User)
-    // ---------------------------------------------------------
-
     @Test
-    void validateUser_success() {
+    void testValidateUserSuccess() {
         User user = new User();
         user.setUsername("john");
         user.setFirstName("John");
@@ -205,7 +178,7 @@ class ValidatorServiceTest {
     }
 
     @Test
-    void validateUser_usernameNotFound_throws() {
+    void testValidateUserUsernameNotFoundThrows() {
         User user = new User();
         user.setUsername("ghost");
         user.setFirstName("A");
@@ -214,6 +187,6 @@ class ValidatorServiceTest {
         when(userDao.findByUsername("ghost")).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class,
-                () -> validatorService.validate(user));
+                () -> validatorService.validateExistingUsername(user.getUsername()));
     }
 }

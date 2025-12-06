@@ -8,10 +8,8 @@ import org.example.dto.*;
 import org.example.entities.Trainer;
 import org.example.entities.Training;
 import org.example.entities.TrainingType;
-import org.example.exception.UnauthorizedException;
-import org.example.service.AuthService;
+import org.example.mapper.TrainerMapper;
 import org.example.service.TrainerService;
-import org.example.service.TrainingTypeService;
 import org.example.utilities.TrainingSearchCriteria;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,19 +25,17 @@ import java.util.List;
 
 @Api(tags = "Trainers")
 @RestController
-@RequestMapping("/trainer")
+@RequestMapping("/trainers")
 public class TrainerController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TrainerController.class);
 
     private TrainerService trainerService;
-    private AuthService authService;
-    private TrainingTypeService trainingTypeService;
+    private TrainerMapper mapper;
 
-    public TrainerController(TrainerService trainerService, AuthService authService, TrainingTypeService trainingTypeService) {
+    public TrainerController(TrainerService trainerService, TrainerMapper mapper) {
         this.trainerService = trainerService;
-        this.authService = authService;
-        this.trainingTypeService = trainingTypeService;
+        this.mapper = mapper;
     }
 
     @ApiOperation(value = "Register a new trainer", notes = "Creates a trainer profile and returns generated username and password")
@@ -48,11 +44,11 @@ public class TrainerController {
             @ApiResponse(code = 400, message = "Validation or business error"),
             @ApiResponse(code = 500, message = "Internal server error")
     })
-    @PostMapping("/register")
+    @PostMapping
     public ResponseEntity<UserCredentials> registerTrainer(@Valid @RequestBody TrainerRegistrationRequest request) {
 
         String txId = MDC.get("transactionId");
-        LOGGER.info("[{}] POST /trainer/profile - registerTrainer({})", txId, requestSummary(request));
+        LOGGER.info("[{}] POST /trainers - registerTrainer(firstName='{}', lastName='{}')", txId, request.getFirstName(), request.getLastName());
         try {
             Trainer trainer = new Trainer(
                     request.getFirstName(),
@@ -82,28 +78,18 @@ public class TrainerController {
             @ApiResponse(code = 401, message = "Unauthorized / invalid credentials"),
             @ApiResponse(code = 500, message = "Internal server error")
     })
-    @GetMapping("/profile")
-    public ResponseEntity<TrainerProfileResponse> getTrainerProfile(@RequestHeader("X-Auth-Username") String username,
-                                                                    @RequestHeader("X-Auth-Password") String password,
-                                                                    @RequestParam String usernameForSearch) {
+    @GetMapping("/{username}")
+    public ResponseEntity<TrainerProfileResponse> getTrainerProfile(@PathVariable String username) {
         String txId = MDC.get("transactionId");
-        LOGGER.info("[{}] GET /trainer/profile - getTrainerProfile(requestedBy={}, search={})",
-                txId, username, usernameForSearch);
-
+        LOGGER.info("[{}] GET /trainers/{} - getTrainerProfile(trainer='{}')", txId, username, username);
         try {
-            authService.authenticateUser(username, password);
+            Trainer trainer = trainerService.selectTrainerByUsername(username);
 
-            Trainer trainer = trainerService.selectTrainerByUsername(usernameForSearch);
-
-            LOGGER.info("[{}] getTrainerProfile success - 200 OK - requested trainer={}", txId, usernameForSearch);
-            return ResponseEntity.ok(mapToResponse(trainer));
-
-        } catch (UnauthorizedException ex) {
-            LOGGER.warn("[{}] getTrainerProfile failed - 401 UNAUTHORIZED - requestedBy={}", txId, username);
-            throw ex;
+            LOGGER.info("[{}] getTrainerProfile success - 200 OK - requested trainer={}", txId, username);
+            return ResponseEntity.ok(mapper.toResponse(trainer));
 
         } catch (Exception ex) {
-            LOGGER.error("[{}] getTrainerProfile failed - 400 BAD REQUEST - search={}", txId, usernameForSearch);
+            LOGGER.error("[{}] getTrainerProfile failed - 400 BAD REQUEST - trainer={}", txId, username);
             throw ex;
         }
     }
@@ -115,18 +101,13 @@ public class TrainerController {
             @ApiResponse(code = 401, message = "Unauthorized / invalid credentials"),
             @ApiResponse(code = 500, message = "Internal server error")
     })
-    @PutMapping("/profile")
-    public ResponseEntity<TrainerProfileResponse> updateTrainerProfile(@RequestHeader("X-Auth-Username") String username,
-                                                                       @RequestHeader("X-Auth-Password") String password,
-                                                                       @Valid @RequestBody UpdateTrainerProfileRequest request) {
+    @PutMapping
+    public ResponseEntity<TrainerProfileResponse> updateTrainerProfile(@Valid @RequestBody UpdateTrainerProfileRequest request) {
 
         String txId = MDC.get("transactionId");
-        LOGGER.info("[{}] PUT /trainer/profile - updateTrainerProfile(requestedBy={}, target={})",
-                txId, username, request.getUsername());
+        LOGGER.info("[{}] PUT /trainers - updateTrainerProfile(trainer='{}')", txId, request.getUsername());
 
         try {
-            authService.authenticateUser(username, password);
-
             Trainer updatedTrainerData = new Trainer(
                     request.getUsername(),
                     request.getFirstName(),
@@ -138,11 +119,7 @@ public class TrainerController {
             Trainer updatedTrainer = trainerService.updateTrainer(updatedTrainerData);
 
             LOGGER.info("[{}] updateTrainerProfile success - 200 OK - updated={}", txId, updatedTrainer.getUsername());
-            return ResponseEntity.ok(mapToResponse(updatedTrainer));
-
-        } catch (UnauthorizedException ex) {
-            LOGGER.warn("[{}] updateTrainerProfile failed - 401 UNAUTHORIZED - requestedBy={}", txId, username);
-            throw ex;
+            return ResponseEntity.ok(mapper.toResponse(updatedTrainer));
 
         } catch (Exception ex) {
             LOGGER.error("[{}] updateTrainerProfile failed - 400 BAD REQUEST - target={}", txId, request.getUsername());
@@ -150,21 +127,17 @@ public class TrainerController {
         }
     }
 
-    @GetMapping("/trainings")
+    @GetMapping("/{username}/trainings")
     public ResponseEntity<List<TrainingInfoResponse>> getTrainerTrainings(
-            @RequestHeader("X-Auth-Username") String username,
-            @RequestHeader("X-Auth-Password") String password,
-            @RequestParam String trainerUsername,
+            @PathVariable String username,
             @RequestParam(required = false) Date periodFrom,
             @RequestParam(required = false) Date periodTo,
             @RequestParam(required = false) String traineeUsername) {
 
         String txId = MDC.get("transactionId");
-        LOGGER.info("[{}] Get trainee trainings for trainee={}", txId, trainerUsername);
+        LOGGER.info("[{}] GET trainers/{}/trainings - getTrainerTrainings(trainer='{}')", txId, username, username);
 
-        authService.authenticateUser(username, password);
-
-        TrainingSearchCriteria criteria = new TrainingSearchCriteria(periodFrom, periodTo, trainerUsername, traineeUsername, null);
+        TrainingSearchCriteria criteria = new TrainingSearchCriteria(periodFrom, periodTo, username, traineeUsername, null);
 
         List<Training> trainings = trainerService.getTrainerTrainings(criteria);
 
@@ -189,64 +162,21 @@ public class TrainerController {
             @ApiResponse(code = 401, message = "Unauthorized"),
             @ApiResponse(code = 500, message = "Internal server error")
     })
-    @PatchMapping("/activation")
-    public ResponseEntity<Void> updateTraineeActivation(@RequestHeader("X-Auth-Username") String username,
-                                                        @RequestHeader("X-Auth-Password") String password,
-                                                        @Valid @RequestBody ActivationRequest request) {
+    @PatchMapping("{username}/activation")
+    public ResponseEntity<Void> updateTrainerActivation(@PathVariable String username, @Valid @RequestBody Boolean isActive) {
 
         String txId = MDC.get("transactionId");
-        LOGGER.info("[{}] PATCH /trainee/activation - user={}", txId, request.getUsername());
+        LOGGER.info("[{}] PATCH /trainers/{}/activation - isActive={}", txId, username, isActive);
 
         try {
-            authService.authenticateUser(username, password);
+            trainerService.updateActivationStatus(username, isActive);
 
-            if (request.getUsername() == null || request.getUsername().isBlank()) {
-                LOGGER.warn("[{}] Missing username in activation request", txId);
-                throw new IllegalArgumentException("username is required");
-            }
-            if (request.getIsActive() == null) {
-                LOGGER.warn("[{}] Missing isActive flag in request", txId);
-                throw new IllegalArgumentException("isActive is required (true/false)");
-            }
-            trainerService.updateActivationStatus(request.getUsername(), request.getIsActive());
-
-            LOGGER.info("[{}] updateTraineeActivation success - 200 OK", txId);
+            LOGGER.info("[{}] updateTrainerActivation success - 200 OK", txId);
             return ResponseEntity.ok().build();
 
-        } catch (UnauthorizedException ex) {
-            LOGGER.error("[{}] updateTraineeActivation failed - 401 - {}", txId, ex.getMessage());
-            throw ex;
-
         } catch (Exception ex) {
-            LOGGER.error("[{}] updateTraineeActivation failed - {}", txId, ex.getMessage());
+            LOGGER.error("[{}] updateTrainerActivation failed - {}", txId, ex.getMessage());
             throw ex;
         }
     }
-    private TrainerProfileResponse mapToResponse(Trainer trainer) {
-        TrainerProfileResponse response = new TrainerProfileResponse();
-
-        response.setFirstName(trainer.getFirstName());
-        response.setLastName(trainer.getLastName());
-        response.setTrainingType(trainer.getTrainingType());
-        response.setActive(trainer.isActive());
-
-        List<TrainerProfileResponse.TraineeInfo> traineesInfo =
-                trainer.getTrainees().stream()
-                        .map(t -> new TrainerProfileResponse.TraineeInfo(
-                                t.getUsername(),
-                                t.getFirstName(),
-                                t.getLastName()
-                        ))
-                        .toList();
-
-        response.setTrainees(traineesInfo);
-
-        return response;
-    }
-    private String requestSummary(TrainerRegistrationRequest request) {
-            return String.format("firstName=%s, lastName=%s, specialization=%s",
-                    request.getFirstName(),
-                    request.getLastName(),
-                    request.getTrainingType().getTrainingTypeName());
-        }
 }

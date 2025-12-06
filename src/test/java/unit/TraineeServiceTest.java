@@ -13,8 +13,6 @@ import org.example.utilities.TrainingSearchCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-import org.slf4j.MDC;
-
 import java.util.*;
 import java.sql.Date;
 
@@ -23,20 +21,11 @@ import static org.mockito.Mockito.*;
 
 class TraineeServiceTest {
 
-    @Mock
-    private TraineeDao traineeDao;
-
-    @Mock
-    private TrainerDao trainerDao;
-
-    @Mock
-    private TrainingTypeDao trainingTypeDao;
-
-    @Mock
-    private AuthService authService;
-
-    @Mock
-    private ValidatorService validatorService;
+    @Mock private TraineeDao traineeDao;
+    @Mock private TrainerDao trainerDao;
+    @Mock private TrainingTypeDao trainingTypeDao;
+    @Mock private AuthService authService;
+    @Mock private ValidatorService validatorService;
 
     @InjectMocks
     private TraineeService traineeService;
@@ -44,11 +33,10 @@ class TraineeServiceTest {
     @BeforeEach
     void setup() {
         MockitoAnnotations.openMocks(this);
-        MDC.put("transactionId", "test-tx");
     }
 
     @Test
-    void createTrainee_success() {
+    void testCreateTraineeSuccess() {
         Trainee trainee = new Trainee();
 
         doNothing().when(validatorService).validate(trainee);
@@ -62,9 +50,9 @@ class TraineeServiceTest {
     }
 
     @Test
-    void selectTraineeByUsername_found() {
+    void testSelectTraineeByUsernameFound() {
         Trainee trainee = new Trainee();
-        trainee.setTrainers(new ArrayList<>()); // <-- FIX
+        trainee.setTrainers(new ArrayList<>());
 
         when(traineeDao.findByUsername("john")).thenReturn(Optional.of(trainee));
 
@@ -74,7 +62,7 @@ class TraineeServiceTest {
     }
 
     @Test
-    void selectTraineeByUsername_notFound() {
+    void testSelectTraineeByUsernameNotFound() {
         when(traineeDao.findByUsername("ghost")).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class,
@@ -82,10 +70,10 @@ class TraineeServiceTest {
     }
 
     @Test
-    void updateTrainee_success() {
+    void testUpdateTraineeSuccess() {
         Trainee existing = new Trainee();
         existing.setUsername("john");
-        existing.setTrainers(new ArrayList<>()); // <-- FIX
+        existing.setTrainers(new ArrayList<>());
 
         Trainee incoming = new Trainee();
         incoming.setUsername("john");
@@ -102,7 +90,7 @@ class TraineeServiceTest {
     }
 
     @Test
-    void updateActivationStatus_success() {
+    void testUpdateActivationStatusSuccess() {
         Trainee trainee = new Trainee();
         trainee.setUsername("john");
 
@@ -115,19 +103,15 @@ class TraineeServiceTest {
     }
 
     @Test
-    void updateActivationStatus_notFound() {
+    void testUpdateActivationStatusNotFound() {
         when(traineeDao.findByUsername("ghost")).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class,
                 () -> traineeService.updateActivationStatus("ghost", true));
     }
 
-    // -----------------------------------------------------
-    // getUnassignedTrainers()
-    // -----------------------------------------------------
-
     @Test
-    void getUnassignedTrainers_success() {
+    void testGetUnassignedTrainersSuccess() {
         Trainee trainee = new Trainee();
         when(traineeDao.findByUsername("john")).thenReturn(Optional.of(trainee));
 
@@ -140,19 +124,15 @@ class TraineeServiceTest {
     }
 
     @Test
-    void getUnassignedTrainers_notFound() {
+    void testGetUnassignedTrainersNotFound() {
         when(traineeDao.findByUsername("ghost")).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class,
                 () -> traineeService.getUnassignedTrainers("ghost"));
     }
 
-    // -----------------------------------------------------
-    // updateTraineeTrainers()
-    // -----------------------------------------------------
-
     @Test
-    void updateTraineeTrainers_success() {
+    void testUpdateTraineeTrainersSuccess() {
         Trainee trainee = new Trainee();
         when(traineeDao.findByUsername("john")).thenReturn(Optional.of(trainee));
 
@@ -169,7 +149,7 @@ class TraineeServiceTest {
     }
 
     @Test
-    void updateTraineeTrainers_trainerNotFound() {
+    void testUpdateTraineeTrainersTrainerNotFound() {
         Trainee trainee = new Trainee();
         when(traineeDao.findByUsername("john")).thenReturn(Optional.of(trainee));
 
@@ -180,7 +160,7 @@ class TraineeServiceTest {
     }
 
     @Test
-    void getTraineeTrainings_success() {
+    void testGetTraineeTrainingsSuccess() {
         Trainee trainee = new Trainee();
         when(traineeDao.findByUsername("john")).thenReturn(Optional.of(trainee));
 
@@ -196,7 +176,7 @@ class TraineeServiceTest {
     }
 
     @Test
-    void getTraineeTrainings_missingUsername() {
+    void testGetTraineeTrainingsMissingUsername() {
         TrainingSearchCriteria criteria =
                 new TrainingSearchCriteria(null, null, null, "", null);
 
@@ -205,7 +185,7 @@ class TraineeServiceTest {
     }
 
     @Test
-    void getTraineeTrainings_invalidDateRange() {
+    void testGetTraineeTrainingsInvalidDateRange() {
         Date from = new Date(200);
         Date to = new Date(100);
 
@@ -219,30 +199,24 @@ class TraineeServiceTest {
     }
 
     @Test
-    void getTraineeTrainings_invalidTrainerFilter() {
+    void testGetTraineeTrainingsInvalidTrainerFilter() {
         TrainingSearchCriteria criteria =
                 new TrainingSearchCriteria(null, null, "trainerX", "john", null);
 
-        when(traineeDao.findByUsername("john"))
-                .thenReturn(Optional.of(new Trainee()));
-
-        when(trainerDao.findByUsername("trainerX"))
-                .thenReturn(Optional.empty());
+        when(traineeDao.findByUsername("john")).thenReturn(Optional.of(new Trainee()));
+        when(trainerDao.findByUsername("trainerX")).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class,
                 () -> traineeService.getTraineeTrainings("john", criteria));
     }
 
     @Test
-    void getTraineeTrainings_invalidTrainingType() {
+    void testGetTraineeTrainingsInvalidTrainingType() {
         TrainingSearchCriteria criteria =
                 new TrainingSearchCriteria(null, null, null, "john", 99L);
 
-        when(traineeDao.findByUsername("john"))
-                .thenReturn(Optional.of(new Trainee()));
-
-        when(trainingTypeDao.findById(99L))
-                .thenReturn(Optional.empty());
+        when(traineeDao.findByUsername("john")).thenReturn(Optional.of(new Trainee()));
+        when(trainingTypeDao.findById(99L)).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class,
                 () -> traineeService.getTraineeTrainings("john", criteria));

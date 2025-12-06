@@ -5,10 +5,14 @@ import org.example.dao.TrainerDao;
 import org.example.dao.UserDao;
 import org.example.entities.Trainee;
 import org.example.entities.User;
+import org.example.exception.UnauthorizedException;
 import org.example.service.AuthService;
 import org.example.service.ValidatorService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.util.Optional;
 
@@ -17,27 +21,25 @@ import static org.mockito.Mockito.*;
 
 class AuthServiceTest {
 
+    @Mock
     private UserDao userDao;
+    @Mock
     private ValidatorService validatorService;
+    @Mock
     private TraineeDao traineeDao;
+    @Mock
     private TrainerDao trainerDao;
+
+    @InjectMocks
     private AuthService authService;
 
     @BeforeEach
     void setUp() {
-        userDao = mock(UserDao.class);
-        validatorService = mock(ValidatorService.class);
-        traineeDao = mock(TraineeDao.class);
-        trainerDao = mock(TrainerDao.class);
-
-        authService = new AuthService(userDao);
-        authService.setValidatorService(validatorService);
-        authService.setTraineeDao(traineeDao);
-        authService.setTrainerDao(trainerDao);
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    void authenticateUser_Success() {
+    void testAuthenticateUserSuccess() {
         User user = new User();
         user.setUsername("john");
         user.setPassword("123");
@@ -50,27 +52,27 @@ class AuthServiceTest {
     }
 
     @Test
-    void authenticateUser_FailsWrongPassword() {
+    void testAuthenticateUserFailsWrongPassword() {
         User user = new User();
         user.setUsername("john");
         user.setPassword("correct");
 
         when(userDao.findByUsername("john")).thenReturn(Optional.of(user));
 
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(UnauthorizedException.class,
                 () -> authService.authenticateUser("john", "wrong"));
     }
 
     @Test
-    void authenticateUser_FailsUserNotFound() {
+    void testAuthenticateUserFailsUserNotFound() {
         when(userDao.findByUsername("absent")).thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(UnauthorizedException.class,
                 () -> authService.authenticateUser("absent", "pass"));
     }
 
     @Test
-    void changePassword_Success() {
+    void testChangePasswordSuccess() {
         User user = new User();
         user.setId(1L);
         user.setUsername("john");
@@ -85,7 +87,7 @@ class AuthServiceTest {
     }
 
     @Test
-    void changePassword_FailsWeakPassword_NoUpdate() {
+    void testChangePasswordFailsWeakPasswordNoUpdate() {
         User user = new User();
         user.setId(1L);
         user.setUsername("john");
@@ -100,7 +102,7 @@ class AuthServiceTest {
     }
 
     @Test
-    void changePassword_FailsWrongOldPassword() {
+    void testChangePasswordFailsWrongOldPassword() {
         User user = new User();
         user.setId(1L);
         user.setUsername("john");
@@ -108,14 +110,14 @@ class AuthServiceTest {
 
         when(userDao.findByUsername("john")).thenReturn(Optional.of(user));
 
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(UnauthorizedException.class,
                 () -> authService.changePassword("john", "wrong", "newPass"));
 
         verify(userDao, never()).updatePassword(anyLong(), anyString());
     }
 
     @Test
-    void assignCredentials_AssignsUsernamePasswordAndActivates() {
+    void testAssignCredentialsAssignsUsernamePasswordAndActivates() {
         Trainee trainee = new Trainee();
         trainee.setFirstName("John");
         trainee.setLastName("Doe");

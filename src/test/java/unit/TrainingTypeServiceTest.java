@@ -5,6 +5,9 @@ import org.example.entities.TrainingType;
 import org.example.service.TrainingTypeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.util.*;
 
@@ -13,17 +16,19 @@ import static org.mockito.Mockito.*;
 
 class TrainingTypeServiceTest {
 
+    @Mock
     private TrainingTypeDao trainingTypeDao;
+
+    @InjectMocks
     private TrainingTypeService trainingTypeService;
 
     @BeforeEach
     void setup() {
-        trainingTypeDao = mock(TrainingTypeDao.class);
-        trainingTypeService = new TrainingTypeService(trainingTypeDao);
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    void getAllTrainingTypes_ShouldReturnList() {
+    void testGetAllTrainingTypesReturnsList() {
         List<TrainingType> list = Arrays.asList(
                 new TrainingType(),
                 new TrainingType()
@@ -38,7 +43,7 @@ class TrainingTypeServiceTest {
     }
 
     @Test
-    void getTrainingTypeById_ShouldReturnType() {
+    void testGetTrainingTypeByIdReturnsType() {
         TrainingType type = new TrainingType();
         when(trainingTypeDao.findById(1L)).thenReturn(Optional.of(type));
 
@@ -49,11 +54,11 @@ class TrainingTypeServiceTest {
     }
 
     @Test
-    void getTrainingTypeById_NotFound_ShouldThrow() {
-        when(trainingTypeDao.findById(99L)).thenReturn(Optional.empty());
+    void testGetTrainingTypeByIdNotFoundThrows() {
+        when(trainingTypeDao.findById(99L))
+                .thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class, () ->
-                trainingTypeService.getTrainingTypeById(99L)
-        );
+        assertThrows(IllegalArgumentException.class,
+                () -> trainingTypeService.getTrainingTypeById(99L));
     }
 }

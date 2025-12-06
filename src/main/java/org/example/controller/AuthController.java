@@ -1,12 +1,10 @@
 package org.example.controller;
 
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.example.dto.ChangePasswordRequest;
-import org.example.dto.UserCredentials;
 import org.example.entities.Trainee;
 import org.example.entities.User;
 import org.example.service.AuthService;
@@ -40,11 +38,11 @@ public class AuthController {
             @ApiResponse(code = 400, message = "Invalid credentials or validation error"),
             @ApiResponse(code = 500, message = "Internal server error")
     })
-    @GetMapping("/login")
+    @GetMapping
     public ResponseEntity<String> login(@RequestHeader("X-Auth-Username") String username,
                                         @RequestHeader("X-Auth-Password") String password) {
         String txId = MDC.get("transactionId");
-        LOGGER.info("[{}] GET /auth/login - login(username={})", txId, username);
+        LOGGER.info("[{}] GET /auth - login(username={})", txId, username);
 
         try {
             User user = authService.authenticateUser(username, password);
@@ -56,44 +54,6 @@ public class AuthController {
             return ResponseEntity.ok("Login successful");
         } catch (Exception ex) {
             LOGGER.error("[{}] login failed - 400 BAD REQUEST - username={}", txId, username);
-            throw ex;
-        }
-    }
-
-    @ApiOperation(
-            value = "Change user password",
-            notes = "Authenticates the user and updates the password"
-    )
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Password changed successfully"),
-            @ApiResponse(code = 400, message = "Validation/business error"),
-            @ApiResponse(code = 500, message = "Internal server error")
-    })
-    @PutMapping("/change-password")
-    public ResponseEntity<String> changePassword(
-            @RequestHeader("X-Auth-Username") String username,
-            @RequestHeader("X-Auth-Password") String password,
-            @Valid @RequestBody ChangePasswordRequest request) {
-
-        String txId = MDC.get("transactionId");
-        LOGGER.info("[{}] PUT /auth/change-password - changePassword(username={})", txId, request.getUsername());
-
-        try {
-            LOGGER.debug("[{}] Trying to authenticate user {}", txId, username);
-            authService.authenticateUser(username, password);
-
-            LOGGER.debug("[{}] Trying to change password of user {}", txId, request.getUsername());
-
-            authService.changePassword(
-                    request.getUsername(),
-                    request.getOldPassword(),
-                    request.getNewPassword()
-            );
-
-            LOGGER.info("[{}] changePassword success - 200 OK - username={}", txId, request.getUsername());
-            return ResponseEntity.ok("Password changed successfully");
-        } catch (Exception ex) {
-            LOGGER.error("[{}] changePassword failed - 400 BAD REQUEST - username={}", txId, request.getUsername());
             throw ex;
         }
     }

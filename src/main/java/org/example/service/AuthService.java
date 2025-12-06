@@ -4,6 +4,7 @@ import org.example.dao.TraineeDao;
 import org.example.dao.TrainerDao;
 import org.example.dao.UserDao;
 import org.example.entities.User;
+import org.example.exception.UnauthorizedException;
 import org.example.utilities.CredentialGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +19,7 @@ import javax.transaction.Transactional;
 public class AuthService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthService.class);
-    private final UserDao userDao;
+    private UserDao userDao;
     private ValidatorService validatorService;
     private TraineeDao traineeDao;
     private TrainerDao trainerDao;
@@ -33,7 +34,8 @@ public class AuthService {
         this.trainerDao = trainerDao;
     }
 
-    public AuthService(UserDao userDao) {
+    @Autowired
+    public void setUserDao(UserDao userDao) {
         this.userDao = userDao;
     }
 
@@ -44,20 +46,19 @@ public class AuthService {
 
     public User authenticateUser(String username, String password) {
         String tx = MDC.get("transactionId");
-        LOGGER.debug("[{}] Authenticating user '{}'", tx, username);
 
         return userDao.findByUsername(username)
                 .map(user -> {
                     if (!user.getPassword().equals(password)) {
-                        LOGGER.warn("[{}] Authentication failed: invalid password for user '{}'", tx, username);
-                        throw new IllegalArgumentException("Invalid username or password");
+                        LOGGER.warn("[{}] Authentication failed: invalid credentials", tx);
+                        throw new UnauthorizedException("Invalid credentials");
                     }
                     LOGGER.info("[{}] Authentication successful for user '{}'", tx, username);
                     return user;
                 })
                 .orElseThrow(() -> {
-                    LOGGER.warn("[{}] Authentication failed: user '{}' not found", tx, username);
-                    return new IllegalArgumentException("Invalid username or password");
+                    LOGGER.warn("[{}] Authentication failed: invalid credentials", tx);
+                    return new UnauthorizedException("Invalid credentials");
                 });
     }
 

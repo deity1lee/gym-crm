@@ -12,11 +12,9 @@ import org.example.utilities.TrainingSearchCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-import org.slf4j.MDC;
 
 import java.util.*;
 import java.sql.Date;
-
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -25,13 +23,10 @@ class TrainerServiceTest {
 
     @Mock
     private TrainerDao trainerDao;
-
     @Mock
     private TraineeDao traineeDao;
-
     @Mock
     private ValidatorService validatorService;
-
     @Mock
     private AuthService authService;
 
@@ -41,11 +36,10 @@ class TrainerServiceTest {
     @BeforeEach
     void setup() {
         MockitoAnnotations.openMocks(this);
-        MDC.put("transactionId", "test-tx");
     }
 
     @Test
-    void createTrainer_success() {
+    void testCreateTrainerSuccess() {
         Trainer trainer = new Trainer();
 
         doNothing().when(validatorService).validate(trainer);
@@ -59,7 +53,7 @@ class TrainerServiceTest {
     }
 
     @Test
-    void selectTrainerByUsername_found() {
+    void testSelectTrainerByUsernameFound() {
         Trainer trainer = new Trainer();
         trainer.setTrainees(new ArrayList<>());
 
@@ -72,7 +66,7 @@ class TrainerServiceTest {
     }
 
     @Test
-    void selectTrainerByUsername_notFound() {
+    void testSelectTrainerByUsernameNotFound() {
         when(trainerDao.findByUsername("ghost")).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class,
@@ -80,17 +74,17 @@ class TrainerServiceTest {
     }
 
     @Test
-    void updateTrainer_success() {
+    void testUpdateTrainerSuccess() {
         Trainer existing = new Trainer();
         existing.setUsername("alex");
-        existing.setTrainees(new ArrayList<>()); // prevent NPE
+        existing.setTrainees(new ArrayList<>());
 
         Trainer incoming = new Trainer();
         incoming.setUsername("alex");
         incoming.setFirstName("A");
         incoming.setLastName("B");
         incoming.setActive(true);
-        incoming.setTrainingType(new TrainingType()); // mock training type
+        incoming.setTrainingType(new TrainingType());
 
         when(trainerDao.findByUsername("alex")).thenReturn(Optional.of(existing));
 
@@ -106,7 +100,7 @@ class TrainerServiceTest {
     }
 
     @Test
-    void updateActivationStatus_success() {
+    void testUpdateActivationStatusSuccess() {
         Trainer trainer = new Trainer();
         trainer.setUsername("alex");
 
@@ -119,7 +113,7 @@ class TrainerServiceTest {
     }
 
     @Test
-    void updateActivationStatus_notFound() {
+    void testUpdateActivationStatusNotFound() {
         when(trainerDao.findByUsername("ghost")).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class,
@@ -127,7 +121,7 @@ class TrainerServiceTest {
     }
 
     @Test
-    void getTrainerTrainings_success() {
+    void testGetTrainerTrainingsSuccess() {
         Trainer trainer = new Trainer();
         when(trainerDao.findByUsername("alex")).thenReturn(Optional.of(trainer));
 
@@ -144,7 +138,7 @@ class TrainerServiceTest {
     }
 
     @Test
-    void getTrainerTrainings_missingTrainerUsername() {
+    void testGetTrainerTrainingsMissingTrainerUsername() {
         TrainingSearchCriteria criteria =
                 new TrainingSearchCriteria(null, null, "", null, null);
 
@@ -153,7 +147,7 @@ class TrainerServiceTest {
     }
 
     @Test
-    void getTrainerTrainings_trainerNotFound() {
+    void testGetTrainerTrainingsTrainerNotFound() {
         TrainingSearchCriteria criteria =
                 new TrainingSearchCriteria(null, null, "alex", null, null);
 
@@ -164,7 +158,7 @@ class TrainerServiceTest {
     }
 
     @Test
-    void getTrainerTrainings_traineeFilterNotFound() {
+    void testGetTrainerTrainingsTraineeFilterNotFound() {
         TrainingSearchCriteria criteria =
                 new TrainingSearchCriteria(null, null, "alex", "traineeX", null);
 
@@ -179,7 +173,7 @@ class TrainerServiceTest {
     }
 
     @Test
-    void getTrainerTrainings_invalidDateRange() {
+    void testGetTrainerTrainingsInvalidDateRange() {
         Date from = new Date(200);
         Date to = new Date(100);
 

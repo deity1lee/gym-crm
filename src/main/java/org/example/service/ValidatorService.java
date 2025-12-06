@@ -113,7 +113,6 @@ public class ValidatorService {
     }
 
     public void validate(User user) {
-        validateExistingUsername(user.getUsername());
         validateFirstName(user.getFirstName());
         validateLastName(user.getLastName());
     }

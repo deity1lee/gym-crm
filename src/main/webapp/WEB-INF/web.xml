@@ -1,4 +1,13 @@
 <web-app>
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>classpath:applicationContext.xml</param-value>
+    </context-param>
+
+    <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+
     <servlet>
         <servlet-name>dispatcher</servlet-name>
         <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
@@ -16,12 +25,23 @@
 
     <filter>
         <filter-name>transactionIdFilter</filter-name>
-        <filter-class>org.example.logging.TransactionIdFilter</filter-class>
+        <filter-class>org.example.filter.TransactionIdFilter</filter-class>
     </filter>
 
     <filter-mapping>
         <filter-name>transactionIdFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
+
+    <filter>
+        <filter-name>authFilter</filter-name>
+        <filter-class>org.example.filter.AuthFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>authFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
 
 </web-app>

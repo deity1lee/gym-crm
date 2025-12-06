@@ -8,21 +8,9 @@ import java.util.List;
 
 public class UpdateTraineeTrainersRequest {
 
-    @ApiModelProperty(required = true, example = "John.Doe3")
-    @NotBlank
-    private String traineeUsername;
-
     @ApiModelProperty(required = true,  example = "[{ \"username\": \"John.Do\" }, { \"username\": \"Jane.yyDo\" }]")
     @NotEmpty
     private List<TrainerUsernameRequest> trainers;
-
-    public String getTraineeUsername() {
-        return traineeUsername;
-    }
-
-    public void setTraineeUsername(String traineeUsername) {
-        this.traineeUsername = traineeUsername;
-    }
 
     public List<TrainerUsernameRequest> getTrainers() {
         return trainers;
