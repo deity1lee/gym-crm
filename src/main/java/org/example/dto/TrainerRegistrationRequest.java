@@ -1,25 +1,35 @@
 package org.example.dto;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import org.example.entities.TrainingType;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import io.swagger.v3.oas.annotations.media.Schema;
 
-@ApiModel(description = "Request body for trainer registration")
+@Schema(description = "Request body for trainer registration")
 public class TrainerRegistrationRequest {
 
-    @ApiModelProperty(value = "First name of trainer", required = true, example = "John")
+    @Schema(
+            description = "First name of trainer",
+            example = "John",
+            required = true
+    )
     @NotBlank(message = "First name is required")
     private String firstName;
 
-    @ApiModelProperty(value = "Last name of trainer", required = true, example = "Doe")
+    @Schema(
+            description = "Last name of trainer",
+            example = "Doe",
+            required = true
+    )
     @NotBlank(message = "Last name is required")
     private String lastName;
 
-    @ApiModelProperty(value = "Details of the training specialization (ID and Name).", required = true, example = "{\"id\": 1, \"trainingTypeName\": \"yoga\"}")
+    @Schema(
+            description = "Details of the training specialization (ID and Name).",
+            example = "{\"id\": 1, \"trainingTypeName\": \"yoga\"}",
+            required = true
+    )
     @NotNull(message = "Training type is required")
     private TrainingType trainingType;
 
@@ -44,4 +54,3 @@ public class TrainerRegistrationRequest {
     public TrainerRegistrationRequest() {
     }
 }
-

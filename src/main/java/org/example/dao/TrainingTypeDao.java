@@ -1,41 +1,34 @@
 package org.example.dao;
 
+import jakarta.persistence.NoResultException;
 import org.example.entities.TrainingType;
-import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public class TrainingTypeDao {
 
-    private final SessionFactory sessionFactory;
+    @PersistenceContext
+    private EntityManager em;
 
-    public TrainingTypeDao(SessionFactory sf) {
-        this.sessionFactory = sf;
-    }
-
-    public Optional<TrainingType> findByName(String name) {
-        String hql = "FROM TrainingType tt WHERE tt.trainingTypeName = :name";
-        return sessionFactory.getCurrentSession()
-                .createQuery(hql, TrainingType.class)
-                .setParameter("name", name)
-                .uniqueResultOptional();
-    }
-
-    public Optional<TrainingType> findById(Long trainingTypeId) {
+    public Optional<TrainingType> findById(Long id) {
         String hql = "FROM TrainingType tt WHERE tt.id = :id";
-        return sessionFactory.getCurrentSession()
-                .createQuery(hql, TrainingType.class)
-                .setParameter("id", trainingTypeId)
-                .uniqueResultOptional();
+        try {
+            TrainingType result = em.createQuery(hql, TrainingType.class)
+                    .setParameter("id", id)
+                    .getSingleResult();
+            return Optional.of(result);
+        } catch (NoResultException ex) {
+            return Optional.empty();
+        }
     }
 
     public List<TrainingType> findAll() {
         String hql = "FROM TrainingType";
-        return sessionFactory.getCurrentSession()
-                .createQuery(hql, TrainingType.class)
-                .list();
+        return em.createQuery(hql, TrainingType.class).getResultList();
     }
 }

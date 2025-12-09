@@ -1,5 +1,6 @@
 package unit;
 
+import org.example.actuator.prometheus.TrainerAssignmentMetrics;
 import org.example.dao.TraineeDao;
 import org.example.dao.TrainerDao;
 import org.example.dao.TrainingTypeDao;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import java.util.*;
 import java.sql.Date;
+import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -31,6 +33,8 @@ class TraineeServiceTest {
     private AuthService authService;
     @Mock
     private ValidatorService validatorService;
+    @Mock
+    TrainerAssignmentMetrics metrics;
 
     @InjectMocks
     private TraineeService traineeService;
@@ -38,8 +42,12 @@ class TraineeServiceTest {
     @BeforeEach
     void setup() {
         MockitoAnnotations.openMocks(this);
+        lenient().when(metrics.record(any())).thenAnswer(invocation -> {
+            @SuppressWarnings("unchecked")
+            Supplier<List<Trainer>> supplier = invocation.getArgument(0);
+            return supplier.get();
+        });
     }
-
     @Test
     void testCreateTraineeSuccess() {
         Trainee trainee = new Trainee();

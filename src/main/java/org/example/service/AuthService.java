@@ -12,7 +12,7 @@ import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 
 @Transactional
 @Service
@@ -48,14 +48,7 @@ public class AuthService {
         String tx = MDC.get("transactionId");
 
         return userDao.findByUsername(username)
-                .map(user -> {
-                    if (!user.getPassword().equals(password)) {
-                        LOGGER.warn("[{}] Authentication failed: invalid credentials", tx);
-                        throw new UnauthorizedException("Invalid credentials");
-                    }
-                    LOGGER.info("[{}] Authentication successful for user '{}'", tx, username);
-                    return user;
-                })
+                .filter(user -> user.getPassword().equals(password))
                 .orElseThrow(() -> {
                     LOGGER.warn("[{}] Authentication failed: invalid credentials", tx);
                     return new UnauthorizedException("Invalid credentials");

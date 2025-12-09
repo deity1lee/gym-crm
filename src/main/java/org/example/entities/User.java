@@ -1,7 +1,7 @@
 package org.example.entities;
 
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -11,10 +11,10 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "first_name", nullable = false)
     private String firstName;
 
-    @Column(nullable = false)
+    @Column(name = "last_name", nullable = false)
     private String lastName;
 
     @Column(nullable = false)
@@ -23,7 +23,7 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false)
+    @Column(name = "is_active", nullable = false)
     private boolean isActive;
 
     public User() {}

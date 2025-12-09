@@ -1,31 +1,47 @@
 package org.example.dto;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import org.example.entities.TrainingType;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import io.swagger.v3.oas.annotations.media.Schema;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-
-@ApiModel("Update trainer profile request")
+@Schema(description = "Update trainer profile request")
 public class UpdateTrainerProfileRequest {
 
-    @ApiModelProperty(required = true, example = "John.Do")
+    @Schema(
+            description = "Username of the trainer",
+            example = "John.Do",
+            required = true
+    )
     @NotBlank
     private String username;
 
-    @ApiModelProperty(required = true, example = "Serj")
+    @Schema(
+            description = "First name of the trainer",
+            example = "Serj",
+            required = true
+    )
     @NotBlank
     private String firstName;
 
-    @ApiModelProperty(required = true, example = "Tankyan")
+    @Schema(
+            description = "Last name of the trainer",
+            example = "Tankyan",
+            required = true
+    )
     @NotBlank
     private String lastName;
 
-    @ApiModelProperty
+    @Schema(
+            description = "Training specialization (ID and Name)"
+    )
     private TrainingType trainingType;
 
-    @ApiModelProperty(required = true, example = "true")
+    @Schema(
+            description = "Whether the trainer is active",
+            example = "true",
+            required = true
+    )
     @NotNull
     private Boolean active;
 

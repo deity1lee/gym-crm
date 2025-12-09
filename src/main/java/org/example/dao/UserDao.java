@@ -1,35 +1,51 @@
 package org.example.dao;
 
 import org.example.entities.User;
-import org.hibernate.SessionFactory;
-import org.hibernate.query.Query;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Repository;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public class UserDao {
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserDao.class);
 
-    private final SessionFactory sessionFactory;
-
-    public UserDao(SessionFactory sf) {
-        this.sessionFactory = sf;
-    }
+    @PersistenceContext
+    private EntityManager em;
 
     public Optional<User> findByUsername(String username) {
-        String hql = "FROM User u WHERE u.username = :username";
-        return sessionFactory.getCurrentSession().createQuery(hql, User.class)
-                .setParameter("username", username)
-                .uniqueResultOptional();
+        String txId = MDC.get("transactionId");
+
+        try {
+            List<User> results = em.createQuery(
+                            "select t from User t where t.username = :username", User.class)
+                    .setParameter("username", username)
+                    .getResultList();
+
+            if (results.isEmpty()) {
+                LOGGER.debug("[{}] User '{}' not found", txId, username);
+                return Optional.empty();
+            }
+
+            return Optional.of(results.get(0));
+
+        } catch (Exception ex) {
+            LOGGER.error("[{}] DAO error fetching user '{}'", txId, username, ex);
+            throw ex;
+        }
     }
 
+
     public void updatePassword(Long id, String newPassword) {
-        Query query = sessionFactory.getCurrentSession().createQuery(
-                "UPDATE User u SET u.password = :password WHERE u.id = :id"
-        );
-        query.setParameter("password", newPassword);
-        query.setParameter("id", id);
-        query.executeUpdate();
+        em.createQuery("UPDATE User u SET u.password = :password WHERE u.id = :id")
+                .setParameter("password", newPassword)
+                .setParameter("id", id)
+                .executeUpdate();
     }
 }
 

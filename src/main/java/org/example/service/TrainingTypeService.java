@@ -4,7 +4,7 @@ import org.example.dao.TrainingTypeDao;
 import org.example.entities.TrainingType;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 import java.util.List;
 
 @Transactional

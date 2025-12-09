@@ -1,11 +1,13 @@
 package org.example.service;
 
+import org.example.actuator.prometheus.TrainerAssignmentMetrics;
 import org.example.dao.TraineeDao;
 import org.example.dao.TrainerDao;
 import org.example.dao.TrainingTypeDao;
 import org.example.entities.Trainee;
 import org.example.entities.Trainer;
 import org.example.entities.Training;
+import org.example.policy.TraineeDeletionPolicy;
 import org.example.utilities.TrainingSearchCriteria;
 import org.hibernate.Hibernate;
 import org.slf4j.MDC;
@@ -14,7 +16,7 @@ import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,6 +31,19 @@ public class TraineeService {
     private TrainingTypeDao trainingTypeDao;
     private AuthService authService;
     private ValidatorService validatorService;
+    private TraineeDeletionPolicy deletionPolicy;
+
+    private TrainerAssignmentMetrics metrics;
+
+    @Autowired
+    public void setTrainerAssignmentMetrics(TrainerAssignmentMetrics metrics) {
+        this.metrics = metrics;
+    }
+
+    @Autowired
+    public void setDeletionPolicy(TraineeDeletionPolicy deletionPolicy) {
+        this.deletionPolicy = deletionPolicy;
+    }
 
     @Autowired
     public void setTraineeDao(TraineeDao traineeDao) {
@@ -39,6 +54,7 @@ public class TraineeService {
     public void setTrainerDao(TrainerDao trainerDao) {
         this.trainerDao = trainerDao;
     }
+
     @Autowired
     public void setTrainingTypeDao(TrainingTypeDao trainingTypeDao) {
         this.trainingTypeDao = trainingTypeDao;
@@ -97,7 +113,7 @@ public class TraineeService {
     }
 
     public void deleteTraineeByUsername(String username) {
-        traineeDao.deleteTrainee(username);
+        deletionPolicy.deleteTrainee(username);
     }
 
     public List<Training> getTraineeTrainings(String username, TrainingSearchCriteria criteria) {
@@ -169,21 +185,21 @@ public class TraineeService {
     public List<Trainer> updateTraineeTrainers(String traineeUsername, List<String> trainerUsernames) {
         String txId = MDC.get("transactionId");
 
-        Trainee trainee = traineeDao.findByUsername(traineeUsername)
-                .orElseThrow(() -> new IllegalArgumentException("Trainee not found"));
+        return metrics.record(() -> {
+            Trainee trainee = traineeDao.findByUsername(traineeUsername)
+                    .orElseThrow(() -> new IllegalArgumentException("Trainee not found"));
 
-        List<Trainer> newTrainers = new ArrayList<>();
-
-        LOGGER.debug("[{}] Fetching trainers by username", txId);
-        for (String trainerUsername : trainerUsernames) {
-            Trainer trainer = trainerDao.findByUsername(trainerUsername)
-                    .orElseThrow(() ->
-                            new IllegalArgumentException(String.format("Trainer not found: %s", trainerUsername)));
-            newTrainers.add(trainer);
-        }
-        trainee.setTrainers(newTrainers);
-        traineeDao.updateProfile(trainee);
-
-        return newTrainers;
+            List<Trainer> newTrainers = new ArrayList<>();
+            LOGGER.debug("[{}] Fetching trainers by username", txId);
+            for (String trainerUsername : trainerUsernames) {
+                Trainer trainer = trainerDao.findByUsername(trainerUsername)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(String.format("Trainer not found: %s", trainerUsername)));
+                newTrainers.add(trainer);
+            }
+            trainee.setTrainers(newTrainers);
+            traineeDao.updateProfile(trainee);
+            return newTrainers;
+        });
     }
 }

@@ -4,16 +4,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-import javax.servlet.*;
+import jakarta.servlet.*;
 import java.io.IOException;
 import java.util.UUID;
 
 public class TransactionIdFilter implements Filter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TransactionIdFilter.class);
-
-    @Override
-    public void init(FilterConfig filterConfig) {}
 
     @Override
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
@@ -31,7 +28,4 @@ public class TransactionIdFilter implements Filter {
             MDC.clear();
         }
     }
-
-    @Override
-    public void destroy() {}
 }

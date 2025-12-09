@@ -1,6 +1,9 @@
 package org.example.controller;
 
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.example.dto.*;
 import org.example.entities.Trainer;
 import org.example.entities.Training;
@@ -14,12 +17,12 @@ import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 
-@Api(tags = "Trainers")
+@Tag(name = "Trainers")
 @RestController
 @RequestMapping("/trainers")
 public class TrainerController {
@@ -34,11 +37,11 @@ public class TrainerController {
         this.mapper = mapper;
     }
 
-    @ApiOperation(value = "Register a new trainer", notes = "Creates a trainer profile and returns generated username and password")
+    @Operation(summary = "Register a new trainer", description = "Creates a trainer profile and returns generated username and password")
     @ApiResponses({
-            @ApiResponse(code = 201, message = "Trainer successfully registered"),
-            @ApiResponse(code = 400, message = "Validation or business error"),
-            @ApiResponse(code = 500, message = "Internal server error")
+            @ApiResponse(responseCode = "201", description = "Trainer successfully registered"),
+            @ApiResponse(responseCode = "400", description = "Validation or business error"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
@@ -65,29 +68,15 @@ public class TrainerController {
         }
     }
 
-    @ApiOperation(
-            value = "Get trainer profile by username",
-            notes = "Returns a trainer profile for the specified username"
+    @Operation(
+            summary = "Get trainer profile by username",
+            description = "Returns a trainer profile for the specified username"
     )
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Trainer profile retrieved successfully"),
-            @ApiResponse(code = 400, message = "Validation or business error"),
-            @ApiResponse(code = 401, message = "Unauthorized / invalid credentials"),
-            @ApiResponse(code = 500, message = "Internal server error")
-    })
-    @ApiImplicitParams({
-            @ApiImplicitParam(
-                    name = "X-Auth-Username",
-                    value = "Username for authentication",
-                    required = true,
-                    paramType = "header"
-            ),
-            @ApiImplicitParam(
-                    name = "X-Auth-Password",
-                    value = "Password for authentication",
-                    required = true,
-                    paramType = "header"
-            )
+            @ApiResponse(responseCode = "200", description = "Trainer profile retrieved successfully"),
+            @ApiResponse(responseCode = "400", description = "Validation or business error"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized / invalid credentials"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping("/{username}")
     public TrainerProfileResponse getTrainerProfile(@PathVariable String username) {
@@ -105,26 +94,12 @@ public class TrainerController {
         }
     }
 
-    @ApiOperation(value = "Update trainer profile")
+    @Operation(description = "Update trainer profile")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Trainer profile updated successfully"),
-            @ApiResponse(code = 400, message = "Validation or business error"),
-            @ApiResponse(code = 401, message = "Unauthorized / invalid credentials"),
-            @ApiResponse(code = 500, message = "Internal server error")
-    })
-    @ApiImplicitParams({
-            @ApiImplicitParam(
-                    name = "X-Auth-Username",
-                    value = "Username for authentication",
-                    required = true,
-                    paramType = "header"
-            ),
-            @ApiImplicitParam(
-                    name = "X-Auth-Password",
-                    value = "Password for authentication",
-                    required = true,
-                    paramType = "header"
-            )
+            @ApiResponse(responseCode = "200", description = "Trainer profile updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Validation or business error"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized / invalid credentials"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PutMapping
     public TrainerProfileResponse updateTrainerProfile(@Valid @RequestBody UpdateTrainerProfileRequest request) {
@@ -152,25 +127,11 @@ public class TrainerController {
         }
     }
 
-    @ApiOperation("Get trainer's trainings")
+    @Operation(summary = "Retrieve trainee's trainings by trainee username")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Trainer's trainings retrieved successfully"),
-            @ApiResponse(code = 401, message = "Unauthorized"),
-            @ApiResponse(code = 500, message = "Internal server error")
-    })
-    @ApiImplicitParams({
-            @ApiImplicitParam(
-                    name = "X-Auth-Username",
-                    value = "Username for authentication",
-                    required = true,
-                    paramType = "header"
-            ),
-            @ApiImplicitParam(
-                    name = "X-Auth-Password",
-                    value = "Password for authentication",
-                    required = true,
-                    paramType = "header"
-            )
+            @ApiResponse(responseCode = "200", description = "Activation updated"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping("/{username}/trainings")
     public List<TrainingInfoResponse> getTrainerTrainings(
@@ -200,25 +161,11 @@ public class TrainerController {
         return response;
     }
 
-    @ApiOperation("Activate or deactivate trainee")
+    @Operation(summary = "Activate or deactivate trainee")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Activation updated"),
-            @ApiResponse(code = 401, message = "Unauthorized"),
-            @ApiResponse(code = 500, message = "Internal server error")
-    })
-    @ApiImplicitParams({
-            @ApiImplicitParam(
-                    name = "X-Auth-Username",
-                    value = "Username for authentication",
-                    required = true,
-                    paramType = "header"
-            ),
-            @ApiImplicitParam(
-                    name = "X-Auth-Password",
-                    value = "Password for authentication",
-                    required = true,
-                    paramType = "header"
-            )
+            @ApiResponse(responseCode = "200", description = "Activation updated"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PatchMapping("{username}/activation")
     public void updateTrainerActivation(@PathVariable String username, @Valid @RequestBody Boolean isActive) {
