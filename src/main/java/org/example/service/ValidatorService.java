@@ -5,13 +5,12 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ValidatorService {
+
     public boolean isStrongPassword(String password) {
-        if (password.length() == 10 && password.matches(".*\\d.*") &&
-                password.matches(".*[a-z].*") && password.matches(".*[A-Z].*"))
-        {
-            return true;
-        }
-        return false;
+        return password.length() == 10
+                && password.matches(".*\\d.*")
+                && password.matches(".*[a-z].*")
+                && password.matches(".*[A-Z].*");
     }
 
     public void validateFirstName(String firstName) {
@@ -20,7 +19,9 @@ public class ValidatorService {
         }
 
         if (firstName.matches(".*\\d.*")) {
-            throw new IllegalArgumentException("First name cannot contain digits: " + firstName);
+            throw new IllegalArgumentException(
+                    String.format("First name cannot contain digits: %s", firstName)
+            );
         }
     }
 
@@ -30,7 +31,9 @@ public class ValidatorService {
         }
 
         if (lastName.matches(".*\\d.*")) {
-            throw new IllegalArgumentException("Last name cannot contain digits: " + lastName);
+            throw new IllegalArgumentException(
+                    String.format("Last name cannot contain digits: %s", lastName)
+            );
         }
     }
 

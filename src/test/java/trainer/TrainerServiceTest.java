@@ -10,6 +10,7 @@ import org.example.service.ValidatorService;
 import org.example.utilities.TrainingSearchCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.util.List;
 import java.util.Optional;
@@ -125,7 +126,14 @@ class TrainerServiceTest {
         trainerService.updateTrainer("admin", "adminPass", newTrainer);
 
         verify(validatorService).validate(newTrainer);
-        verify(trainerDao).updateProfile(newTrainer);
+
+        ArgumentCaptor<Trainer> captor = ArgumentCaptor.forClass(Trainer.class);
+        verify(trainerDao).updateProfile(captor.capture());
+
+        Trainer updated = captor.getValue();
+        assertEquals("trainer1", updated.getUsername());
+        assertEquals("New", updated.getFirstName());
+        assertEquals("Name", updated.getLastName());
     }
 
     @Test
@@ -160,7 +168,7 @@ class TrainerServiceTest {
 
         when(authService.authenticateUser("admin", "adminPass")).thenReturn(null);
         when(trainerDao.findByUsername("trainer1")).thenReturn(Optional.of(new Trainer()));
-        when(traineeDao.findByTraineeUsernameAndCriteria("trainer1", criteria))
+        when(trainerDao.findByTrainerUsernameAndCriteria("trainer1", criteria))
                 .thenReturn(List.of(training));
 
         List<Training> result = trainerService.getTrainerTrainings("admin", "adminPass", "trainer1", criteria);

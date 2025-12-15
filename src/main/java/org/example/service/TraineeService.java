@@ -5,7 +5,6 @@ import org.example.dao.TrainerDao;
 import org.example.entities.Trainee;
 import org.example.entities.Trainer;
 import org.example.entities.Training;
-import org.example.entities.User;
 import org.example.utilities.CredentialGenerator;
 import org.example.utilities.TrainingSearchCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +39,7 @@ public class TraineeService {
 
     @Autowired
     public void setAuthService(AuthService authService) {
-            this.authService = authService;
+        this.authService = authService;
     }
 
     @Autowired
@@ -52,87 +51,178 @@ public class TraineeService {
         validatorService.validate(trainee);
         assignCredentials(trainee);
         traineeDao.create(trainee);
-        LOGGER.info("Created trainee profile for username: {}", trainee.getUsername());
+
+        LOGGER.info(String.format(
+                "Created trainee profile for username: %s",
+                trainee.getUsername()
+        ));
     }
 
     public Trainee selectTraineeByUsername(String username, String password, String traineeUsernameForSearch) {
         authService.authenticateUser(username, password);
         Trainee trainee = traineeDao.findByUsername(traineeUsernameForSearch)
-                .orElseThrow(() -> new IllegalArgumentException("Trainee by this username is not found."));
-        LOGGER.info("Trainee by username {} is found", traineeUsernameForSearch);
+                .orElseThrow(() -> new IllegalArgumentException(
+                        String.format("Trainee with username '%s' was not found", traineeUsernameForSearch)
+                ));
+
+        LOGGER.info(String.format(
+                "Trainee with username '%s' was found",
+                traineeUsernameForSearch
+        ));
+
         return trainee;
     }
 
-    public void changePassword(String username,String password,String traineeUsername, String oldPassword, String newPassword) {
+    public void changePassword(String username, String password, String traineeUsername,
+                               String oldPassword, String newPassword) {
+
         authService.authenticateUser(username, password);
         Trainee trainee = selectTraineeByUsername(traineeUsername, oldPassword, traineeUsername);
+
         if (!validatorService.isStrongPassword(newPassword)) {
             LOGGER.info("Password was not updated. Provided password is not strong");
             return;
         }
+
         trainee.setPassword(newPassword);
         traineeDao.updatePassword(trainee.getId(), newPassword);
-        LOGGER.info("Password was changed successfully!");
+
+        LOGGER.info("Password was changed successfully");
     }
 
     public void updateTrainee(String username, String password, Trainee newTrainee) {
         validatorService.validate(newTrainee);
-        Trainee existing = selectTraineeByUsername(username, password, newTrainee.getUsername());
+
+        authService.authenticateUser(username, password);
+        Trainee existing = traineeDao.findByUsername(newTrainee.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        String.format("Trainee with username '%s' was not found", newTrainee.getUsername())
+                ));
         existing.setFirstName(newTrainee.getFirstName());
         existing.setLastName(newTrainee.getLastName());
         existing.setAddress(newTrainee.getAddress());
-        traineeDao.updateProfile(newTrainee);
+
+        traineeDao.updateProfile(existing);
+
+        LOGGER.info(String.format(
+                "Updated trainee profile for username: %s",
+                existing.getUsername()
+        ));
     }
 
     public void activateTrainee(String username, String password, String traineeUsername) {
-        Trainee trainee = selectTraineeByUsername(username, password, traineeUsername);
-        traineeDao.activateTrainee(trainee);
+        authService.authenticateUser(username, password);
+        Trainee trainee = traineeDao.findByUsername(traineeUsername)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        String.format("Trainee with username '%s' was not found", traineeUsername)
+                ));        traineeDao.activateTrainee(trainee);
+
+        LOGGER.info(String.format(
+                "Activated trainee with username: %s",
+                traineeUsername
+        ));
     }
 
     public void deActivateTrainee(String username, String password, String traineeUsername) {
-        Trainee trainee = selectTraineeByUsername(username, password, traineeUsername);
-        traineeDao.deactivateTrainee(trainee);
+        authService.authenticateUser(username, password);
+        Trainee trainee = traineeDao.findByUsername(traineeUsername)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        String.format("Trainee with username '%s' was not found", traineeUsername)
+                ));        traineeDao.deactivateTrainee(trainee);
+
+        LOGGER.info(String.format(
+                "Deactivated trainee with username: %s",
+                traineeUsername
+        ));
     }
 
     public void deleteTraineeByUsername(String username, String password, String traineeUsername) {
-        Trainee trainee = selectTraineeByUsername(username, password, traineeUsername);
+        authService.authenticateUser(username, password);
+        Trainee trainee = traineeDao.findByUsername(traineeUsername)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        String.format("Trainee with username '%s' was not found", traineeUsername)
+                ));
         traineeDao.deleteTrainee(trainee);
+
+        LOGGER.info(String.format(
+                "Deleted trainee with username: %s",
+                traineeUsername
+        ));
     }
 
-    public List<Training> getTraineeTrainings(String username, String password, String traineeUsername, TrainingSearchCriteria criteria) {
-        selectTraineeByUsername(username, password, traineeUsername);
-        List<Training> trainings = traineeDao.findByTraineeUsernameAndCriteria(traineeUsername, criteria);
-        LOGGER.info("Training names for trainee {}:", username);
+    public List<Training> getTraineeTrainings(String username, String password,
+                                              String traineeUsername, TrainingSearchCriteria criteria) {
+        authService.authenticateUser(username, password);
+        traineeDao.findByUsername(traineeUsername)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        String.format("Trainee with username '%s' was not found", traineeUsername)
+                ));
+        List<Training> trainings =
+                traineeDao.findByTraineeUsernameAndCriteria(traineeUsername, criteria);
+
+        LOGGER.info(String.format(
+                "Trainings for trainee '%s':",
+                traineeUsername
+        ));
+
         trainings.forEach(t ->
-                LOGGER.info(" - {}", t.getName())
+                LOGGER.info(String.format(" - %s", t.getName()))
         );
+
         return trainings;
     }
 
     public List<Trainer> getUnassignedTrainers(String username, String password, String traineeUsername) {
-        selectTraineeByUsername(username, password, traineeUsername);
-        List<Trainer> trainers = traineeDao.findUnassignedTrainers(traineeUsername);
-        LOGGER.info("Trainers (usernames) that are not assigned to trainee {}:", traineeUsername);
+        authService.authenticateUser(username, password);
+        traineeDao.findByUsername(traineeUsername)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        String.format("Trainee with username '%s' was not found", traineeUsername)
+                ));
+        List<Trainer> trainers =
+                traineeDao.findUnassignedTrainers(traineeUsername);
+
+        LOGGER.info(String.format(
+                "Trainers not assigned to trainee '%s':",
+                traineeUsername
+        ));
+
         trainers.forEach(t ->
-                LOGGER.info(" - {}", t.getUsername())
+                LOGGER.info(String.format(" - %s", t.getUsername()))
         );
+
         return trainers;
     }
 
-    public void updateTraineeTrainers(String username, String password, String traineeUsername, List<Trainer> newTrainers) {
-        Trainee trainee = selectTraineeByUsername(username, password, traineeUsername);
+    public void updateTraineeTrainers(String username, String password,
+                                      String traineeUsername, List<Trainer> newTrainers) {
+
+        authService.authenticateUser(username, password);
+        Trainee trainee = traineeDao.findByUsername(traineeUsername)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        String.format("Trainee with username '%s' was not found", traineeUsername)
+                ));
         List<Trainer> newTrainerList = newTrainers.stream()
                 .map(trainer -> trainerDao.findByUsername(trainer.getUsername())
-                        .orElseThrow(() -> new IllegalArgumentException("Trainer not found: " + trainer.getUsername())))
+                        .orElseThrow(() -> new IllegalArgumentException(
+                                String.format("Trainer not found: %s", trainer.getUsername())
+                        )))
                 .toList();
+
         trainee.setTrainers(new ArrayList<>(newTrainerList));
         traineeDao.updateProfile(trainee);
-        LOGGER.info("Updated trainers for trainee {}", traineeUsername);
+
+        LOGGER.info(String.format(
+                "Updated trainers for trainee '%s'",
+                traineeUsername
+        ));
     }
 
     private void assignCredentials(Trainee trainee) {
-        long traineeCount = traineeDao.countByFullName(trainee.getFirstName(), trainee.getLastName());
-        long trainerCount = trainerDao.countByFullName(trainee.getFirstName(), trainee.getLastName());
+        long traineeCount =
+                traineeDao.countByFullName(trainee.getFirstName(), trainee.getLastName());
+        long trainerCount =
+                trainerDao.countByFullName(trainee.getFirstName(), trainee.getLastName());
+
         long total = traineeCount + trainerCount;
 
         String username = CredentialGenerator.generateUsername(
@@ -147,7 +237,10 @@ public class TraineeService {
         trainee.setPassword(password);
         trainee.setActive(true);
 
-        LOGGER.debug("Assigned credentials for {}: username={}",
-                trainee.getFirstName(), username);
+        LOGGER.debug(String.format(
+                "Assigned credentials for trainee '%s': username=%s",
+                trainee.getFirstName(),
+                username
+        ));
     }
 }

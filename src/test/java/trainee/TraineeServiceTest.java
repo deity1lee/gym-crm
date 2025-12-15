@@ -11,6 +11,7 @@ import org.example.service.ValidatorService;
 import org.example.utilities.TrainingSearchCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.util.List;
 import java.util.Optional;
@@ -128,7 +129,14 @@ class TraineeServiceTest {
         traineeService.updateTrainee("admin", "adminPass", newData);
 
         verify(validatorService).validate(newData);
-        verify(traineeDao).updateProfile(newData);
+
+        ArgumentCaptor<Trainee> captor = ArgumentCaptor.forClass(Trainee.class);
+        verify(traineeDao).updateProfile(captor.capture());
+
+        Trainee updated = captor.getValue();
+        assertEquals("New", updated.getFirstName());
+        assertEquals("Name", updated.getLastName());
+        assertEquals("New Addr", updated.getAddress());
     }
 
     @Test

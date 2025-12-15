@@ -1,12 +1,8 @@
 package org.example.service;
 
 import org.example.dao.UserDao;
-import org.example.entities.Trainee;
-import org.example.entities.Trainer;
 import org.example.entities.User;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 public class AuthService {
