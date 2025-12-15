@@ -10,6 +10,7 @@ import org.example.entities.Training;
 import org.example.entities.TrainingType;
 import org.example.mapper.TrainerMapper;
 import org.example.service.TrainerService;
+import org.example.utilities.JwtUtil;
 import org.example.utilities.TrainingSearchCriteria;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,12 +30,15 @@ public class TrainerController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TrainerController.class);
 
-    private TrainerService trainerService;
-    private TrainerMapper mapper;
+    private final TrainerService trainerService;
+    private final TrainerMapper mapper;
+    private final JwtUtil jwtUtil;
 
-    public TrainerController(TrainerService trainerService, TrainerMapper mapper) {
+
+    public TrainerController(TrainerService trainerService, TrainerMapper mapper, JwtUtil jwtUtil) {
         this.trainerService = trainerService;
         this.mapper = mapper;
+        this.jwtUtil = jwtUtil;
     }
 
     @Operation(summary = "Register a new trainer", description = "Creates a trainer profile and returns generated username and password")
@@ -56,9 +60,11 @@ public class TrainerController {
                     request.getTrainingType()
             );
             Trainer created = trainerService.createTrainer(trainer);
+            String token = jwtUtil.generateToken(created.getUsername());
             UserCredentials response = new UserCredentials(
                     created.getUsername(),
-                    created.getPassword()
+                    created.getRawPassword(),
+                    token
             );
             LOGGER.info("[{}] registerTrainer success - 201 CREATED - username={}", txId, created.getUsername());
             return response;
@@ -76,6 +82,7 @@ public class TrainerController {
             @ApiResponse(responseCode = "200", description = "Trainer profile retrieved successfully"),
             @ApiResponse(responseCode = "400", description = "Validation or business error"),
             @ApiResponse(responseCode = "401", description = "Unauthorized / invalid credentials"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping("/{username}")
@@ -99,6 +106,7 @@ public class TrainerController {
             @ApiResponse(responseCode = "200", description = "Trainer profile updated successfully"),
             @ApiResponse(responseCode = "400", description = "Validation or business error"),
             @ApiResponse(responseCode = "401", description = "Unauthorized / invalid credentials"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PutMapping
@@ -131,6 +139,7 @@ public class TrainerController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Activation updated"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping("/{username}/trainings")
@@ -165,6 +174,7 @@ public class TrainerController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Activation updated"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PatchMapping("{username}/activation")

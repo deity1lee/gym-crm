@@ -47,5 +47,9 @@ public class UserDao {
                 .setParameter("id", id)
                 .executeUpdate();
     }
+
+    public void save(User user) {
+        em.merge(user);
+    }
 }
 

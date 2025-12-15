@@ -13,6 +13,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 
@@ -29,6 +32,10 @@ class AuthServiceTest {
     private TraineeDao traineeDao;
     @Mock
     private TrainerDao trainerDao;
+    @Mock
+    private AuthenticationManager authenticationManager;
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private AuthService authService;
@@ -39,51 +46,26 @@ class AuthServiceTest {
     }
 
     @Test
-    void testAuthenticateUserSuccess() {
-        User user = new User();
-        user.setUsername("john");
-        user.setPassword("123");
-
-        when(userDao.findByUsername("john")).thenReturn(Optional.of(user));
-
-        User result = authService.authenticateUser("john", "123");
-
-        assertEquals("john", result.getUsername());
-    }
-
-    @Test
-    void testAuthenticateUserFailsWrongPassword() {
-        User user = new User();
-        user.setUsername("john");
-        user.setPassword("correct");
-
-        when(userDao.findByUsername("john")).thenReturn(Optional.of(user));
-
-        assertThrows(UnauthorizedException.class,
-                () -> authService.authenticateUser("john", "wrong"));
-    }
-
-    @Test
-    void testAuthenticateUserFailsUserNotFound() {
-        when(userDao.findByUsername("absent")).thenReturn(Optional.empty());
-
-        assertThrows(UnauthorizedException.class,
-                () -> authService.authenticateUser("absent", "pass"));
-    }
-
-    @Test
     void testChangePasswordSuccess() {
         User user = new User();
         user.setId(1L);
         user.setUsername("john");
-        user.setPassword("old");
 
-        when(userDao.findByUsername("john")).thenReturn(Optional.of(user));
-        when(validatorService.isStrongPassword("newStrong")).thenReturn(true);
+        when(authenticationManager.authenticate(any()))
+                .thenReturn(mock(Authentication.class));
+
+        when(userDao.findByUsername("john"))
+                .thenReturn(Optional.of(user));
+
+        when(validatorService.isStrongPassword("newStrong"))
+                .thenReturn(true);
+
+        when(passwordEncoder.encode("newStrong"))
+                .thenReturn("encodedNew");
 
         authService.changePassword("john", "old", "newStrong");
 
-        verify(userDao).updatePassword(1L, "newStrong");
+        verify(userDao).updatePassword(1L, "encodedNew");
     }
 
     @Test
@@ -91,10 +73,15 @@ class AuthServiceTest {
         User user = new User();
         user.setId(1L);
         user.setUsername("john");
-        user.setPassword("old");
 
-        when(userDao.findByUsername("john")).thenReturn(Optional.of(user));
-        when(validatorService.isStrongPassword("weak")).thenReturn(false);
+        when(authenticationManager.authenticate(any()))
+                .thenReturn(mock(Authentication.class));
+
+        when(userDao.findByUsername("john"))
+                .thenReturn(Optional.of(user));
+
+        when(validatorService.isStrongPassword("weak"))
+                .thenReturn(false);
 
         authService.changePassword("john", "old", "weak");
 
@@ -103,12 +90,8 @@ class AuthServiceTest {
 
     @Test
     void testChangePasswordFailsWrongOldPassword() {
-        User user = new User();
-        user.setId(1L);
-        user.setUsername("john");
-        user.setPassword("correct");
-
-        when(userDao.findByUsername("john")).thenReturn(Optional.of(user));
+        when(authenticationManager.authenticate(any()))
+                .thenThrow(new UnauthorizedException("Invalid credentials"));
 
         assertThrows(UnauthorizedException.class,
                 () -> authService.changePassword("john", "wrong", "newPass"));
@@ -124,11 +107,12 @@ class AuthServiceTest {
 
         when(traineeDao.countByFullName("John", "Doe")).thenReturn(1L);
         when(trainerDao.countByFullName("John", "Doe")).thenReturn(2L);
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPwd");
 
         authService.assignCredentials(trainee);
 
         assertNotNull(trainee.getUsername());
-        assertNotNull(trainee.getPassword());
+        assertNotNull(trainee.getPassword()); // encoded password
         assertTrue(trainee.isActive());
     }
 }

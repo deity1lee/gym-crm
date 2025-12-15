@@ -11,6 +11,7 @@ import org.example.entities.Training;
 import org.example.entities.TrainingType;
 import org.example.mapper.TraineeMapper;
 import org.example.service.TraineeService;
+import org.example.utilities.JwtUtil;
 import org.example.utilities.TrainingSearchCriteria;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,8 +33,10 @@ public class TraineeController {
 
     private final TraineeService traineeService;
     private final TraineeMapper mapper;
+    private final JwtUtil jwtUtil;
 
-    public TraineeController(TraineeService traineeService, TraineeMapper mapper) {
+    public TraineeController(JwtUtil jwtUtil, TraineeService traineeService, TraineeMapper mapper) {
+        this.jwtUtil = jwtUtil;
         this.traineeService = traineeService;
         this.mapper = mapper;
     }
@@ -60,9 +63,11 @@ public class TraineeController {
                     true
             );
             Trainee created = traineeService.createTrainee(trainee);
+            String token = jwtUtil.generateToken(created.getUsername());
             UserCredentials response = new UserCredentials(
                     created.getUsername(),
-                    created.getPassword()
+                    created.getRawPassword(),
+                    token
             );
             LOGGER.info("[{}] registerTrainee success - 201 CREATED - username={}", txId, created.getUsername());
             return response;
@@ -78,6 +83,7 @@ public class TraineeController {
             @ApiResponse(responseCode = "200", description = "Trainee profile retrieved successfully"),
             @ApiResponse(responseCode = "400", description = "Validation or business error"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping("/{username}")
@@ -100,6 +106,7 @@ public class TraineeController {
             @ApiResponse(responseCode = "200", description = "Profile updated successfully"),
             @ApiResponse(responseCode = "400", description = "Validation error"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PutMapping
@@ -130,6 +137,7 @@ public class TraineeController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Deleted successfully"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
             @ApiResponse(responseCode = "501", description = "Unsupported operation")
     })
@@ -151,6 +159,7 @@ public class TraineeController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Retrieved successfully"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping("/{username}/unassigned-trainers")
@@ -180,6 +189,7 @@ public class TraineeController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Trainers updated successfully"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PutMapping("/{username}/trainers")
@@ -250,6 +260,7 @@ public class TraineeController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Activation updated"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PatchMapping("{username}/activation")
