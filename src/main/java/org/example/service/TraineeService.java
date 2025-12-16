@@ -62,10 +62,7 @@ public class TraineeService {
                         String.format("Trainee with username '%s' was not found", traineeUsernameForSearch)
                 ));
 
-        LOGGER.info(String.format(
-                "Trainee with username '%s' was found",
-                traineeUsernameForSearch
-        ));
+        LOGGER.info("Trainee with username '%s' was found", traineeUsernameForSearch);
 
         return trainee;
     }
@@ -135,10 +132,7 @@ public class TraineeService {
                 ));
         traineeDao.deleteTrainee(trainee);
 
-        LOGGER.info(String.format(
-                "Deleted trainee with username: %s",
-                traineeUsername
-        ));
+        LOGGER.info("Deleted trainee with username: {}", traineeUsername);
     }
 
     public List<Training> getTraineeTrainings(String username, String password,
