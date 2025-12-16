@@ -48,10 +48,7 @@ public class TrainerService {
         assignCredentials(trainer);
         trainerDao.create(trainer);
 
-        LOGGER.info(String.format(
-                "Created trainer profile for username: %s",
-                trainer.getUsername()
-        ));
+        LOGGER.info("Created trainer profile for username: {}", trainer.getUsername());
     }
 
     public Trainer selectTrainerByUsername(String username, String password, String trainerUsernameForSearch) {
@@ -62,10 +59,7 @@ public class TrainerService {
                         String.format("Trainer with username '%s' was not found", trainerUsernameForSearch)
                 ));
 
-        LOGGER.info(String.format(
-                "Trainer with username '%s' was found",
-                trainerUsernameForSearch
-        ));
+        LOGGER.info("Trainer with username '{}' was found", trainerUsernameForSearch);
 
         return trainer;
     }
@@ -101,10 +95,7 @@ public class TrainerService {
 
         trainerDao.updateProfile(existing);
 
-        LOGGER.info(String.format(
-                "Updated trainer profile for username: %s",
-                existing.getUsername()
-        ));
+        LOGGER.info("Updated trainer profile for username: {}", existing.getUsername());
     }
 
     public void activateTrainer(String username, String password, String trainerUsername) {
@@ -117,10 +108,7 @@ public class TrainerService {
 
         trainerDao.activateTrainer(trainer);
 
-        LOGGER.info(String.format(
-                "Activated trainer with username: %s",
-                trainerUsername
-        ));
+        LOGGER.info("Activated trainer with username: {}", trainerUsername);
     }
 
     public void deActivateTrainer(String username, String password, String trainerUsername) {
@@ -133,10 +121,7 @@ public class TrainerService {
 
         trainerDao.deactivateTrainer(trainer);
 
-        LOGGER.info(String.format(
-                "Deactivated trainer with username: %s",
-                trainerUsername
-        ));
+        LOGGER.info("Deactivated trainer with username: {}", trainerUsername);
     }
 
     public List<Training> getTrainerTrainings(String username, String password,
@@ -152,23 +137,17 @@ public class TrainerService {
         List<Training> trainings =
                 trainerDao.findByTrainerUsernameAndCriteria(trainerUsername, criteria);
 
-        LOGGER.info(String.format(
-                "Trainings for trainer '%s':",
-                trainerUsername
-        ));
+        LOGGER.info("Trainings for trainer '{}':", trainerUsername);
 
         trainings.forEach(t ->
-                LOGGER.info(String.format(" - %s", t.getName()))
-        );
+                LOGGER.info(" - {}", t.getName()));
 
         return trainings;
     }
 
     private void assignCredentials(Trainer trainer) {
-        long traineeCount =
-                traineeDao.countByFullName(trainer.getFirstName(), trainer.getLastName());
-        long trainerCount =
-                trainerDao.countByFullName(trainer.getFirstName(), trainer.getLastName());
+        long traineeCount = traineeDao.countByFullName(trainer.getFirstName(), trainer.getLastName());
+        long trainerCount = trainerDao.countByFullName(trainer.getFirstName(), trainer.getLastName());
 
         long total = traineeCount + trainerCount;
 
@@ -184,10 +163,6 @@ public class TrainerService {
         trainer.setPassword(password);
         trainer.setActive(true);
 
-        LOGGER.debug(String.format(
-                "Assigned credentials for trainer '%s': username=%s",
-                trainer.getFirstName(),
-                username
-        ));
+        LOGGER.debug("Assigned credentials for trainer '{}': username={}", trainer.getFirstName(), username);
     }
 }

@@ -25,10 +25,7 @@ public class TrainerDao {
     public void create(Trainer trainer) {
         sessionFactory.getCurrentSession().save(trainer);
 
-        LOGGER.info(String.format(
-                "Created trainer with id %d",
-                trainer.getId()
-        ));
+        LOGGER.info("Created trainer with id {}", trainer.getId());
     }
 
     public void updatePassword(Long trainerId, String newPassword) {
@@ -43,10 +40,7 @@ public class TrainerDao {
     public void updateProfile(Trainer trainer) {
         sessionFactory.getCurrentSession().merge(trainer);
 
-        LOGGER.info(String.format(
-                "Updated trainer profile with id %d",
-                trainer.getId()
-        ));
+        LOGGER.info("Updated trainer profile with id {}", trainer.getId());
     }
 
     public void activateTrainer(Trainer trainer) {
@@ -59,10 +53,7 @@ public class TrainerDao {
 
         trainer.setActive(true);
 
-        LOGGER.debug(String.format(
-                "Trainer profile activated: %s",
-                trainer.getUsername()
-        ));
+        LOGGER.debug("Trainer profile activated: {}", trainer.getUsername());
     }
 
     public void deactivateTrainer(Trainer trainer) {
@@ -75,10 +66,7 @@ public class TrainerDao {
 
         trainer.setActive(false);
 
-        LOGGER.debug(String.format(
-                "Trainer profile deactivated: %s",
-                trainer.getUsername()
-        ));
+        LOGGER.debug("Trainer profile deactivated: {}", trainer.getUsername());
     }
 
     public List<Training> findByTrainerUsernameAndCriteria(
@@ -121,10 +109,7 @@ public class TrainerDao {
     public Optional<Trainer> findByUsername(String username) {
         String hql = "SELECT t FROM Trainer t WHERE t.username = :username";
 
-        LOGGER.debug(String.format(
-                "Fetching trainer with username: %s",
-                username
-        ));
+        LOGGER.debug("Fetching trainer with username: {}", username);
 
         return sessionFactory.getCurrentSession()
                 .createQuery(hql, Trainer.class)
@@ -134,11 +119,7 @@ public class TrainerDao {
 
     public long countByFullName(String firstName, String lastName) {
 
-        LOGGER.info(String.format(
-                "Counting number of trainers with full name %s %s",
-                firstName,
-                lastName
-        ));
+        LOGGER.info("Counting number of trainers with full name {} {}", firstName, lastName);
 
         long count = sessionFactory.getCurrentSession()
                 .createQuery(
@@ -149,12 +130,7 @@ public class TrainerDao {
                 .setParameter("lastName", lastName)
                 .uniqueResult();
 
-        LOGGER.info(String.format(
-                "Number of trainers by first name '%s' and last name '%s': %d",
-                firstName,
-                lastName,
-                count
-        ));
+        LOGGER.info("Number of trainers by first name '{}' and last name '{}': {}", firstName, lastName, count);
 
         return count;
     }

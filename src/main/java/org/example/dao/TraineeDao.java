@@ -27,10 +27,7 @@ public class TraineeDao {
     public void create(Trainee trainee) {
         sessionFactory.getCurrentSession().save(trainee);
 
-        LOGGER.info(String.format(
-                "Created trainee with id %d",
-                trainee.getId()
-        ));
+        LOGGER.info("Created trainee with id {}", trainee.getId());
     }
 
     public void updatePassword(Long traineeId, String newPassword) {
@@ -45,26 +42,19 @@ public class TraineeDao {
     public void updateProfile(Trainee trainee) {
         sessionFactory.getCurrentSession().merge(trainee);
 
-        LOGGER.info(String.format(
-                "Updated trainee profile with id %d",
-                trainee.getId()
-        ));
+        LOGGER.info("Updated trainee profile with id {}", trainee.getId());
     }
 
     public void activateTrainee(Trainee trainee) {
         if (trainee.isActive()) {
-            throw new IllegalStateException(String.format(
-                    "Trainee with username '%s' is already active",
+            throw new IllegalStateException(String.format("Trainee with username '%s' is already active",
                     trainee.getUsername()
             ));
         }
 
         trainee.setActive(true);
 
-        LOGGER.debug(String.format(
-                "Trainee profile activated: %s",
-                trainee.getUsername()
-        ));
+        LOGGER.debug("Trainee profile activated: {}", trainee.getUsername());
     }
 
     public void deactivateTrainee(Trainee trainee) {
@@ -77,19 +67,13 @@ public class TraineeDao {
 
         trainee.setActive(false);
 
-        LOGGER.debug(String.format(
-                "Trainee profile deactivated: %s",
-                trainee.getUsername()
-        ));
+        LOGGER.debug("Trainee profile deactivated: {}", trainee.getUsername());
     }
 
     public void deleteTrainee(Trainee trainee) {
         sessionFactory.getCurrentSession().delete(trainee);
 
-        LOGGER.info(String.format(
-                "Deleted trainee and related trainings for username %s",
-                trainee.getUsername()
-        ));
+        LOGGER.info("Deleted trainee and related trainings for username {}", trainee.getUsername());
     }
 
     public List<Training> findByTraineeUsernameAndCriteria(
@@ -139,10 +123,7 @@ public class TraineeDao {
 
     public List<Trainer> findUnassignedTrainers(String traineeUsername) {
 
-        LOGGER.debug(String.format(
-                "Fetching trainers not assigned to trainee with username: %s",
-                traineeUsername
-        ));
+        LOGGER.debug("Fetching trainers not assigned to trainee with username: {}", traineeUsername);
 
         String hql = """
             SELECT tr FROM Trainer tr
@@ -162,10 +143,7 @@ public class TraineeDao {
     public Optional<Trainee> findByUsername(String username) {
         String hql = "SELECT t FROM Trainee t WHERE t.username = :username";
 
-        LOGGER.debug(String.format(
-                "Fetching trainee with username: %s",
-                username
-        ));
+        LOGGER.debug("Fetching trainee with username: {}", username);
 
         return sessionFactory.getCurrentSession()
                 .createQuery(hql, Trainee.class)
@@ -175,11 +153,7 @@ public class TraineeDao {
 
     public long countByFullName(String firstName, String lastName) {
 
-        LOGGER.info(String.format(
-                "Counting number of trainees with full name %s %s",
-                firstName,
-                lastName
-        ));
+        LOGGER.info("Counting number of trainees with full name {} {}", firstName, lastName);
 
         long count = sessionFactory.getCurrentSession()
                 .createQuery(
@@ -190,12 +164,7 @@ public class TraineeDao {
                 .setParameter("lastName", lastName)
                 .uniqueResult();
 
-        LOGGER.info(String.format(
-                "Number of trainees by first name '%s' and last name '%s': %d",
-                firstName,
-                lastName,
-                count
-        ));
+        LOGGER.info("Number of trainees by first name '{}' and last name '{}': {}", firstName, lastName, count);
 
         return count;
     }

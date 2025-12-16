@@ -52,10 +52,7 @@ public class TraineeService {
         assignCredentials(trainee);
         traineeDao.create(trainee);
 
-        LOGGER.info(String.format(
-                "Created trainee profile for username: %s",
-                trainee.getUsername()
-        ));
+        LOGGER.info("Created trainee profile for username: {}", trainee.getUsername());
     }
 
     public Trainee selectTraineeByUsername(String username, String password, String traineeUsernameForSearch) {
@@ -104,10 +101,7 @@ public class TraineeService {
 
         traineeDao.updateProfile(existing);
 
-        LOGGER.info(String.format(
-                "Updated trainee profile for username: %s",
-                existing.getUsername()
-        ));
+        LOGGER.info("Updated trainee profile for username: {}", existing.getUsername());
     }
 
     public void activateTrainee(String username, String password, String traineeUsername) {
@@ -130,10 +124,7 @@ public class TraineeService {
                         String.format("Trainee with username '%s' was not found", traineeUsername)
                 ));        traineeDao.deactivateTrainee(trainee);
 
-        LOGGER.info(String.format(
-                "Deactivated trainee with username: %s",
-                traineeUsername
-        ));
+        LOGGER.info("Deactivated trainee with username: {}", traineeUsername);
     }
 
     public void deleteTraineeByUsername(String username, String password, String traineeUsername) {
@@ -160,10 +151,7 @@ public class TraineeService {
         List<Training> trainings =
                 traineeDao.findByTraineeUsernameAndCriteria(traineeUsername, criteria);
 
-        LOGGER.info(String.format(
-                "Trainings for trainee '%s':",
-                traineeUsername
-        ));
+        LOGGER.info("Trainings for trainee '{}':", traineeUsername);
 
         trainings.forEach(t ->
                 LOGGER.info(String.format(" - %s", t.getName()))
@@ -181,13 +169,10 @@ public class TraineeService {
         List<Trainer> trainers =
                 traineeDao.findUnassignedTrainers(traineeUsername);
 
-        LOGGER.info(String.format(
-                "Trainers not assigned to trainee '%s':",
-                traineeUsername
-        ));
+        LOGGER.info("Trainers not assigned to trainee '{}':", traineeUsername);
 
         trainers.forEach(t ->
-                LOGGER.info(String.format(" - %s", t.getUsername()))
+                LOGGER.info(" - {}", t.getUsername())
         );
 
         return trainers;
@@ -211,17 +196,12 @@ public class TraineeService {
         trainee.setTrainers(new ArrayList<>(newTrainerList));
         traineeDao.updateProfile(trainee);
 
-        LOGGER.info(String.format(
-                "Updated trainers for trainee '%s'",
-                traineeUsername
-        ));
+        LOGGER.info("Updated trainers for trainee '{}'", traineeUsername);
     }
 
     private void assignCredentials(Trainee trainee) {
-        long traineeCount =
-                traineeDao.countByFullName(trainee.getFirstName(), trainee.getLastName());
-        long trainerCount =
-                trainerDao.countByFullName(trainee.getFirstName(), trainee.getLastName());
+        long traineeCount = traineeDao.countByFullName(trainee.getFirstName(), trainee.getLastName());
+        long trainerCount = trainerDao.countByFullName(trainee.getFirstName(), trainee.getLastName());
 
         long total = traineeCount + trainerCount;
 
@@ -237,10 +217,6 @@ public class TraineeService {
         trainee.setPassword(password);
         trainee.setActive(true);
 
-        LOGGER.debug(String.format(
-                "Assigned credentials for trainee '%s': username=%s",
-                trainee.getFirstName(),
-                username
-        ));
+        LOGGER.debug("Assigned credentials for trainee '{}': username={}", trainee.getFirstName(), username);
     }
 }

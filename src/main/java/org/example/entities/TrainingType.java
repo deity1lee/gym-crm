@@ -13,9 +13,6 @@ public class TrainingType {
     @Column(nullable = false)
     private String trainingTypeName;
 
-    @OneToMany(mappedBy = "trainingType")
-    private List<Training> trainings;
-
     public TrainingType() {}
 
     public TrainingType(String trainingTypeName) {

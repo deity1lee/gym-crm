@@ -16,7 +16,7 @@ public class Main {
             LOGGER.info("Application context initialized successfully.");
 
         } catch (Exception e) {
-            LOGGER.error(String.format("Application failed to start: %s", e.getMessage()), e);
+            LOGGER.error("Application failed to start: {}", e.getMessage(), e);
             throw e;
         }
     }
