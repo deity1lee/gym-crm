@@ -22,22 +22,6 @@ public class SwaggerConfig {
                 .select()
                 .apis(RequestHandlerSelectors.basePackage("org.example.controller"))
                 .paths(PathSelectors.any())
-                .build()
-                .globalOperationParameters(Arrays.asList(
-                        new ParameterBuilder()
-                                .name("X-Auth-Username")
-                                .description("Username for authentication")
-                                .modelRef(new ModelRef("string"))
-                                .parameterType("header")
-                                .required(true)
-                                .build(),
-                        new ParameterBuilder()
-                                .name("X-Auth-Password")
-                                .description("Password for authentication")
-                                .modelRef(new ModelRef("string"))
-                                .parameterType("header")
-                                .required(true)
-                                .build()
-                ));
+                .build();
     }
 }

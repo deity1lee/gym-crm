@@ -4,8 +4,6 @@ import org.example.dao.TraineeDao;
 import org.example.dao.TrainerDao;
 import org.example.dao.TrainingDao;
 import org.example.dao.TrainingTypeDao;
-import org.example.entities.Trainee;
-import org.example.entities.Trainer;
 import org.example.entities.Training;
 import org.example.entities.TrainingType;
 import org.slf4j.Logger;
@@ -74,10 +72,10 @@ public class TrainingService {
             throw new IllegalArgumentException("traineeUsername is required");
         }
 
-        Trainee trainee = traineeDao.findByUsername(traineeUsername)
+        traineeDao.findByUsername(traineeUsername)
                 .orElseThrow(() -> {
                     LOGGER.warn("[{}] Trainee '{}' not found in DB", txId, traineeUsername);
-                    return new IllegalArgumentException("Trainee not found: " + traineeUsername);
+                    return new IllegalArgumentException(String.format("Trainee not found: %s", traineeUsername));
                 });
 
         if (trainerUsername == null || trainerUsername.isBlank()) {
@@ -85,10 +83,10 @@ public class TrainingService {
             throw new IllegalArgumentException("trainerUsername is required");
         }
 
-        Trainer trainer = trainerDao.findByUsername(trainerUsername)
+        trainerDao.findByUsername(trainerUsername)
                 .orElseThrow(() -> {
                     LOGGER.warn("[{}] Trainer '{}' not found in DB", txId, trainerUsername);
-                    return new IllegalArgumentException("Trainer not found: " + trainerUsername);
+                    return new IllegalArgumentException(String.format("Trainee not found: %s", traineeUsername));
                 });
 
         if (trainingDate == null) {

@@ -21,11 +21,16 @@ import static org.mockito.Mockito.*;
 
 class TraineeServiceTest {
 
-    @Mock private TraineeDao traineeDao;
-    @Mock private TrainerDao trainerDao;
-    @Mock private TrainingTypeDao trainingTypeDao;
-    @Mock private AuthService authService;
-    @Mock private ValidatorService validatorService;
+    @Mock
+    private TraineeDao traineeDao;
+    @Mock
+    private TrainerDao trainerDao;
+    @Mock
+    private TrainingTypeDao trainingTypeDao;
+    @Mock
+    private AuthService authService;
+    @Mock
+    private ValidatorService validatorService;
 
     @InjectMocks
     private TraineeService traineeService;

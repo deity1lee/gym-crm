@@ -10,6 +10,7 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Set;
 
@@ -35,8 +36,7 @@ public class AuthFilter implements Filter {
             "/swagger-resources/configuration/ui",
             "/swagger-resources/configuration/security",
             "/v2/api-docs",
-            "/webjars",
-            "/auth"
+            "/webjars"
     );
 
     private boolean isExcluded(String path) {
@@ -51,7 +51,13 @@ public class AuthFilter implements Filter {
 
         String path = request.getRequestURI().substring(request.getContextPath().length());
 
-        if (isExcluded(path)) {
+        if (isExcluded(path)
+                || ("POST".equals(request.getMethod()) &&
+                "/trainees".equals(path))
+                || ("POST".equals(request.getMethod()) &&
+                "/trainers".equals(path))
+                || ("GET".equals(request.getMethod()) &&
+                "/auth".equals(path))) {
             chain.doFilter(req, res);
             return;
         }
@@ -61,18 +67,26 @@ public class AuthFilter implements Filter {
 
         String txId = MDC.get("transactionId");
 
-        LOGGER.debug("[{}] Starting authentication for user '{}' on path '{}'",
-                txId, username, path);
-
         try {
+            if (username == null || username.isBlank()) {
+                throw new UnauthorizedException("Missing or empty X-Auth-Username header");
+            }
+            if (password == null || password.isBlank()) {
+                throw new UnauthorizedException("Missing or empty X-Auth-Password header");
+            }
+            LOGGER.debug("[{}] Starting authentication for user '{}' on path '{}'",
+                    txId, username, path);
             authService.authenticateUser(username, password);
-            LOGGER.info("[{}] Authentication succeeded for user '{}'", txId, username);
-        } catch (UnauthorizedException e) {
-            LOGGER.warn("[{}] Authentication failed for user '{}': {}", txId, username, e.getMessage());
-            throw e;
-        }
+            chain.doFilter(req, res);
 
-        chain.doFilter(req, res);
+        } catch (UnauthorizedException e) {
+            LOGGER.error("[{}] Authentication failed.", txId);
+            HttpServletResponse response = (HttpServletResponse) res;
+            response.reset();
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("text/plain");
+            response.getWriter().write("error: Unauthorized");
+        }
     }
 
     @Override

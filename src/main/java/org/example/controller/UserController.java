@@ -1,26 +1,16 @@
 package org.example.controller;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import org.example.dao.UserDao;
+import io.swagger.annotations.*;
 import org.example.dto.ChangePasswordRequest;
-import org.example.dto.TraineeRegistrationRequest;
 import org.example.dto.TrainingCreationRequest;
-import org.example.dto.UserCredentials;
-import org.example.entities.Trainee;
 import org.example.entities.TrainingType;
-import org.example.exception.UnauthorizedException;
 import org.example.service.AuthService;
-import org.example.service.TrainerService;
 import org.example.service.TrainingService;
 import org.example.service.TrainingTypeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -49,8 +39,23 @@ public class UserController {
             @ApiResponse(code = 401, message = "Unauthorized"),
             @ApiResponse(code = 500, message = "Internal server error")
     })
+    @ApiImplicitParams({
+            @ApiImplicitParam(
+                    name = "X-Auth-Username",
+                    value = "Username for authentication",
+                    required = true,
+                    paramType = "header"
+            ),
+            @ApiImplicitParam(
+                    name = "X-Auth-Password",
+                    value = "Password for authentication",
+                    required = true,
+                    paramType = "header"
+            )
+    })
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/trainings")
-    public ResponseEntity<Void> addTraining(@Valid @RequestBody TrainingCreationRequest request) {
+    public void addTraining(@Valid @RequestBody TrainingCreationRequest request) {
 
         String txId = MDC.get("transactionId");
         LOGGER.info("[{}] POST /trainings - addTraining(trainee={}, trainer={}, typeId={})",
@@ -67,7 +72,6 @@ public class UserController {
             );
 
             LOGGER.info("[{}] addTraining success - 201 CREATED", txId);
-            return ResponseEntity.status(HttpStatus.CREATED).build();
 
         } catch (Exception ex) {
             LOGGER.error("[{}] addTraining failed - 400 BAD REQUEST - {}", txId, ex.getMessage());
@@ -80,8 +84,22 @@ public class UserController {
             @ApiResponse(code = 200, message = "Training types retrieved successfully"),
             @ApiResponse(code = 500, message = "Internal server error")
     })
+    @ApiImplicitParams({
+            @ApiImplicitParam(
+                    name = "X-Auth-Username",
+                    value = "Username for authentication",
+                    required = true,
+                    paramType = "header"
+            ),
+            @ApiImplicitParam(
+                    name = "X-Auth-Password",
+                    value = "Password for authentication",
+                    required = true,
+                    paramType = "header"
+            )
+    })
     @GetMapping("/training-types")
-    public ResponseEntity<List<TrainingType>> getTrainingTypes() {
+    public List<TrainingType> getTrainingTypes() {
 
         String txId = MDC.get("transactionId");
         LOGGER.info("[{}] GET /training-types - fetch all training types", txId);
@@ -89,7 +107,7 @@ public class UserController {
         try {
             List<TrainingType> types = trainingTypeService.getAllTrainingTypes();
             LOGGER.info("[{}] getTrainingTypes success - {} types found", txId, types.size());
-            return ResponseEntity.ok(types);
+            return types;
 
         } catch (Exception ex) {
             LOGGER.error("[{}] getTrainingTypes failed - {}", txId, ex.getMessage());
@@ -106,8 +124,22 @@ public class UserController {
             @ApiResponse(code = 400, message = "Validation/business error"),
             @ApiResponse(code = 500, message = "Internal server error")
     })
+    @ApiImplicitParams({
+            @ApiImplicitParam(
+                    name = "X-Auth-Username",
+                    value = "Username for authentication",
+                    required = true,
+                    paramType = "header"
+            ),
+            @ApiImplicitParam(
+                    name = "X-Auth-Password",
+                    value = "Password for authentication",
+                    required = true,
+                    paramType = "header"
+            )
+    })
     @PutMapping("/users/{username}/password")
-    public ResponseEntity<String> changePassword(@PathVariable String username, @Valid @RequestBody ChangePasswordRequest request) {
+    public String changePassword(@PathVariable String username, @Valid @RequestBody ChangePasswordRequest request) {
 
         String txId = MDC.get("transactionId");
         LOGGER.info("[{}] PUT /users/{}/password - changePassword(username={})", txId, username, username);
@@ -122,7 +154,7 @@ public class UserController {
             );
 
             LOGGER.info("[{}] changePassword success - 200 OK - username={}", txId, username);
-            return ResponseEntity.ok("Password changed successfully");
+            return "Password changed successfully";
         } catch (Exception ex) {
             LOGGER.error("[{}] changePassword failed - 400 BAD REQUEST - username={}", txId, username);
             throw ex;

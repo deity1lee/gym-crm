@@ -83,7 +83,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
-            <version>5.3.30</version>   <!-- or your Spring version -->
+            <version>5.3.30</version>
         </dependency>
 
         <dependency>
@@ -127,8 +127,5 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
-
-
-
 
 </project>

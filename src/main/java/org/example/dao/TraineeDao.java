@@ -27,19 +27,7 @@ public class TraineeDao {
 
     public void create(Trainee trainee) {
         sessionFactory.getCurrentSession().save(trainee);
-        LOGGER.info(String.format(
-                "Created trainee with id %d",
-                trainee.getId()
-        ));
-    }
-
-    public void updatePassword(Long traineeId, String newPassword) {
-        Query<?> query = sessionFactory.getCurrentSession().createQuery(
-                "UPDATE Trainee t SET t.password = :password WHERE t.id = :id"
-        );
-        query.setParameter("password", newPassword);
-        query.setParameter("id", traineeId);
-        query.executeUpdate();
+        LOGGER.info("Created trainee with id {}", trainee.getId());
     }
 
     public void updateProfile(Trainee trainee) {
@@ -54,7 +42,7 @@ public class TraineeDao {
         Trainee trainee = findByUsername(username)
                 .orElseThrow(() -> {
                     LOGGER.warn("[{}] Deletion failed: trainee '{}' not found", txId, username);
-                    return new IllegalArgumentException("Trainee not found: " + username);
+                    return new IllegalArgumentException(String.format("Trainee not found: %s", username));
                 });
 
         sessionFactory.getCurrentSession().delete(trainee);
@@ -131,13 +119,12 @@ public class TraineeDao {
     }
 
     public long countByFullName(String firstName, String lastName) {
-        long count = sessionFactory.getCurrentSession().createQuery(
+        return sessionFactory.getCurrentSession().createQuery(
                         "SELECT COUNT(t) FROM Trainee t WHERE t.firstName = :firstName AND t.lastName = :lastName",
                         Long.class
                 )
                 .setParameter("firstName", firstName)
                 .setParameter("lastName", lastName)
                 .uniqueResult();
-        return count;
     }
 }

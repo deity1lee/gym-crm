@@ -107,10 +107,10 @@ public class TraineeService {
             LOGGER.warn("[{}] Missing traineeUsername in request", txId);
             throw new IllegalArgumentException("traineeUsername is required");
         }
-        Trainee trainee = traineeDao.findByUsername(criteria.getTraineeUsername())
+        traineeDao.findByUsername(criteria.getTraineeUsername())
                 .orElseThrow(() -> {
                     LOGGER.warn("[{}] Trainee '{}' not found in DB", txId, criteria.getTraineeUsername());
-                    return new IllegalArgumentException("Trainee not found: " + criteria.getTraineeUsername());
+                    return new IllegalArgumentException(String.format("Trainee not found: %s", criteria.getTraineeUsername()));
                 });
 
         if (criteria.getTrainerUsername() != null && !criteria.getTrainerUsername().isBlank()) {
@@ -118,7 +118,7 @@ public class TraineeService {
                     .orElseThrow(() -> {
                         LOGGER.warn("[{}] Trainer '{}' filter is invalid (not found)",
                                 txId, criteria.getTrainerUsername());
-                        return new IllegalArgumentException("Trainer not found: " + criteria.getTrainerUsername());
+                        return new IllegalArgumentException(String.format("Trainer not found: %s", criteria.getTrainerUsername()));
                     });
         }
         if (criteria.getFromDate() != null && criteria.getToDate() != null) {
@@ -134,13 +134,13 @@ public class TraineeService {
                     .orElseThrow(() -> {
                         LOGGER.warn("[{}] Training type with id {} not found",
                                 txId, criteria.getTrainingTypeId());
-                        return new IllegalArgumentException("Training type with id " + criteria.getTrainingTypeId() +  "not found" );
+                        return new IllegalArgumentException(String.format("Training type with id %s not found", criteria.getTrainingTypeId()));
                     });
         }
         List<Training> trainings = traineeDao.findByTraineeUsernameAndCriteria(criteria);
         LOGGER.info("[{}] Training names for trainee {}:", txId, username);
         trainings.forEach(t ->
-                LOGGER.info(String.format(" - %s", t.getName()))
+                LOGGER.info(" - {}", t.getName())
         );
 
         return trainings;
@@ -151,7 +151,7 @@ public class TraineeService {
         traineeDao.findByUsername(username)
                 .orElseThrow(() -> {
                     LOGGER.warn("[{}] Trainee '{}' not found in DB", txId, username);
-                    return new IllegalArgumentException("Trainee not found: " + username);
+                    return new IllegalArgumentException(String.format("Trainee not found: %s", username));
                 });
 
         LOGGER.debug("[{}] Trainee '{}' exists. Fetching unassigned trainers...", txId, username);
@@ -178,7 +178,7 @@ public class TraineeService {
         for (String trainerUsername : trainerUsernames) {
             Trainer trainer = trainerDao.findByUsername(trainerUsername)
                     .orElseThrow(() ->
-                            new IllegalArgumentException("Trainer not found: " + trainerUsername));
+                            new IllegalArgumentException(String.format("Trainer not found: %s", trainerUsername)));
             newTrainers.add(trainer);
         }
         trainee.setTrainers(newTrainers);

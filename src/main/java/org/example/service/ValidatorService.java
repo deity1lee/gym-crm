@@ -53,7 +53,7 @@ public class ValidatorService {
     public void validateLastName(String lastName) {
         String txId = MDC.get("transactionId");
         if (lastName == null || lastName.isEmpty()) {
-            LOGGER.warn("{[]} Last name cannot be empty", txId);
+            LOGGER.warn("[{}] Last name cannot be empty", txId);
             throw new IllegalArgumentException("Invalid credentials");
         }
 

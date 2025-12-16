@@ -48,6 +48,7 @@ public class TrainerService {
 
     public Trainer createTrainer(Trainer trainer) {
         validatorService.validate(trainer);
+        validatorService.validateTrainingType(trainer.getTrainingType());
         authService.assignCredentials(trainer);
         trainerDao.create(trainer);
         LOGGER.info("Created trainee profile for username: {}", trainer.getUsername());
@@ -61,7 +62,7 @@ public class TrainerService {
         Trainer trainer = trainerDao.findByUsername(usernameForSearch)
                 .orElseThrow(() -> {
                     LOGGER.warn("[{}] Trainer '{}' not found", txId, usernameForSearch);
-                    return new IllegalArgumentException("Trainer not found: " + usernameForSearch);
+                    return new IllegalArgumentException(String.format("Trainer not found: %s", usernameForSearch));
                 });
 
         LOGGER.info("[{}] Trainer '{}' found successfully", txId, usernameForSearch);
@@ -102,10 +103,10 @@ public class TrainerService {
             LOGGER.warn("[{}] Missing trainerUsername in request", txId);
             throw new IllegalArgumentException("trainerUsername is required");
         }
-        Trainer trainer = trainerDao.findByUsername(criteria.getTrainerUsername())
+        trainerDao.findByUsername(criteria.getTrainerUsername())
                 .orElseThrow(() -> {
                     LOGGER.warn("[{}] Trainer '{}' not found in DB", txId, criteria.getTrainerUsername());
-                    return new IllegalArgumentException("Trainer not found: " + criteria.getTrainerUsername());
+                    return new IllegalArgumentException(String.format("Trainer not found: %s", criteria.getTrainerUsername()));
                 });
 
         if (criteria.getTraineeUsername() != null && !criteria.getTraineeUsername().isBlank()) {
@@ -113,7 +114,7 @@ public class TrainerService {
                     .orElseThrow(() -> {
                         LOGGER.warn("[{}] Trainee '{}' filter is invalid (not found)",
                                 txId, criteria.getTraineeUsername());
-                        return new IllegalArgumentException("Trainee not found: " + criteria.getTraineeUsername());
+                        return new IllegalArgumentException(String.format("Trainee not found: %s", criteria.getTraineeUsername()));
                     });
         }
         if (criteria.getFromDate() != null && criteria.getToDate() != null) {

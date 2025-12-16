@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.server.ResponseStatusException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -35,8 +34,7 @@ public class GlobalExceptionHandler {
         LOGGER.error("[{}] Authentication failed - message = '{}'", transactionId, ex.getMessage());
 
         return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(ex.getMessage());
+                .status(HttpStatus.UNAUTHORIZED).body("Authentication failed");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -67,4 +65,3 @@ public class GlobalExceptionHandler {
                 .body("Unexpected error occurred");
     }
 }
-

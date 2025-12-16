@@ -1,9 +1,6 @@
 package org.example.controller;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 import org.example.dto.*;
 import org.example.entities.Trainer;
 import org.example.entities.Training;
@@ -15,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -44,8 +40,9 @@ public class TrainerController {
             @ApiResponse(code = 400, message = "Validation or business error"),
             @ApiResponse(code = 500, message = "Internal server error")
     })
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    public ResponseEntity<UserCredentials> registerTrainer(@Valid @RequestBody TrainerRegistrationRequest request) {
+    public UserCredentials registerTrainer(@Valid @RequestBody TrainerRegistrationRequest request) {
 
         String txId = MDC.get("transactionId");
         LOGGER.info("[{}] POST /trainers - registerTrainer(firstName='{}', lastName='{}')", txId, request.getFirstName(), request.getLastName());
@@ -61,7 +58,7 @@ public class TrainerController {
                     created.getPassword()
             );
             LOGGER.info("[{}] registerTrainer success - 201 CREATED - username={}", txId, created.getUsername());
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            return response;
         } catch (Exception ex) {
             LOGGER.error("[{}] registerTrainer failed - 400 BAD REQUEST", txId);
             throw ex;
@@ -78,15 +75,29 @@ public class TrainerController {
             @ApiResponse(code = 401, message = "Unauthorized / invalid credentials"),
             @ApiResponse(code = 500, message = "Internal server error")
     })
+    @ApiImplicitParams({
+            @ApiImplicitParam(
+                    name = "X-Auth-Username",
+                    value = "Username for authentication",
+                    required = true,
+                    paramType = "header"
+            ),
+            @ApiImplicitParam(
+                    name = "X-Auth-Password",
+                    value = "Password for authentication",
+                    required = true,
+                    paramType = "header"
+            )
+    })
     @GetMapping("/{username}")
-    public ResponseEntity<TrainerProfileResponse> getTrainerProfile(@PathVariable String username) {
+    public TrainerProfileResponse getTrainerProfile(@PathVariable String username) {
         String txId = MDC.get("transactionId");
         LOGGER.info("[{}] GET /trainers/{} - getTrainerProfile(trainer='{}')", txId, username, username);
         try {
             Trainer trainer = trainerService.selectTrainerByUsername(username);
 
             LOGGER.info("[{}] getTrainerProfile success - 200 OK - requested trainer={}", txId, username);
-            return ResponseEntity.ok(mapper.toResponse(trainer));
+            return mapper.toResponse(trainer);
 
         } catch (Exception ex) {
             LOGGER.error("[{}] getTrainerProfile failed - 400 BAD REQUEST - trainer={}", txId, username);
@@ -101,8 +112,22 @@ public class TrainerController {
             @ApiResponse(code = 401, message = "Unauthorized / invalid credentials"),
             @ApiResponse(code = 500, message = "Internal server error")
     })
+    @ApiImplicitParams({
+            @ApiImplicitParam(
+                    name = "X-Auth-Username",
+                    value = "Username for authentication",
+                    required = true,
+                    paramType = "header"
+            ),
+            @ApiImplicitParam(
+                    name = "X-Auth-Password",
+                    value = "Password for authentication",
+                    required = true,
+                    paramType = "header"
+            )
+    })
     @PutMapping
-    public ResponseEntity<TrainerProfileResponse> updateTrainerProfile(@Valid @RequestBody UpdateTrainerProfileRequest request) {
+    public TrainerProfileResponse updateTrainerProfile(@Valid @RequestBody UpdateTrainerProfileRequest request) {
 
         String txId = MDC.get("transactionId");
         LOGGER.info("[{}] PUT /trainers - updateTrainerProfile(trainer='{}')", txId, request.getUsername());
@@ -119,7 +144,7 @@ public class TrainerController {
             Trainer updatedTrainer = trainerService.updateTrainer(updatedTrainerData);
 
             LOGGER.info("[{}] updateTrainerProfile success - 200 OK - updated={}", txId, updatedTrainer.getUsername());
-            return ResponseEntity.ok(mapper.toResponse(updatedTrainer));
+            return mapper.toResponse(updatedTrainer);
 
         } catch (Exception ex) {
             LOGGER.error("[{}] updateTrainerProfile failed - 400 BAD REQUEST - target={}", txId, request.getUsername());
@@ -127,8 +152,28 @@ public class TrainerController {
         }
     }
 
+    @ApiOperation("Get trainer's trainings")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Trainer's trainings retrieved successfully"),
+            @ApiResponse(code = 401, message = "Unauthorized"),
+            @ApiResponse(code = 500, message = "Internal server error")
+    })
+    @ApiImplicitParams({
+            @ApiImplicitParam(
+                    name = "X-Auth-Username",
+                    value = "Username for authentication",
+                    required = true,
+                    paramType = "header"
+            ),
+            @ApiImplicitParam(
+                    name = "X-Auth-Password",
+                    value = "Password for authentication",
+                    required = true,
+                    paramType = "header"
+            )
+    })
     @GetMapping("/{username}/trainings")
-    public ResponseEntity<List<TrainingInfoResponse>> getTrainerTrainings(
+    public List<TrainingInfoResponse> getTrainerTrainings(
             @PathVariable String username,
             @RequestParam(required = false) Date periodFrom,
             @RequestParam(required = false) Date periodTo,
@@ -152,8 +197,7 @@ public class TrainerController {
                     t.getTrainer().getFirstName() + " " + t.getTrainer().getLastName()
             ));
         }
-
-        return ResponseEntity.ok(response);
+        return response;
     }
 
     @ApiOperation("Activate or deactivate trainee")
@@ -162,8 +206,22 @@ public class TrainerController {
             @ApiResponse(code = 401, message = "Unauthorized"),
             @ApiResponse(code = 500, message = "Internal server error")
     })
+    @ApiImplicitParams({
+            @ApiImplicitParam(
+                    name = "X-Auth-Username",
+                    value = "Username for authentication",
+                    required = true,
+                    paramType = "header"
+            ),
+            @ApiImplicitParam(
+                    name = "X-Auth-Password",
+                    value = "Password for authentication",
+                    required = true,
+                    paramType = "header"
+            )
+    })
     @PatchMapping("{username}/activation")
-    public ResponseEntity<Void> updateTrainerActivation(@PathVariable String username, @Valid @RequestBody Boolean isActive) {
+    public void updateTrainerActivation(@PathVariable String username, @Valid @RequestBody Boolean isActive) {
 
         String txId = MDC.get("transactionId");
         LOGGER.info("[{}] PATCH /trainers/{}/activation - isActive={}", txId, username, isActive);
@@ -172,7 +230,6 @@ public class TrainerController {
             trainerService.updateActivationStatus(username, isActive);
 
             LOGGER.info("[{}] updateTrainerActivation success - 200 OK", txId);
-            return ResponseEntity.ok().build();
 
         } catch (Exception ex) {
             LOGGER.error("[{}] updateTrainerActivation failed - {}", txId, ex.getMessage());

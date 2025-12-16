@@ -1,9 +1,6 @@
 package org.example.controller;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 import org.example.dto.*;
 import org.example.entities.Trainee;
 import org.example.entities.Trainer;
@@ -16,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -39,15 +35,19 @@ public class TraineeController {
         this.mapper = mapper;
     }
 
-    @ApiOperation(value = "Register a new trainee",
-            notes = "Creates a trainee profile and returns generated username and password")
+    @ApiOperation(
+            value = "Register a new trainee",
+            notes = "Creates a trainee profile and returns generated username and password"
+    )
     @ApiResponses({
             @ApiResponse(code = 201, message = "Trainee successfully registered"),
             @ApiResponse(code = 400, message = "Validation or business error"),
             @ApiResponse(code = 500, message = "Internal server error")
     })
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    public ResponseEntity<UserCredentials> registerTrainee(@Valid @RequestBody TraineeRegistrationRequest request) {
+    public UserCredentials registerTrainee(@Valid @RequestBody TraineeRegistrationRequest request) {
+
         String txId = MDC.get("transactionId");
         LOGGER.info("[{}] POST /trainee - registerTrainee(firstName='{}', lastName='{}')", txId, request.getFirstName(), request.getLastName());
         try {
@@ -64,7 +64,7 @@ public class TraineeController {
                     created.getPassword()
             );
             LOGGER.info("[{}] registerTrainee success - 201 CREATED - username={}", txId, created.getUsername());
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            return response;
         } catch (Exception ex) {
             LOGGER.error("[{}] registerTrainee failed - 400 BAD REQUEST", txId);
             throw ex;
@@ -79,15 +79,29 @@ public class TraineeController {
             @ApiResponse(code = 401, message = "Unauthorized"),
             @ApiResponse(code = 500, message = "Internal server error")
     })
+    @ApiImplicitParams({
+            @ApiImplicitParam(
+                    name = "X-Auth-Username",
+                    value = "Username for authentication",
+                    required = true,
+                    paramType = "header"
+            ),
+            @ApiImplicitParam(
+                    name = "X-Auth-Password",
+                    value = "Password for authentication",
+                    required = true,
+                    paramType = "header"
+            )
+    })
     @GetMapping("/{username}")
-    public ResponseEntity<TraineeProfileResponse> getTraineeProfile(@PathVariable String username) {
+    public TraineeProfileResponse getTraineeProfile(@PathVariable String username) {
 
         String txId = MDC.get("transactionId");
         LOGGER.info("[{}] GET /trainee/{username} - getTraineeProfile(username={})", txId, username);
         try {
             Trainee trainee = traineeService.selectTraineeByUsername(username);
             LOGGER.info("[{}] getTraineeProfile success - 200 OK - foundUsername={}", txId, trainee.getUsername());
-            return ResponseEntity.ok(mapper.toResponse(trainee));
+            return mapper.toResponse(trainee);
         } catch (Exception ex) {
             LOGGER.error("[{}] getTraineeProfile failed - error={}", txId, ex.getMessage());
             throw ex;
@@ -101,8 +115,23 @@ public class TraineeController {
             @ApiResponse(code = 401, message = "Unauthorized"),
             @ApiResponse(code = 500, message = "Internal server error")
     })
+    @ApiImplicitParams({
+            @ApiImplicitParam(
+                    name = "X-Auth-Username",
+                    value = "Username for authentication",
+                    required = true,
+                    paramType = "header"
+            ),
+            @ApiImplicitParam(
+                    name = "X-Auth-Password",
+                    value = "Password for authentication",
+                    required = true,
+                    paramType = "header"
+            )
+    })
     @PutMapping
-    public ResponseEntity<TraineeProfileResponse> updateTraineeProfile(@Valid @RequestBody UpdateTraineeProfileRequest request) {
+    public TraineeProfileResponse updateTraineeProfile(
+            @Valid @RequestBody UpdateTraineeProfileRequest request) {
 
         String txId = MDC.get("transactionId");
         LOGGER.info("[{}] PUT /trainees - updateTraineeProfile(usernameForUpdate={})", txId, request.getUsername());
@@ -117,8 +146,7 @@ public class TraineeController {
             newTrainee.setUsername(request.getUsername());
             Trainee updated = traineeService.updateTrainee(newTrainee);
             LOGGER.info("[{}] updateTraineeProfile success - 200 OK - updatedUsername={}", txId, updated.getUsername());
-            return ResponseEntity.ok(mapper.toResponse(updated));
-
+            return mapper.toResponse(updated);
         } catch (Exception ex) {
             LOGGER.error("[{}] updateTraineeProfile failed - {}", txId, ex.getMessage());
             throw ex;
@@ -131,15 +159,28 @@ public class TraineeController {
             @ApiResponse(code = 401, message = "Unauthorized"),
             @ApiResponse(code = 500, message = "Internal server error")
     })
+    @ApiImplicitParams({
+            @ApiImplicitParam(
+                    name = "X-Auth-Username",
+                    value = "Username for authentication",
+                    required = true,
+                    paramType = "header"
+            ),
+            @ApiImplicitParam(
+                    name = "X-Auth-Password",
+                    value = "Password for authentication",
+                    required = true,
+                    paramType = "header"
+            )
+    })
     @DeleteMapping("/{username}")
-    public ResponseEntity<Void> deleteTrainee(@PathVariable String username) {
+    public void deleteTrainee(@PathVariable String username) {
 
         String txId = MDC.get("transactionId");
         LOGGER.info("[{}] DELETE /trainee/{username} - deleteTrainee(username={})", txId, username);
         try {
             traineeService.deleteTraineeByUsername(username);
             LOGGER.info("[{}] deleteTrainee success - 200 OK - deleted={}", txId, username);
-            return ResponseEntity.ok().build();
         } catch (Exception ex) {
             LOGGER.error("[{}] deleteTrainee failed - {}", txId, ex.getMessage());
             throw ex;
@@ -152,8 +193,22 @@ public class TraineeController {
             @ApiResponse(code = 401, message = "Unauthorized"),
             @ApiResponse(code = 500, message = "Internal server error")
     })
+    @ApiImplicitParams({
+            @ApiImplicitParam(
+                    name = "X-Auth-Username",
+                    value = "Username for authentication",
+                    required = true,
+                    paramType = "header"
+            ),
+            @ApiImplicitParam(
+                    name = "X-Auth-Password",
+                    value = "Password for authentication",
+                    required = true,
+                    paramType = "header"
+            )
+    })
     @GetMapping("/{username}/unassigned-trainers")
-    public ResponseEntity<List<TrainerInfoResponse>> getUnassignedActiveTrainers(@PathVariable String username) {
+    public List<TrainerInfoResponse> getUnassignedActiveTrainers(@PathVariable String username) {
 
         String txId = MDC.get("transactionId");
         LOGGER.info("[{}] GET /trainee/{}/unassigned-trainers", txId, username);
@@ -168,7 +223,7 @@ public class TraineeController {
                     ))
                     .toList();
             LOGGER.info("[{}] getUnassignedActiveTrainers success - {} trainers", txId, response.size());
-            return ResponseEntity.ok(response);
+            return response;
         } catch (Exception ex) {
             LOGGER.error("[{}] getUnassignedActiveTrainers failed - {}", txId, ex.getMessage());
             throw ex;
@@ -181,8 +236,22 @@ public class TraineeController {
             @ApiResponse(code = 401, message = "Unauthorized"),
             @ApiResponse(code = 500, message = "Internal server error")
     })
+    @ApiImplicitParams({
+            @ApiImplicitParam(
+                    name = "X-Auth-Username",
+                    value = "Username for authentication",
+                    required = true,
+                    paramType = "header"
+            ),
+            @ApiImplicitParam(
+                    name = "X-Auth-Password",
+                    value = "Password for authentication",
+                    required = true,
+                    paramType = "header"
+            )
+    })
     @PutMapping("/{username}/trainers")
-    public ResponseEntity<List<TrainerInfoResponse>> updateTraineeTrainers(@PathVariable String username, @Valid @RequestBody UpdateTraineeTrainersRequest request) {
+    public List<TrainerInfoResponse> updateTraineeTrainers(@PathVariable String username, @Valid @RequestBody UpdateTraineeTrainersRequest request) {
         String txId = MDC.get("transactionId");
         LOGGER.info("[{}] PUT /trainees/{}/trainers", txId, username);
         try {
@@ -199,15 +268,35 @@ public class TraineeController {
                     )).toList();
 
             LOGGER.info("[{}] updateTraineeTrainers success - {} trainers assigned", txId, response.size());
-            return ResponseEntity.ok(response);
+            return response;
         } catch (Exception ex) {
             LOGGER.error("[{}] updateTraineeTrainers failed - {}", txId, ex.getMessage());
             throw ex;
         }
     }
 
+    @ApiOperation("Get trainee's trainings")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Trainee's trainings retrieved successfully"),
+            @ApiResponse(code = 401, message = "Unauthorized"),
+            @ApiResponse(code = 500, message = "Internal server error")
+    })
+    @ApiImplicitParams({
+            @ApiImplicitParam(
+                    name = "X-Auth-Username",
+                    value = "Username for authentication",
+                    required = true,
+                    paramType = "header"
+            ),
+            @ApiImplicitParam(
+                    name = "X-Auth-Password",
+                    value = "Password for authentication",
+                    required = true,
+                    paramType = "header"
+            )
+    })
     @GetMapping("/{username}/trainings")
-    public ResponseEntity<List<TrainingInfoResponse>> getTraineeTrainings(
+    public List<TrainingInfoResponse> getTraineeTrainings(
             @PathVariable String username,
             @RequestParam(required = false) Date periodFrom,
             @RequestParam(required = false) Date periodTo,
@@ -232,7 +321,7 @@ public class TraineeController {
                 ));
             }
             LOGGER.info("[{}] getTraineeTrainings success - {} trainings", txId, response.size());
-            return ResponseEntity.ok(response);
+            return response;
         } catch (Exception ex) {
             LOGGER.error("[{}] getTraineeTrainings failed - {}", txId, ex.getMessage());
             throw ex;
@@ -245,8 +334,24 @@ public class TraineeController {
             @ApiResponse(code = 401, message = "Unauthorized"),
             @ApiResponse(code = 500, message = "Internal server error")
     })
+    @ApiImplicitParams({
+            @ApiImplicitParam(
+                    name = "X-Auth-Username",
+                    value = "Username for authentication",
+                    required = true,
+                    paramType = "header"
+            ),
+            @ApiImplicitParam(
+                    name = "X-Auth-Password",
+                    value = "Password for authentication",
+                    required = true,
+                    paramType = "header"
+            )
+    })
     @PatchMapping("{username}/activation")
-    public ResponseEntity<Void> updateTraineeActivation(@PathVariable String username, @Valid @RequestBody Boolean isActive) {
+    public void updateTraineeActivation(
+            @PathVariable String username,
+            @Valid @RequestBody Boolean isActive) {
 
         String txId = MDC.get("transactionId");
         LOGGER.info("[{}] PATCH /trainees/{}/activation - isActive={}", txId, username, isActive);
@@ -255,11 +360,11 @@ public class TraineeController {
             traineeService.updateActivationStatus(username, isActive);
 
             LOGGER.info("[{}] updateTraineeActivation success - 200 OK", txId);
-            return ResponseEntity.ok().build();
 
         } catch (Exception ex) {
             LOGGER.error("[{}] updateTraineeActivation failed - {}", txId, ex.getMessage());
             throw ex;
         }
     }
+
 }
