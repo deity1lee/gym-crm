@@ -1,6 +1,7 @@
 package org.example.service;
 
-import org.example.actuator.prometheus.TrainerAssignmentMetrics;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import org.example.dao.TraineeDao;
 import org.example.dao.TrainerDao;
 import org.example.dao.TrainingTypeDao;
@@ -33,11 +34,13 @@ public class TraineeService {
     private ValidatorService validatorService;
     private TraineeDeletionPolicy deletionPolicy;
 
-    private TrainerAssignmentMetrics metrics;
+    private Timer assignmentTimer;
 
     @Autowired
-    public void setTrainerAssignmentMetrics(TrainerAssignmentMetrics metrics) {
-        this.metrics = metrics;
+    public void setAssignmentTimer(MeterRegistry meterRegistry) {
+        this.assignmentTimer = Timer.builder("gym_trainer_assignment_seconds")
+                .description("Time taken to assign trainers to a trainee")
+                .register(meterRegistry);
     }
 
     @Autowired
@@ -184,19 +187,19 @@ public class TraineeService {
 
     public List<Trainer> updateTraineeTrainers(String traineeUsername, List<String> trainerUsernames) {
         String txId = MDC.get("transactionId");
+        Trainee trainee = traineeDao.findByUsername(traineeUsername)
+                .orElseThrow(() -> new IllegalArgumentException("Trainee not found"));
 
-        return metrics.record(() -> {
-            Trainee trainee = traineeDao.findByUsername(traineeUsername)
-                    .orElseThrow(() -> new IllegalArgumentException("Trainee not found"));
+        List<Trainer> newTrainers = new ArrayList<>();
+        LOGGER.debug("[{}] Fetching trainers by username", txId);
+        for (String trainerUsername : trainerUsernames) {
+            Trainer trainer = trainerDao.findByUsername(trainerUsername)
+                    .orElseThrow(() ->
+                            new IllegalArgumentException(String.format("Trainer not found: %s", trainerUsername)));
+            newTrainers.add(trainer);
+        }
+        return assignmentTimer.record(() -> {
 
-            List<Trainer> newTrainers = new ArrayList<>();
-            LOGGER.debug("[{}] Fetching trainers by username", txId);
-            for (String trainerUsername : trainerUsernames) {
-                Trainer trainer = trainerDao.findByUsername(trainerUsername)
-                        .orElseThrow(() ->
-                                new IllegalArgumentException(String.format("Trainer not found: %s", trainerUsername)));
-                newTrainers.add(trainer);
-            }
             trainee.setTrainers(newTrainers);
             traineeDao.updateProfile(trainee);
             return newTrainers;

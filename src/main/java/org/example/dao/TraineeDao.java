@@ -130,11 +130,6 @@ public class TraineeDao {
                 .getSingleResult();
     }
 
-    public List<Trainee> findAll() {
-        return em.createQuery("SELECT t FROM Trainee t WHERE t.isActive = true", Trainee.class)
-                .getResultList();
-    }
-
     public long countActiveTrainees() {
         return em.createQuery(
                 "SELECT COUNT(t) FROM Trainee t WHERE t.isActive = true", Long.class

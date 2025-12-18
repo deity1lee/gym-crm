@@ -1,5 +1,6 @@
 package org.example.dao;
 
+import org.example.dto.TrainerTraineeCount;
 import org.example.entities.Trainer;
 import org.example.entities.Training;
 import org.example.utilities.TrainingSearchCriteria;
@@ -27,12 +28,14 @@ public class TrainerDao {
         LOGGER.info("[{}] Trainee with id {} was created.", tx, trainer.getId());
     }
 
-    public List<Object[]> findTrainerTraineeCounts() {
+    public List<TrainerTraineeCount> findTrainerTraineeCounts() {
         return em.createQuery(
-                "SELECT t.username, size(t.trainees) FROM Trainer t",
-                Object[].class
+                "SELECT new org.example.dto.TrainerTraineeCount(t.username, size(t.trainees)) " +
+                        "FROM Trainer t",
+                TrainerTraineeCount.class
         ).getResultList();
     }
+
 
     public void updateProfile(Trainer trainer) {
         String tx = MDC.get("transactionId");
@@ -92,6 +95,18 @@ public class TrainerDao {
         }
     }
 
+    public long countActiveTrainersWithoutTrainees() {
+        String jpql = """
+            SELECT COUNT(tr)
+            FROM Trainer tr
+            LEFT JOIN tr.trainees tn
+            WHERE tn IS NULL
+              AND tr.isActive = true
+        """;
+
+        return em.createQuery(jpql, Long.class)
+                .getSingleResult();
+    }
 
     public long countByFullName(String firstName, String lastName) {
 

@@ -1,6 +1,7 @@
 package org.example.actuator.health;
 
 import org.example.dao.TraineeDao;
+import org.example.dao.TrainerDao;
 import org.example.entities.Trainee;
 import org.example.entities.Trainer;
 import org.springframework.boot.actuate.health.Health;
@@ -12,30 +13,25 @@ import java.util.List;
 @Component
 public class UnassignedTrainerHealthIndicator implements HealthIndicator {
 
-    private final TraineeDao traineeDao;
+    private final TrainerDao trainerDao;
 
-    public UnassignedTrainerHealthIndicator(TraineeDao traineeDao) {
-        this.traineeDao = traineeDao;
+    public UnassignedTrainerHealthIndicator(TrainerDao trainerDao) {
+        this.trainerDao = trainerDao;
     }
 
     @Override
     public Health health() {
 
-        List<Trainee> trainees = traineeDao.findAll();
+        long count = trainerDao.countActiveTrainersWithoutTrainees();
 
-        for (Trainee trainee : trainees) {
-            List<Trainer> availableTrainers =
-                    traineeDao.findUnassignedTrainers(trainee.getUsername());
-
-            if (availableTrainers.isEmpty()) {
-
-                return Health.down()
-                        .withDetail("trainee", trainee.getUsername())
-                        .withDetail("problem", "No trainers available for this trainee")
-                        .build();
-            }
+        if (count > 0) {
+            return Health.down()
+                    .withDetail("problem", "There are trainers without trainees")
+                    .withDetail("unassignedTrainersCount", count)
+                    .build();
         }
-
-        return Health.up().withDetail("message", "All trainees have available trainers").build();
+        return Health.up()
+                .withDetail("message", "All active trainers have at least one trainee")
+                .build();
     }
 }

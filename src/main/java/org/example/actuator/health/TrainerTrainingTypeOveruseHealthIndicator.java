@@ -1,6 +1,7 @@
 package org.example.actuator.health;
 
 import org.example.dao.TrainingDao;
+import org.example.dto.TrainingTypeCountPerTrainer;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
@@ -22,22 +23,20 @@ public class TrainerTrainingTypeOveruseHealthIndicator implements HealthIndicato
     @Override
     public Health health() {
 
-        List<Object[]> rows = trainingDao.findTrainingTypesPerTrainer();
+        List<TrainingTypeCountPerTrainer> rows =
+                trainingDao.findTrainingTypesPerTrainer();
 
-        for (Object[] row : rows) {
-            String trainer = (String) row[0];
-            long distinctTypes = (long) row[1];
+        for (TrainingTypeCountPerTrainer row : rows) {
 
-            if (distinctTypes > MAX_TYPES) {
+            if (row.getDistinctTrainingTypes() > MAX_TYPES) {
                 return Health.down()
-                        .withDetail("trainer", trainer)
-                        .withDetail("distinctTrainingTypes", distinctTypes)
+                        .withDetail("trainer", row.getTrainerUsername())
+                        .withDetail("distinctTrainingTypes", row.getDistinctTrainingTypes())
                         .withDetail("limit", MAX_TYPES)
                         .withDetail("reason", "Trainer is teaching too many training types")
                         .build();
             }
         }
-
         return Health.up()
                 .withDetail("message", "All trainers teach within allowed training types")
                 .build();

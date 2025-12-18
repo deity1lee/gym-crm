@@ -1,6 +1,7 @@
 package unit;
 
-import org.example.actuator.prometheus.TrainerAssignmentMetrics;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.example.dao.TraineeDao;
 import org.example.dao.TrainerDao;
 import org.example.dao.TrainingTypeDao;
@@ -33,8 +34,6 @@ class TraineeServiceTest {
     private AuthService authService;
     @Mock
     private ValidatorService validatorService;
-    @Mock
-    TrainerAssignmentMetrics metrics;
 
     @InjectMocks
     private TraineeService traineeService;
@@ -42,12 +41,19 @@ class TraineeServiceTest {
     @BeforeEach
     void setup() {
         MockitoAnnotations.openMocks(this);
-        lenient().when(metrics.record(any())).thenAnswer(invocation -> {
-            @SuppressWarnings("unchecked")
-            Supplier<List<Trainer>> supplier = invocation.getArgument(0);
-            return supplier.get();
-        });
+
+        MeterRegistry meterRegistry = new SimpleMeterRegistry();
+
+        traineeService = new TraineeService();
+
+        traineeService.setTraineeDao(traineeDao);
+        traineeService.setTrainerDao(trainerDao);
+        traineeService.setTrainingTypeDao(trainingTypeDao);
+        traineeService.setAuthService(authService);
+        traineeService.setValidatorService(validatorService);
+        traineeService.setAssignmentTimer(meterRegistry);
     }
+
     @Test
     void testCreateTraineeSuccess() {
         Trainee trainee = new Trainee();

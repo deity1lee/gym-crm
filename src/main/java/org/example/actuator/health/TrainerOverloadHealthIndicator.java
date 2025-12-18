@@ -1,6 +1,7 @@
 package org.example.actuator.health;
 
 import org.example.dao.TrainerDao;
+import org.example.dto.TrainerTraineeCount;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
@@ -22,16 +23,14 @@ public class TrainerOverloadHealthIndicator implements HealthIndicator {
     @Override
     public Health health() {
 
-        List<Object[]> results = trainerDao.findTrainerTraineeCounts();
+        List<TrainerTraineeCount> results = trainerDao.findTrainerTraineeCounts();
 
-        for (Object[] row : results) {
-            String username = (String) row[0];
-            int traineeCount = ((Integer) row[1]);
+        for (TrainerTraineeCount row : results) {
 
-            if (traineeCount > MAX_TRAINEES) {
+            if (row.getTraineeCount() > MAX_TRAINEES) {
                 return Health.down()
-                        .withDetail("trainer", username)
-                        .withDetail("traineeCount", traineeCount)
+                        .withDetail("trainer", row.getUsername())
+                        .withDetail("traineeCount", row.getTraineeCount())
                         .withDetail("limit", MAX_TRAINEES)
                         .build();
             }

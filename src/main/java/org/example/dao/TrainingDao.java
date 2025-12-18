@@ -1,5 +1,6 @@
 package org.example.dao;
 
+import org.example.dto.TrainingTypeCountPerTrainer;
 import org.example.entities.Training;
 import org.springframework.stereotype.Repository;
 
@@ -18,12 +19,18 @@ public class TrainingDao {
        em.persist(training);
     }
 
-    public List<Object[]> findTrainingTypesPerTrainer() {
+    public List<TrainingTypeCountPerTrainer> findTrainingTypesPerTrainer() {
         return em.createQuery(
-                "SELECT tr.username, COUNT(DISTINCT t.trainingType.id) " +
-                        "FROM Training t JOIN t.trainer tr " +
-                        "GROUP BY tr.username",
-                Object[].class
+                """
+                SELECT new org.example.dto.TrainingTypeCountPerTrainer(
+                    tr.username,
+                    COUNT(DISTINCT t.trainingType.id)
+                )
+                FROM Training t
+                JOIN t.trainer tr
+                GROUP BY tr.username
+                """,
+                TrainingTypeCountPerTrainer.class
         ).getResultList();
     }
 }
