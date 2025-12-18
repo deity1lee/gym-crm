@@ -69,6 +69,7 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "Training types retrieved successfully"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
+    @GetMapping("/training-types")
     public List<TrainingType> getTrainingTypes() {
 
         String txId = MDC.get("transactionId");

@@ -14,13 +14,22 @@ public class OpenAPIConfig {
     public OpenAPI openAPI() {
         return new OpenAPI()
                 .components(new Components()
-                        .addSecuritySchemes("customAuth",
+                        .addSecuritySchemes("username",
                                 new SecurityScheme()
                                         .type(SecurityScheme.Type.APIKEY)
                                         .in(SecurityScheme.In.HEADER)
-                                        .name("X-Auth-Credentials")
+                                        .name("X-Auth-Username")
+                        )
+                        .addSecuritySchemes("password",
+                                new SecurityScheme()
+                                        .type(SecurityScheme.Type.APIKEY)
+                                        .in(SecurityScheme.In.HEADER)
+                                        .name("X-Auth-Password")
                         )
                 )
-                .addSecurityItem(new SecurityRequirement().addList("customAuth"));
+                .addSecurityItem(new SecurityRequirement()
+                        .addList("username")
+                        .addList("password")
+                );
     }
 }

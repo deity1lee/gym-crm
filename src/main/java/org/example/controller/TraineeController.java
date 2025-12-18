@@ -50,7 +50,7 @@ public class TraineeController {
     public UserCredentials registerTrainee(@Valid @RequestBody TraineeRegistrationRequest request) {
 
         String txId = MDC.get("transactionId");
-        LOGGER.info("[{}] POST /trainee - registerTrainee(firstName='{}', lastName='{}')", txId, request.getFirstName(), request.getLastName());
+        LOGGER.info("[{}] POST /trainees - registerTrainee(firstName='{}', lastName='{}')", txId, request.getFirstName(), request.getLastName());
         try {
             Trainee trainee = new Trainee(
                     request.getFirstName(),
