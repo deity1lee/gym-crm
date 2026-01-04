@@ -1,6 +1,5 @@
 package org.example.utilities;
 
-
 import java.security.SecureRandom;
 
 public class CredentialGenerator {

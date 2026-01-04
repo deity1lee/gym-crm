@@ -13,9 +13,8 @@ public class Main {
 
         try (AnnotationConfigApplicationContext context =
                      new AnnotationConfigApplicationContext(AppConfig.class)) {
-
             LOGGER.info("Application context initialized successfully.");
-            LOGGER.info("All data has been loaded into in-memory storage.");
+
         } catch (Exception e) {
             LOGGER.error("Application failed to start: {}", e.getMessage(), e);
             throw e;

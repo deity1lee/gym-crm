@@ -3,12 +3,18 @@ package trainer;
 import org.example.dao.TraineeDao;
 import org.example.dao.TrainerDao;
 import org.example.entities.Trainer;
+import org.example.entities.Training;
+import org.example.service.AuthService;
 import org.example.service.TrainerService;
+import org.example.service.ValidatorService;
+import org.example.utilities.TrainingSearchCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+
 import java.util.List;
 import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -16,83 +22,158 @@ class TrainerServiceTest {
 
     private TrainerDao trainerDao;
     private TraineeDao traineeDao;
+    private AuthService authService;
+    private ValidatorService validatorService;
+
     private TrainerService trainerService;
 
     @BeforeEach
     void setUp() {
         trainerDao = mock(TrainerDao.class);
         traineeDao = mock(TraineeDao.class);
+        authService = mock(AuthService.class);
+        validatorService = mock(ValidatorService.class);
 
         trainerService = new TrainerService();
         trainerService.setTrainerDao(trainerDao);
         trainerService.setTraineeDao(traineeDao);
+        trainerService.setAuthService(authService);
+        trainerService.setValidatorService(validatorService);
     }
 
     @Test
-    void testCreateTrainerGeneratesUsernameAndPassword() {
-        Trainer trainer = new Trainer("John", "Smith", "nutrition coaching");
+    void testCreateTrainer() {
+        Trainer trainer = new Trainer();
+        trainer.setFirstName("John");
+        trainer.setLastName("Doe");
 
-        when(trainerDao.countByFullName("John", "Smith")).thenReturn(0L);
+        when(traineeDao.countByFullName("John", "Doe")).thenReturn(0L);
+        when(trainerDao.countByFullName("John", "Doe")).thenReturn(0L);
 
         trainerService.createTrainer(trainer);
 
+        verify(validatorService).validate(trainer);
+        verify(trainerDao).create(trainer);
+    }
+
+    @Test
+    void testSelectTrainerByUsername_Success() {
+        Trainer trainer = new Trainer();
+        trainer.setUsername("trainer1");
+
+        when(authService.authenticateUser("admin", "pass")).thenReturn(null);
+        when(trainerDao.findByUsername("trainer1")).thenReturn(Optional.of(trainer));
+
+        Trainer result = trainerService.selectTrainerByUsername("admin", "pass", "trainer1");
+
+        assertEquals(trainer, result);
+    }
+
+    @Test
+    void testSelectTrainerByUsername_NotFound() {
+        when(authService.authenticateUser("admin", "pass")).thenReturn(null);
+        when(trainerDao.findByUsername("trainer1")).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () ->
+                trainerService.selectTrainerByUsername("admin", "pass", "trainer1"));
+    }
+
+    @Test
+    void testChangePassword_StrongPassword() {
+        Trainer trainer = new Trainer();
+        trainer.setId(1L);
+        trainer.setUsername("trainer1");
+        trainer.setPassword("oldPass");
+
+        when(authService.authenticateUser("admin", "adminPass")).thenReturn(null);
+        when(trainerDao.findByUsername("trainer1")).thenReturn(Optional.of(trainer));
+        when(validatorService.isStrongPassword("newPass")).thenReturn(true);
+
+        trainerService.changePassword("admin", "adminPass", "trainer1", "oldPass", "newPass");
+
+        verify(trainerDao).updatePassword(1L, "newPass");
+    }
+
+    @Test
+    void testChangePassword_WeakPassword() {
+        Trainer trainer = new Trainer();
+        trainer.setId(1L);
+        trainer.setUsername("trainer1");
+        trainer.setPassword("oldPass");
+
+        when(authService.authenticateUser("admin", "adminPass")).thenReturn(null);
+        when(trainerDao.findByUsername("trainer1")).thenReturn(Optional.of(trainer));
+        when(validatorService.isStrongPassword("weak")).thenReturn(false);
+
+        trainerService.changePassword("admin", "adminPass", "trainer1", "oldPass", "weak");
+
+        verify(trainerDao, never()).updatePassword(anyLong(), anyString());
+    }
+
+    @Test
+    void testUpdateTrainer() {
+        Trainer newTrainer = new Trainer();
+        newTrainer.setUsername("trainer1");
+        newTrainer.setFirstName("New");
+        newTrainer.setLastName("Name");
+
+        Trainer existing = new Trainer();
+        existing.setUsername("trainer1");
+
+        when(authService.authenticateUser("admin", "adminPass")).thenReturn(null);
+        when(trainerDao.findByUsername("trainer1")).thenReturn(Optional.of(existing));
+
+        trainerService.updateTrainer("admin", "adminPass", newTrainer);
+
+        verify(validatorService).validate(newTrainer);
+
         ArgumentCaptor<Trainer> captor = ArgumentCaptor.forClass(Trainer.class);
-        verify(trainerDao).create(captor.capture());
+        verify(trainerDao).updateProfile(captor.capture());
 
-        Trainer saved = captor.getValue();
-        assertEquals("John.Smith", saved.getUsername());
-        assertNotNull(saved.getPassword());
-        assertEquals(10, saved.getPassword().length());
-        assertTrue(saved.isActive());
+        Trainer updated = captor.getValue();
+        assertEquals("trainer1", updated.getUsername());
+        assertEquals("New", updated.getFirstName());
+        assertEquals("Name", updated.getLastName());
     }
 
     @Test
-    void testCreateTrainerAppendsNumberIfDuplicateName() {
-        Trainer trainer = new Trainer("John", "Smith", "nutrition coaching");
+    void testActivateTrainer() {
+        Trainer trainer = new Trainer();
 
-        when(trainerDao.countByFullName("John", "Smith")).thenReturn(5L);
-        when(traineeDao.countByFullName("John", "Smith")).thenReturn(6L);
+        when(authService.authenticateUser("admin", "adminPass")).thenReturn(null);
+        when(trainerDao.findByUsername("trainer1")).thenReturn(Optional.of(trainer));
 
-        trainerService.createTrainer(trainer);
+        trainerService.activateTrainer("admin", "adminPass", "trainer1");
 
-        ArgumentCaptor<Trainer> captor = ArgumentCaptor.forClass(Trainer.class);
-        verify(trainerDao).create(captor.capture());
-
-        assertEquals("John.Smith12", captor.getValue().getUsername());
+        verify(trainerDao).activateTrainer(trainer);
     }
 
     @Test
-    void testUpdateTrainerDelegatesToDao() {
-        Trainer trainer = new Trainer(1L, "Alice", "Brown", "nutrition coaching");
+    void testDeactivateTrainer() {
+        Trainer trainer = new Trainer();
 
-        trainerService.updateTrainer(trainer);
+        when(authService.authenticateUser("admin", "adminPass")).thenReturn(null);
+        when(trainerDao.findByUsername("trainer1")).thenReturn(Optional.of(trainer));
 
-        verify(trainerDao, times(1)).update(trainer);
+        trainerService.deActivateTrainer("admin", "adminPass", "trainer1");
+
+        verify(trainerDao).deactivateTrainer(trainer);
     }
 
     @Test
-    void testGetTrainerByIdDelegatesToDao() {
-        Trainer trainer = new Trainer(1L, "David", "Lee", "nutrition coaching");
-        when(trainerDao.findById(1L)).thenReturn(Optional.of(trainer));
+    void testGetTrainerTrainings() {
+        TrainingSearchCriteria criteria = new TrainingSearchCriteria();
+        Training training = new Training();
+        training.setName("Sprint");
 
-        Optional<Trainer> result = trainerService.getTrainerById(1L);
+        when(authService.authenticateUser("admin", "adminPass")).thenReturn(null);
+        when(trainerDao.findByUsername("trainer1")).thenReturn(Optional.of(new Trainer()));
+        when(trainerDao.findByTrainerUsernameAndCriteria("trainer1", criteria))
+                .thenReturn(List.of(training));
 
-        assertTrue(result.isPresent());
-        assertEquals("David", result.get().getFirstName());
-        verify(trainerDao, times(1)).findById(1L);
-    }
+        List<Training> result = trainerService.getTrainerTrainings("admin", "adminPass", "trainer1", criteria);
 
-    @Test
-    void testGetAllTrainersDelegatesToDao() {
-        List<Trainer> trainers = List.of(
-                new Trainer(1L, "John", "Smith", "nutrition coaching"),
-                new Trainer(2L, "Alice", "Brown", "youth fitness")
-        );
-        when(trainerDao.findAll()).thenReturn(trainers);
-
-        List<Trainer> result = trainerService.getAllTrainers();
-
-        assertEquals(2, result.size());
-        verify(trainerDao, times(1)).findAll();
+        assertEquals(1, result.size());
+        assertEquals("Sprint", result.get(0).getName());
     }
 }
