@@ -1,15 +1,20 @@
 package org.example.dto;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
-@ApiModel(description = "Username & Password")
+@Schema(description = "Username & Password")
 public class UserCredentials {
 
-    @ApiModelProperty(value = "Generated username for trainee", example = "John.Do")
+    @Schema(
+            description = "Generated username for trainee",
+            example = "John.Do"
+    )
     private String username;
 
-    @ApiModelProperty(value = "Generated password for trainee", example = "pass123456")
+    @Schema(
+            description = "Generated password for trainee",
+            example = "pass123456"
+    )
     private String password;
 
     public UserCredentials() {}
@@ -35,4 +40,3 @@ public class UserCredentials {
         this.password = password;
     }
 }
-

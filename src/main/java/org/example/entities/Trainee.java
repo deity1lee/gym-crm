@@ -1,7 +1,6 @@
 package org.example.entities;
 
-import javax.persistence.*;
-import java.time.LocalDate;
+import jakarta.persistence.*;
 import java.util.Date;
 import java.util.List;
 
@@ -10,6 +9,7 @@ import java.util.List;
 @PrimaryKeyJoinColumn(name = "user_id")
 public class Trainee extends User {
 
+    @Column(name = "date_of_birth")
     @Temporal(TemporalType.DATE)
     private Date dateOfBirth;
 

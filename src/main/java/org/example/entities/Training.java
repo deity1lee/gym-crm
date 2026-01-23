@@ -1,6 +1,6 @@
 package org.example.entities;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Date;
 
 @Entity
@@ -11,25 +11,25 @@ public class Training {
     private Long id;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "traineeId", nullable = false)
+    @JoinColumn(name = "trainee_id", nullable = false)
     private Trainee trainee;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "trainerId", nullable = false)
+    @JoinColumn(name = "trainer_id", nullable = false)
     private Trainer trainer;
 
-    @Column(name = "trainingName", nullable = false)
+    @Column(name = "training_name", nullable = false)
     private String name;
 
     @ManyToOne
-    @JoinColumn(name = "trainingTypeId", nullable = false)
+    @JoinColumn(name = "training_type_id", nullable = false)
     private TrainingType trainingType;
 
     @Temporal(TemporalType.DATE)
-    @Column(name = "trainingDate", nullable = false)
+    @Column(name = "training_date", nullable = false)
     private Date date;
 
-    @Column(name = "trainingDuration", nullable = false)
+    @Column(name = "training_duration", nullable = false)
     private Long duration;
 
     public Training() {}

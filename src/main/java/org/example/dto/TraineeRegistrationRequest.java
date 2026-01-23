@@ -1,26 +1,38 @@
 package org.example.dto;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Date;
 
-@ApiModel(description = "Request body for trainee registration")
+@Schema(description = "Request body for trainee registration")
 public class TraineeRegistrationRequest {
 
-    @ApiModelProperty(value = "First name of trainee", required = true, example = "John")
+    @Schema(
+            description = "First name of trainee",
+            example = "John",
+            required = true
+    )
     @NotBlank(message = "First name is required")
     private String firstName;
 
-    @ApiModelProperty(value = "Last name of trainee", required = true, example = "Doe")
+    @Schema(
+            description = "Last name of trainee",
+            example = "Doe",
+            required = true
+    )
     @NotBlank(message = "Last name is required")
     private String lastName;
 
-    @ApiModelProperty(value = "Date of birth of trainee (ISO format: yyyy-MM-dd)", required = false, example = "1998-05-20")
+    @Schema(
+            description = "Date of birth of trainee (ISO format: yyyy-MM-dd)",
+            example = "1998-05-20"
+    )
     private Date dateOfBirth;
 
-    @ApiModelProperty(value = "Address of trainee", required = false, example = "Some Street 123, City")
+    @Schema(
+            description = "Address of trainee",
+            example = "Some Street 123, City"
+    )
     private String address;
 
     public String getFirstName() {
@@ -55,4 +67,3 @@ public class TraineeRegistrationRequest {
         this.address = address;
     }
 }
-

@@ -1,5 +1,7 @@
 package unit;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.example.dao.TraineeDao;
 import org.example.dao.TrainerDao;
 import org.example.dao.TrainingTypeDao;
@@ -15,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import java.util.*;
 import java.sql.Date;
+import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -38,6 +41,17 @@ class TraineeServiceTest {
     @BeforeEach
     void setup() {
         MockitoAnnotations.openMocks(this);
+
+        MeterRegistry meterRegistry = new SimpleMeterRegistry();
+
+        traineeService = new TraineeService();
+
+        traineeService.setTraineeDao(traineeDao);
+        traineeService.setTrainerDao(trainerDao);
+        traineeService.setTrainingTypeDao(trainingTypeDao);
+        traineeService.setAuthService(authService);
+        traineeService.setValidatorService(validatorService);
+        traineeService.setAssignmentTimer(meterRegistry);
     }
 
     @Test

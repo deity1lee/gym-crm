@@ -37,6 +37,18 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.UNAUTHORIZED).body("Authentication failed");
     }
 
+    @ExceptionHandler(UnsupportedOperationException.class)
+    public ResponseEntity<String> handleUnsupportedOperation(UnsupportedOperationException ex) {
+
+        String transactionId = MDC.get("transactionId");
+
+        LOGGER.error("[{}] Unsupported operation - message = '{}'", transactionId, ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_IMPLEMENTED)
+                .body(ex.getMessage());
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<String> handleValidation(MethodArgumentNotValidException ex) {
 

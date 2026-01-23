@@ -1,16 +1,16 @@
 package org.example.entities;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name = "trainingTypes")
+@Table(name = "training_types")
 public class TrainingType {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "training_type_name", nullable = false)
     private String trainingTypeName;
 
     public TrainingType() {}

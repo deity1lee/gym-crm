@@ -1,96 +1,71 @@
 package org.example.filter;
 
-import org.example.exception.UnauthorizedException;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.example.service.AuthService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.support.WebApplicationContextUtils;
+import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Set;
 
-public class AuthFilter implements Filter {
+public class AuthFilter extends OncePerRequestFilter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthFilter.class);
 
-    private AuthService authService;
+    private final AuthService authService;
 
-    @Override
-    public void init(FilterConfig filterConfig) {
-        WebApplicationContext ctx =
-                WebApplicationContextUtils.getRequiredWebApplicationContext(
-                        filterConfig.getServletContext()
-                );
-
-        this.authService = ctx.getBean(AuthService.class);
-    }
-
-    private static final Set<String> EXCLUDED_PATHS = Set.of(
-            "/swagger-ui.html",
-            "/swagger-resources",
-            "/swagger-resources/configuration/ui",
-            "/swagger-resources/configuration/security",
-            "/v2/api-docs",
-            "/webjars"
-    );
-
-    private boolean isExcluded(String path) {
-        return EXCLUDED_PATHS.stream().anyMatch(path::startsWith);
+    public AuthFilter(AuthService authService) {
+        this.authService = authService;
     }
 
     @Override
-    public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
-            throws IOException, ServletException {
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain
+    ) throws ServletException, IOException {
 
-        HttpServletRequest request = (HttpServletRequest) req;
+        String txId = MDC.get("transactionId");
+        String path = request.getRequestURI();
 
-        String path = request.getRequestURI().substring(request.getContextPath().length());
-
-        if (isExcluded(path)
+        if (isPublicEndpoint(path)
                 || ("POST".equals(request.getMethod()) &&
                 "/trainees".equals(path))
                 || ("POST".equals(request.getMethod()) &&
                 "/trainers".equals(path))
                 || ("GET".equals(request.getMethod()) &&
                 "/auth".equals(path))) {
-            chain.doFilter(req, res);
+            filterChain.doFilter(request, response);
             return;
         }
 
         String username = request.getHeader("X-Auth-Username");
         String password = request.getHeader("X-Auth-Password");
 
-        String txId = MDC.get("transactionId");
+        if (username == null || password == null ||
+                username.isBlank() || password.isBlank()) {
+
+            LOGGER.warn("[{}] Missing authentication headers", txId);
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing credentials");
+            return;
+        }
 
         try {
-            if (username == null || username.isBlank()) {
-                throw new UnauthorizedException("Missing or empty X-Auth-Username header");
-            }
-            if (password == null || password.isBlank()) {
-                throw new UnauthorizedException("Missing or empty X-Auth-Password header");
-            }
-            LOGGER.debug("[{}] Starting authentication for user '{}' on path '{}'",
-                    txId, username, path);
             authService.authenticateUser(username, password);
-            chain.doFilter(req, res);
-
-        } catch (UnauthorizedException e) {
-            LOGGER.error("[{}] Authentication failed.", txId);
-            HttpServletResponse response = (HttpServletResponse) res;
-            response.reset();
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setContentType("text/plain");
-            response.getWriter().write("error: Unauthorized");
+            filterChain.doFilter(request, response);
+        } catch (Exception ex) {
+            LOGGER.warn("[{}] Authentication failed for user '{}'", txId, username);
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid credentials");
         }
     }
 
-    @Override
-    public void destroy() {
-
+    private boolean isPublicEndpoint(String path) {
+        return path.startsWith("/swagger-ui")
+                || path.startsWith("/v3/api-docs")
+                || path.startsWith("/actuator");
     }
 }

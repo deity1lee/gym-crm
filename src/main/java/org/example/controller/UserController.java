@@ -1,6 +1,9 @@
 package org.example.controller;
 
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.example.dto.ChangePasswordRequest;
 import org.example.dto.TrainingCreationRequest;
 import org.example.entities.TrainingType;
@@ -13,10 +16,10 @@ import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.List;
 
-@Api(tags = "Users")
+@Tag(name = "Users")
 @RestController
 @RequestMapping
 public class UserController {
@@ -32,26 +35,13 @@ public class UserController {
         this.authService = authService;
     }
 
-    @ApiOperation(value = "Add a new training", notes = "Creates a new training session for a trainee and trainer")
+    @Operation(summary = "Add a new training", description = "Creates a new training session for a trainee and trainer")
     @ApiResponses({
-            @ApiResponse(code = 201, message = "Training successfully created"),
-            @ApiResponse(code = 400, message = "Validation or business rule error"),
-            @ApiResponse(code = 401, message = "Unauthorized"),
-            @ApiResponse(code = 500, message = "Internal server error")
-    })
-    @ApiImplicitParams({
-            @ApiImplicitParam(
-                    name = "X-Auth-Username",
-                    value = "Username for authentication",
-                    required = true,
-                    paramType = "header"
-            ),
-            @ApiImplicitParam(
-                    name = "X-Auth-Password",
-                    value = "Password for authentication",
-                    required = true,
-                    paramType = "header"
-            )
+            @ApiResponse(responseCode = "201", description = "Training successfully created"),
+            @ApiResponse(responseCode = "400", description = "Validation or business rule error"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+
     })
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/trainings")
@@ -61,8 +51,7 @@ public class UserController {
         LOGGER.info("[{}] POST /trainings - addTraining(trainee={}, trainer={}, typeId={})",
                 txId, request.getTraineeUsername(), request.getTrainerUsername(), request.getTrainingTypeId());
 
-        try {
-            trainingService.addTraining(
+        trainingService.addTraining(
                     request.getTraineeUsername(),
                     request.getTrainerUsername(),
                     request.getTrainingName(),
@@ -73,30 +62,12 @@ public class UserController {
 
             LOGGER.info("[{}] addTraining success - 201 CREATED", txId);
 
-        } catch (Exception ex) {
-            LOGGER.error("[{}] addTraining failed - 400 BAD REQUEST - {}", txId, ex.getMessage());
-            throw ex;
-        }
     }
 
-    @ApiOperation(value = "Get all training types", notes = "Returns the list of available training types")
+    @Operation(summary = "Get all training types", description = "Returns the list of available training types")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Training types retrieved successfully"),
-            @ApiResponse(code = 500, message = "Internal server error")
-    })
-    @ApiImplicitParams({
-            @ApiImplicitParam(
-                    name = "X-Auth-Username",
-                    value = "Username for authentication",
-                    required = true,
-                    paramType = "header"
-            ),
-            @ApiImplicitParam(
-                    name = "X-Auth-Password",
-                    value = "Password for authentication",
-                    required = true,
-                    paramType = "header"
-            )
+            @ApiResponse(responseCode = "200", description = "Training types retrieved successfully"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping("/training-types")
     public List<TrainingType> getTrainingTypes() {
@@ -115,28 +86,14 @@ public class UserController {
         }
     }
 
-    @ApiOperation(
-            value = "Change user password",
-            notes = "Authenticates the user and updates the password"
+    @Operation(
+            summary = "Change user password",
+            description = "Authenticates the user and updates the password"
     )
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Password changed successfully"),
-            @ApiResponse(code = 400, message = "Validation/business error"),
-            @ApiResponse(code = 500, message = "Internal server error")
-    })
-    @ApiImplicitParams({
-            @ApiImplicitParam(
-                    name = "X-Auth-Username",
-                    value = "Username for authentication",
-                    required = true,
-                    paramType = "header"
-            ),
-            @ApiImplicitParam(
-                    name = "X-Auth-Password",
-                    value = "Password for authentication",
-                    required = true,
-                    paramType = "header"
-            )
+            @ApiResponse(responseCode = "200", description = "Password changed successfully"),
+            @ApiResponse(responseCode = "400", description = "Validation/business error"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PutMapping("/users/{username}/password")
     public String changePassword(@PathVariable String username, @Valid @RequestBody ChangePasswordRequest request) {

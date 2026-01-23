@@ -1,86 +1,76 @@
-## Gym CRM System — REST API Version
+## Gym CRM System — Spring Boot Version
 
-A Spring Core + Hibernate + REST application that exposes a complete RESTful backend for a Gym Customer Relationship Management System.
+A Spring Boot + Hibernate REST application for managing a Gym CRM system.
+This module enhances the previous non-Boot version by:
 
-This module extends the previous Spring Core + Hibernate project by:
+Migrating the project entirely to Spring Boot
 
-Adding REST controllers
+Adding OpenAPI/Swagger UI documentation
 
-Packaging the application as a WAR file
+Adding Spring Actuator with custom health indicators & Prometheus metrics
 
-Deploying it on an external Apache Tomcat Server
+Adding Spring Profiles (local, dev, stg, prod)
 
-Providing API documentation via Swagger UI
+Supporting environment-specific database configurations
 
-The application supports full CRUD functionality for Trainees, Trainers, and Trainings, including authentication and transactional DB operations.
+Demonstrating environment-specific business logic (e.g., trainee deletion allowed only in dev)
 
+No external Tomcat or WAR deployment is needed. The project now runs as a standalone Boot application.
 
 ## ⚙️ Prerequisites
 
 Before running the project, make sure you have the following installed:
 
-| Tool              | Required Version | Description |
-|-------------------|------------------|-------------|
-| **Java**          | 17               | Required JDK version |
-| **Maven**         | 3.9.10           | For building and dependency management |
+| Tool              | Required Version | Description                                               |
+|-------------------|------------------|-----------------------------------------------------------|
+| **Java**          | 17               | Required JDK version                                      |
+| **Maven**         | 3.9.10           | For building and dependency management                    |
 | **IntelliJ IDEA** | (optional)       | Recommended IDE for running and debugging the application |
-| **MySQL**         | 8.0.34           |                   Database engine                                        |
-| **Apache Tomcat** | 9.0.104          |    Application server for deploying WAR                                                       |
+| **MySQL**         | 8.0.34           | Database engine                                           |
+| **Postman**       |         | For exploring/testing APIs (actuators and more)           |
 
 
 ---
 
 
 ## Before running the app
+#### Make sure 8080 port is not used.
 
-### Add your DB settings into:
+### Create your schema for your preferred profile:
+CREATE DATABASE gymdb_'profile name';
 
-src/main/resources/application-mysql.properties
+For example:
 
-### create your schema:
+CREATE DATABASE gymdb_prod;
 
-CREATE DATABASE gymdb;
-
-### Initial data
-
-Hibernate loads data automatically from:
-src/main/resources/import.sql
+Drop the database if you want to run again.
 
 ## How to Run the Application
+### Application supports different environments
 
-### Add Tomcat to IntelliJ
-1. Open IntelliJ. Go to File → Settings
-2. Navigate to:
-   Build, Execution, Deployment → Application Servers
-3. Click + → Tomcat Server . Choose your Tomcat directory.
+You can explore or edit application-<profile name>.properties. This application supports business logic for
+different environments. By changing active profile to "prod" you can see functionality like deleting a trainee disabled.
 
-### Create a Tomcat Run Configuration
-1. Go to:
-   Run → Edit Configurations…
-2. Click + → select Tomcat Server (Local)
-3. Choose your Tomcat (the one you added earlier).
+#### If you're using IntelliJ IDEA:
 
-### Add Your WAR Artifact to Tomcat
-This tells IntelliJ which file to deploy to Tomcat.
-1. In the same configuration window: Go to the Deployment tab.
-2. Click the + button → choose Artifact…
-3. Select your artifact:
-   <Gym-CRM-System>:war exploded (better for development)
-   or
-   <project-name>:war
-4. Set Application Context for example:  /gym. This means the app will run at:http://localhost:8080/gym
-5. Build with Maven, run: mvn clean package
-6. Start Tomcat From IntelliJ. Click the Run (green triangle) next to your Tomcat configuration. IntelliJ will start Tomcat and deploy your WAR (or exploded WAR)
+Go to Run → Edit Configurations.
+
+Add the desired profile (e.g., prod) to the "Active profiles" field.
+
+#### If you're not using IntelliJ or running from the command line, you can activate a profile with:
+
+mvn spring-boot:run "-Dspring-boot.run.profiles='profile name'"
+For example:
+mvn spring-boot:run "-Dspring-boot.run.profiles=prod"
 
 
 ## Swagger Documentation (API Explorer)
 
-Swagger is enabled in the REST version of the project.
+Swagger is enabled in this version of the project.
 
-Once the application is running, open (if your Application Context is "/gym""):
+Once the application is running, open:
 
-http://localhost:8080/gym/swagger-ui/index.html
-
+http://localhost:8080/swagger-ui/index.html
 
 There you can:
 
@@ -91,12 +81,30 @@ Execute API calls from the browser
 Preview request/response models
 
 
-## Notes
+## Actuator — Health Indicators & Metrics
 
-Ensure MySQL is running before starting Tomcat.
+management.endpoints.web.exposure.include=health,prometheus
 
-If Tomcat runs on a different port, adjust the URL (default is 8080).
+the application include:
 
-If the WAR deploys under a different name (application context), replace gym-crm in the URLs.
+### Custom Health Indicators
 
-If you make code changes, re-run mvn clean package and redeploy the WAR.
+1. Trainer Overload Indicator
+2. Trainee Assignment Indicator
+3. Training Type Usage Indicator
+
+#### How to use? 
+Go to postman and send get request with URI:
+1. http://localhost:8080/actuator/health/trainerOverload
+2. http://localhost:8080/actuator/health/trainerTrainingTypeOveruse
+3. http://localhost:8080/actuator/health/unassignedTrainer
+### Custom metrics using Prometheus.
+
+1. LoginMetrics - Total number of successful logins
+2. TraineeMetrics - Time taken to assign trainers to a trainee
+3. TrainerAssignmentMetrics = Number of currently active trainees
+
+#### How to use?
+Go to postman and send get request with URI:
+http://localhost:8080/actuator/prometheus
+Only custom metrics are enabled, so only this 3 metrics will be visible.

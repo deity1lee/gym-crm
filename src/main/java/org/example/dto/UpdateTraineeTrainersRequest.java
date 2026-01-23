@@ -1,14 +1,18 @@
 package org.example.dto;
 
-import io.swagger.annotations.ApiModelProperty;
-
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
+@Schema(description = "Request for updating trainee's assigned trainers")
 public class UpdateTraineeTrainersRequest {
 
-    @ApiModelProperty(required = true,  example = "[{ \"username\": \"John.Do\" }, { \"username\": \"Jane.yyDo\" }]")
+    @Schema(
+            description = "List of trainers assigned to the trainee",
+            example = "[{ \"username\": \"John.Do\" }, { \"username\": \"Jane.yyDo\" }]",
+            required = true
+    )
     @NotEmpty
     private List<TrainerUsernameRequest> trainers;
 
@@ -22,6 +26,11 @@ public class UpdateTraineeTrainersRequest {
 
     public static class TrainerUsernameRequest {
 
+        @Schema(
+                description = "Trainer username",
+                example = "John.Do",
+                required = true
+        )
         @NotBlank
         private String username;
 
@@ -34,4 +43,3 @@ public class UpdateTraineeTrainersRequest {
         }
     }
 }
-

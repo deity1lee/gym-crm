@@ -1,34 +1,54 @@
 package org.example.dto;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Date;
 
-@ApiModel("Update trainee profile request")
+@Schema(description = "Update trainee profile request")
 public class UpdateTraineeProfileRequest {
 
-    @ApiModelProperty(required = true, example = "John.Doe36")
+    @Schema(
+            description = "Username of the trainee",
+            example = "John.Doe36",
+            required = true
+    )
     @NotBlank
     private String username;
 
-    @ApiModelProperty(required = true, example = "John")
+    @Schema(
+            description = "First name of the trainee",
+            example = "John",
+            required = true
+    )
     @NotBlank
     private String firstName;
 
-    @ApiModelProperty(required = true, example = "Doe")
+    @Schema(
+            description = "Last name of the trainee",
+            example = "Doe",
+            required = true
+    )
     @NotBlank
     private String lastName;
 
-    @ApiModelProperty(example = "2010-03-11")
+    @Schema(
+            description = "Date of birth of the trainee",
+            example = "2010-03-11"
+    )
     private Date dateOfBirth;
 
-    @ApiModelProperty(example = "NY")
+    @Schema(
+            description = "Address of the trainee",
+            example = "NY"
+    )
     private String address;
 
-    @ApiModelProperty(required = true, example = "false")
+    @Schema(
+            description = "Whether the trainee is active",
+            example = "false",
+            required = true
+    )
     @NotNull
     private Boolean active;
 
