@@ -34,8 +34,7 @@ public class Training {
 
     public Training() {}
 
-    public Training(Long id, Trainee trainee, Trainer trainer, String name, TrainingType type, Date date, Long duration) {
-        this.id = id;
+    public Training(Trainee trainee, Trainer trainer, String name, TrainingType type, Date date, Long duration) {
         this.trainee = trainee;
         this.trainer = trainer;
         this.name = name;
@@ -52,7 +51,51 @@ public class Training {
         return name;
     }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Trainee getTrainee() {
+        return trainee;
+    }
+
+    public void setTrainee(Trainee trainee) {
+        this.trainee = trainee;
+    }
+
+    public Trainer getTrainer() {
+        return trainer;
+    }
+
+    public void setTrainer(Trainer trainer) {
+        this.trainer = trainer;
+    }
+
     public void setName(String name) {
         this.name = name;
+    }
+
+    public TrainingType getTrainingType() {
+        return trainingType;
+    }
+
+    public void setTrainingType(TrainingType trainingType) {
+        this.trainingType = trainingType;
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
+    public Long getDuration() {
+        return duration;
+    }
+
+    public void setDuration(Long duration) {
+        this.duration = duration;
     }
 }

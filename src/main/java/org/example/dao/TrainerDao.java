@@ -7,6 +7,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -24,57 +25,19 @@ public class TrainerDao {
 
     public void create(Trainer trainer) {
         sessionFactory.getCurrentSession().save(trainer);
-
-        LOGGER.info("Created trainer with id {}", trainer.getId());
-    }
-
-    public void updatePassword(Long trainerId, String newPassword) {
-        Query<?> query = sessionFactory.getCurrentSession().createQuery(
-                "UPDATE Trainer t SET t.password = :password WHERE t.id = :id"
-        );
-        query.setParameter("password", newPassword);
-        query.setParameter("id", trainerId);
-        query.executeUpdate();
+        String tx = MDC.get("transactionId");
+        LOGGER.info("[{}] Trainee with id {} was created.", tx, trainer.getId());
     }
 
     public void updateProfile(Trainer trainer) {
+        String tx = MDC.get("transactionId");
+        LOGGER.info("[{}] Updating trainer profile with id {}", tx, trainer.getId());
         sessionFactory.getCurrentSession().merge(trainer);
-
-        LOGGER.info("Updated trainer profile with id {}", trainer.getId());
     }
 
-    public void activateTrainer(Trainer trainer) {
-        if (trainer.isActive()) {
-            throw new IllegalStateException(String.format(
-                    "Trainer with username '%s' is already active",
-                    trainer.getUsername()
-            ));
-        }
-
-        trainer.setActive(true);
-
-        LOGGER.debug("Trainer profile activated: {}", trainer.getUsername());
-    }
-
-    public void deactivateTrainer(Trainer trainer) {
-        if (!trainer.isActive()) {
-            throw new IllegalStateException(String.format(
-                    "Trainer with username '%s' is already deactivated",
-                    trainer.getUsername()
-            ));
-        }
-
-        trainer.setActive(false);
-
-        LOGGER.debug("Trainer profile deactivated: {}", trainer.getUsername());
-    }
-
-    public List<Training> findByTrainerUsernameAndCriteria(
-            String username,
-            TrainingSearchCriteria criteria
-    ) {
+    public List<Training> findByTrainerUsernameAndCriteria(TrainingSearchCriteria criteria) {
         StringBuilder hql = new StringBuilder(
-                "SELECT tr FROM Training tr WHERE tr.trainer.username = :username"
+                "SELECT tr FROM Training tr WHERE tr.trainer.username = :trainerUsername"
         );
 
         Optional.ofNullable(criteria.getFromDate())
@@ -83,15 +46,12 @@ public class TrainerDao {
         Optional.ofNullable(criteria.getToDate())
                 .ifPresent(v -> hql.append(" AND tr.date <= :toDate"));
 
-        Optional.ofNullable(criteria.getUserLastName())
+        Optional.ofNullable(criteria.getTraineeUsername())
                 .filter(s -> !s.isEmpty())
-                .ifPresent(v -> hql.append(" AND tr.trainee.lastName = :userLastName"));
+                .ifPresent(value -> hql.append(" AND tr.trainee.username = :traineeUsername"));
 
-        Query<Training> query = sessionFactory
-                .getCurrentSession()
-                .createQuery(hql.toString(), Training.class);
-
-        query.setParameter("username", username);
+        Query<Training> query = sessionFactory.getCurrentSession().createQuery(hql.toString(), Training.class);
+        query.setParameter("trainerUsername", criteria.getTrainerUsername());
 
         Optional.ofNullable(criteria.getFromDate())
                 .ifPresent(v -> query.setParameter("fromDate", v));
@@ -99,22 +59,30 @@ public class TrainerDao {
         Optional.ofNullable(criteria.getToDate())
                 .ifPresent(v -> query.setParameter("toDate", v));
 
-        Optional.ofNullable(criteria.getUserLastName())
+        Optional.ofNullable(criteria.getTraineeUsername())
                 .filter(s -> !s.isEmpty())
-                .ifPresent(v -> query.setParameter("userLastName", v));
-
+                .ifPresent(value -> query.setParameter("traineeUsername", value));
         return query.getResultList();
     }
 
     public Optional<Trainer> findByUsername(String username) {
-        String hql = "SELECT t FROM Trainer t WHERE t.username = :username";
+        String txId = MDC.get("transactionId");
+        try {
+            Optional<Trainer> result = sessionFactory.getCurrentSession()
+                    .createQuery("select t from Trainer t where t.username = :username", Trainer.class)
+                    .setParameter("username", username)
+                    .uniqueResultOptional();
 
-        LOGGER.debug("Fetching trainer with username: {}", username);
+            if (result.isEmpty()) {
+                LOGGER.debug("[{}] Trainer '{}' not found", txId, username);
+            }
 
-        return sessionFactory.getCurrentSession()
-                .createQuery(hql, Trainer.class)
-                .setParameter("username", username)
-                .uniqueResultOptional();
+            return result;
+
+        } catch (Exception ex) {
+            LOGGER.error("[{}] DAO: Error while fetching trainer '{}'", txId, username, ex);
+            throw ex;
+        }
     }
 
     public long countByFullName(String firstName, String lastName) {

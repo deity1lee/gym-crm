@@ -33,6 +33,12 @@ public class User {
         this.lastName = lastName;
         this.isActive = isActive;
     }
+    public User(String username, String firstName, String lastName, boolean isActive) {
+        this.username = username;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.isActive = isActive;
+    }
 
     public String getFirstName() {
         return firstName;
@@ -66,11 +72,11 @@ public class User {
         isActive = active;
     }
 
-    protected Long getId() {
+    public Long getId() {
         return id;
     }
 
-    protected void setId(Long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
