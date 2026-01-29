@@ -40,6 +40,7 @@ public class UserController {
             @ApiResponse(responseCode = "201", description = "Training successfully created"),
             @ApiResponse(responseCode = "400", description = "Validation or business rule error"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
 
     })
@@ -67,6 +68,7 @@ public class UserController {
     @Operation(summary = "Get all training types", description = "Returns the list of available training types")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Training types retrieved successfully"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping("/training-types")
@@ -93,6 +95,7 @@ public class UserController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Password changed successfully"),
             @ApiResponse(responseCode = "400", description = "Validation/business error"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PutMapping("/users/{username}/password")

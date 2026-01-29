@@ -1,17 +1,17 @@
-INSERT INTO users (first_name, last_name, username, password, is_active)
-VALUES ('John', 'Do', 'John.Do', 'pass123456', TRUE);
+INSERT INTO users (first_name, last_name, username, password, is_active, account_non_locked, failed_attempts, lock_time)
+VALUES ('John', 'Do', 'John.Do', '$2a$12$bfOlJV7RcPgU3Ii/PjRZLuOCZdeANqRzd0AxsAcVZUGCVtN54FvBu', TRUE, TRUE, 0, NULL);
 
-INSERT INTO users (first_name, last_name, username, password, is_active)
-VALUES ('John3', 'Doe3', 'John.Doe3', 'pass123453', TRUE);
+INSERT INTO users (first_name, last_name, username, password, is_active, account_non_locked, failed_attempts, lock_time)
+VALUES ('John3', 'Doe3', 'John.Doe3', 'pass123453', TRUE, TRUE, 0, NULL);
 
-INSERT INTO users (first_name, last_name, username, password, is_active)
-VALUES ('Lucy', 'Lee', 'Lucy.Lee', 'pass111222', TRUE);
+INSERT INTO users (first_name, last_name, username, password, is_active, account_non_locked, failed_attempts, lock_time)
+VALUES ('Lucy', 'Lee', 'Lucy.Lee', 'pass111222', TRUE, TRUE, 0, NULL);
 
-INSERT INTO users (first_name, last_name, username, password, is_active)
-VALUES ('Emily', 'Brown', 'Emily.Brown', 'aStrong123', TRUE);
+INSERT INTO users (first_name, last_name, username, password, is_active, account_non_locked, failed_attempts, lock_time)
+VALUES ('Emily', 'Brown', 'Emily.Brown', 'aStrong123', TRUE, TRUE, 0, NULL);
 
-INSERT INTO users (first_name, last_name, username, password, is_active)
-VALUES ('Joe', 'Perry', 'Joe.Perry', 'Tass123453', TRUE);
+INSERT INTO users (first_name, last_name, username, password, is_active, account_non_locked, failed_attempts, lock_time)
+VALUES ('Joe', 'Perry', 'Joe.Perry', 'Tass123453', TRUE, TRUE, 0, NULL);
 
 
 INSERT INTO training_types (training_type_name) VALUES ('yoga');

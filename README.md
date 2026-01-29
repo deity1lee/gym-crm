@@ -108,3 +108,75 @@ Go to postman and send get request with URI:
 Go to postman and send get request with URI:
 http://localhost:8080/actuator/prometheus
 Only custom metrics are enabled, so only this 3 metrics will be visible.
+
+## Security & Authentication
+
+This version of the application includes a full Spring Security–based authentication and authorization layer.
+
+### Authentication
+
+The application uses JWT (JSON Web Token)–based authentication.
+Supported authentication flows:
+
+### 1. Create Profile (Trainee / Trainer):
+
+Public endpoint (no authentication required)
+
+Username and password are generated automatically
+
+Password is stored hashed using BCrypt
+
+A JWT token is returned immediately after profile creation
+
+### 2. Login
+
+Public endpoint
+
+Uses username and password
+
+On successful authentication, a JWT token is returned
+
+
+
+## Authorization
+
+All endpoints except Create Profile and Login are protected
+
+Protected endpoints require the following HTTP header:
+Authorization: Bearer <JWT_TOKEN>
+
+
+Requests without a valid token will receive 401 Unauthorized.
+
+## Password Security
+
+Passwords are stored using BCrypt hashing with salt
+
+
+## Brute-Force Protection
+
+To protect user accounts from brute-force attacks:
+
+After 3 unsuccessful login attempts, the account is locked . The lock duration is 5 minutes. After the lock time expires, the account is automatically unlocked
+Locked accounts receive HTTP 423 (LOCKED) on authentication attempts
+
+## Logout
+
+JWT tokens are invalidated using a server-side token blacklist. After logout, the same token can no longer access protected endpoints.
+
+## Swagger & JWT Usage
+
+Swagger UI is configured to work with JWT authentication.
+
+To authorize requests in Swagger call the Login or Create Profile endpoint. Copy the returned JWT token
+ then lick Authorize in Swagger UI, paste the token without the Bearer prefix  and Swagger will automatically include:
+Authorization: Bearer <JWT_TOKEN>
+in all protected requests.
+
+## CORS Configuration
+
+-CORS is configured, different port for ui can be considered.
+
+-Authorization headers are allowed
+
+-The application supports stateless JWT-based requests from browsers and API tools

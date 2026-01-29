@@ -102,10 +102,7 @@ public class ValidatorService {
         TrainingType entity = trainingTypeService.getTrainingTypeById(trainingType.getId());
 
         if (!entity.getTrainingTypeName().equalsIgnoreCase(trainingType.getTrainingTypeName())) {
-            LOGGER.warn(
-                    "[{}] TrainingType mismatch: DB(name={}) != Request(name={})",
-                    txId, entity.getTrainingTypeName(), trainingType.getTrainingTypeName()
-            );
+            LOGGER.warn("[{}] TrainingType mismatch", txId);
             throw new IllegalArgumentException("Training type does not match DB record");
         }
 

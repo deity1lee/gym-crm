@@ -32,7 +32,7 @@ public class TrainerService {
     }
 
     @Autowired
-    public void setUserService(AuthService authService) {
+    public void setAuthService(AuthService authService) {
         this.authService = authService;
     }
 

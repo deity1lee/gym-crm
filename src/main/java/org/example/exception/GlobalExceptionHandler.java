@@ -5,9 +5,12 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -26,6 +29,18 @@ public class GlobalExceptionHandler {
                 .body(ex.getMessage());
     }
 
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<String> handleUnauthorized(AuthenticationException ex) {
+
+        String transactionId = MDC.get("transactionId");
+
+        LOGGER.error("[{}] Authentication failed - message = '{}'", transactionId, ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(ex.getMessage());
+    }
+
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<String> handleUnauthorized(UnauthorizedException ex) {
 
@@ -35,6 +50,30 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED).body("Authentication failed");
+    }
+
+    @ExceptionHandler(BruteForceAttemptException.class)
+    public ResponseEntity<String> handleBruteForceAttempt(BruteForceAttemptException ex) {
+
+        String transactionId = MDC.get("transactionId");
+
+        LOGGER.error("[{}] Brute Force Attempt detected, account is blocked - message = '{}'", transactionId, ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.LOCKED)
+                .body(ex.getMessage());
+    }
+
+    @ExceptionHandler({BadCredentialsException.class})
+        public ResponseEntity<String> handleBadCred(BadCredentialsException ex) {
+
+        String transactionId = MDC.get("transactionId");
+
+        LOGGER.error("[{}] Authentication failed - message = '{}'", transactionId, ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ex.getMessage());
     }
 
     @ExceptionHandler(UnsupportedOperationException.class)
@@ -70,7 +109,7 @@ public class GlobalExceptionHandler {
 
         String transactionId = MDC.get("transactionId");
 
-        LOGGER.error("[{}] Unexpected error - ", transactionId, ex);
+        LOGGER.error("[{}] Unexpected error - {}", transactionId, ex.getMessage());
 
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)

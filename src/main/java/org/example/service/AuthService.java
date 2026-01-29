@@ -10,9 +10,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
+
+import java.util.Optional;
 
 @Transactional
 @Service
@@ -23,6 +29,8 @@ public class AuthService {
     private ValidatorService validatorService;
     private TraineeDao traineeDao;
     private TrainerDao trainerDao;
+    private PasswordEncoder passwordEncoder;
+    private AuthenticationManager authenticationManager;
 
     @Autowired
     public void setTraineeDao(TraineeDao traineeDao) {
@@ -44,26 +52,31 @@ public class AuthService {
         this.validatorService = validatorService;
     }
 
-    public User authenticateUser(String username, String password) {
-        String tx = MDC.get("transactionId");
-
-        return userDao.findByUsername(username)
-                .filter(user -> user.getPassword().equals(password))
-                .orElseThrow(() -> {
-                    LOGGER.warn("[{}] Authentication failed: invalid credentials", tx);
-                    return new UnauthorizedException("Invalid credentials");
-                });
+    @Autowired
+    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
+    }
+    @Autowired
+    public void setAuthenticationManager(AuthenticationManager authenticationManager) {
+        this.authenticationManager = authenticationManager;
     }
 
     public void changePassword(String username, String oldPassword, String newPassword) {
         String tx = MDC.get("transactionId");
-        User user = authenticateUser(username, oldPassword);
-        if (!validatorService.isStrongPassword(newPassword)) {
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(username, oldPassword)
+            );
+        } catch (AuthenticationException ex) {
+            LOGGER.warn("[{}] Authentication failed: invalid credentials", tx);
+            throw new UnauthorizedException("Invalid credentials");
+        }        if (!validatorService.isStrongPassword(newPassword)) {
             LOGGER.warn("[{}] Password was not updated. Provided password is not strong", tx);
             return;
         }
-        user.setPassword(newPassword);
-        userDao.updatePassword(user.getId(), newPassword);
+        User user = findByUsername(username).orElseThrow(() -> new UnauthorizedException("User not found"));
+        String encoded = passwordEncoder.encode(newPassword);
+        userDao.updatePassword(user.getId(), encoded);
         LOGGER.info("[{}] Password was changed successfully!", tx);
     }
 
@@ -81,11 +94,20 @@ public class AuthService {
         String password = CredentialGenerator.generateRandomPassword();
 
         user.setUsername(username);
-        user.setPassword(password);
+        user.setRawPassword(password);
+        user.setPassword(passwordEncoder.encode(password));
         user.setActive(true);
 
         String tx = MDC.get("transactionId");
-        LOGGER.info("[{}] Assigned credentials for user with name {} and lastname {}."
+        LOGGER.info("[{}] Assigned credentials for trainee with name {} and lastname {}."
                 ,tx, user.getFirstName(), user.getLastName());
+    }
+
+    public Optional<User> findByUsername(String username) {
+         return userDao.findByUsername(username);
+    }
+
+    public void updateUser(User user) {
+        userDao.save(user);
     }
 }
