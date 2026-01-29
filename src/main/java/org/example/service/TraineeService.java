@@ -110,8 +110,13 @@ public class TraineeService {
         Trainee trainee = traineeDao.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("Trainee not found"));
         LOGGER.info("[{}] Validation passed for changing active status", txId);
-        trainee.setActive(isActive);
+        if (trainee.isActive() == isActive) {
+            throw new IllegalStateException(
+                    "Trainee is already " + (isActive ? "active" : "inactive")
+            );
+        }
         LOGGER.warn("[{}] Changing active status {} for trainee {}", txId, isActive, username);
+        trainee.setActive(isActive);
         traineeDao.updateProfile(trainee);
     }
 

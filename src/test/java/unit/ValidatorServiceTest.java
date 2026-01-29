@@ -61,15 +61,17 @@ class ValidatorServiceTest {
     }
 
     @Test
-    void testValidateFirstNameEmptyThrows() {
-        assertThrows(IllegalArgumentException.class,
-                () -> validatorService.validateFirstName(""));
+    void testValidateFirstNameEmpty() {
+        Optional<String> result = validatorService.validateFirstName("");
+        assertTrue(result.isPresent());
+        assertEquals("firstName", result.get());
     }
 
     @Test
-    void testValidateFirstNameContainsDigitsThrows() {
-        assertThrows(IllegalArgumentException.class,
-                () -> validatorService.validateFirstName("John5"));
+    void testValidateFirstNameContainsDigits() {
+        Optional<String> result = validatorService.validateFirstName("John5");
+        assertTrue(result.isPresent());
+        assertEquals("firstName", result.get());
     }
 
     @Test
@@ -78,15 +80,17 @@ class ValidatorServiceTest {
     }
 
     @Test
-    void testValidateLastNameEmptyThrows() {
-        assertThrows(IllegalArgumentException.class,
-                () -> validatorService.validateLastName(""));
+    void testValidateLastNameEmpty() {
+        Optional<String> result = validatorService.validateLastName("");
+        assertTrue(result.isPresent());
+        assertEquals("lastName", result.get());
     }
 
     @Test
-    void testValidateLastNameContainsDigitsThrows() {
-        assertThrows(IllegalArgumentException.class,
-                () -> validatorService.validateLastName("Doe3"));
+    void testValidateLastNameContainsDigits() {
+        Optional<String> result = validatorService.validateLastName("Doe3");
+        assertTrue(result.isPresent());
+        assertEquals("lastName", result.get());
     }
 
     @Test

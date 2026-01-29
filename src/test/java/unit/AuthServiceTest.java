@@ -83,8 +83,7 @@ class AuthServiceTest {
         when(validatorService.isStrongPassword("weak"))
                 .thenReturn(false);
 
-        authService.changePassword("john", "old", "weak");
-
+        assertThrows(IllegalArgumentException.class, () -> authService.changePassword("john", "old", "weak"));
         verify(userDao, never()).updatePassword(anyLong(), anyString());
     }
 

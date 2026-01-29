@@ -10,7 +10,6 @@ import org.example.entities.Training;
 import org.example.entities.TrainingType;
 import org.example.mapper.TrainerMapper;
 import org.example.service.TrainerService;
-import org.example.utilities.JwtUtil;
 import org.example.utilities.TrainingSearchCriteria;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,13 +31,11 @@ public class TrainerController {
 
     private final TrainerService trainerService;
     private final TrainerMapper mapper;
-    private final JwtUtil jwtUtil;
 
 
-    public TrainerController(TrainerService trainerService, TrainerMapper mapper, JwtUtil jwtUtil) {
+    public TrainerController(TrainerService trainerService, TrainerMapper mapper) {
         this.trainerService = trainerService;
         this.mapper = mapper;
-        this.jwtUtil = jwtUtil;
     }
 
     @Operation(summary = "Register a new trainer", description = "Creates a trainer profile and returns generated username and password")
@@ -60,11 +57,9 @@ public class TrainerController {
                     request.getTrainingType()
             );
             Trainer created = trainerService.createTrainer(trainer);
-            String token = jwtUtil.generateToken(created.getUsername());
             UserCredentials response = new UserCredentials(
                     created.getUsername(),
-                    created.getRawPassword(),
-                    token
+                    created.getRawPassword()
             );
             LOGGER.info("[{}] registerTrainer success - 201 CREATED - username={}", txId, created.getUsername());
             return response;

@@ -2,6 +2,7 @@ package org.example.actuator.health;
 
 import org.example.dao.TrainerDao;
 import org.example.dto.TrainerTraineeCount;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
@@ -14,7 +15,9 @@ import java.util.List;
 public class TrainerOverloadHealthIndicator implements HealthIndicator {
 
     private final TrainerDao trainerDao;
-    private static final int MAX_TRAINEES = 5;
+
+    @Value("${trainer.max-trainees}")
+    private int maxTrainees;
 
     public TrainerOverloadHealthIndicator(TrainerDao trainerDao) {
         this.trainerDao = trainerDao;
@@ -23,18 +26,18 @@ public class TrainerOverloadHealthIndicator implements HealthIndicator {
     @Override
     public Health health() {
 
-        List<TrainerTraineeCount> results = trainerDao.findTrainerTraineeCounts();
-
-        for (TrainerTraineeCount row : results) {
-
-            if (row.getTraineeCount() > MAX_TRAINEES) {
-                return Health.down()
+        return trainerDao.findTrainerTraineeCounts()
+                .stream()
+                .filter(row -> row.getTraineeCount() > maxTrainees)
+                .findFirst()
+                .map(row -> Health.down()
                         .withDetail("trainer", row.getUsername())
                         .withDetail("traineeCount", row.getTraineeCount())
-                        .withDetail("limit", MAX_TRAINEES)
-                        .build();
-            }
-        }
-        return Health.up().build();
+                        .withDetail("limit", maxTrainees)
+                        .build()
+                )
+                .orElseGet(() -> Health.up()
+                        .build()
+                );
     }
 }

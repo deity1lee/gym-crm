@@ -86,7 +86,7 @@ public class TrainingService {
         trainerDao.findByUsername(trainerUsername)
                 .orElseThrow(() -> {
                     LOGGER.warn("[{}] Trainer '{}' not found in DB", txId, trainerUsername);
-                    return new IllegalArgumentException(String.format("Trainee not found: %s", traineeUsername));
+                    return new IllegalArgumentException(String.format("Trainer not found: %s", trainerUsername));
                 });
 
         if (trainingDate == null) {

@@ -9,6 +9,10 @@ import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 @Service
 public class ValidatorService {
 
@@ -37,30 +41,32 @@ public class ValidatorService {
         return false;
     }
 
-    public void validateFirstName(String firstName) {
+    public Optional<String> validateFirstName(String firstName) {
         String txId = MDC.get("transactionId");
         if (firstName == null || firstName.isEmpty()) {
             LOGGER.warn("[{}] First name cannot be empty", txId);
-            throw new IllegalArgumentException("Invalid credentials");
+            return Optional.of("firstName");
         }
 
         if (firstName.matches(".*\\d.*")) {
             LOGGER.warn("First name cannot contain digits: {}", firstName);
-            throw new IllegalArgumentException("Invalid credentials");
+            return Optional.of("firstName");
         }
+        return Optional.empty();
     }
 
-    public void validateLastName(String lastName) {
+    public Optional<String> validateLastName(String lastName) {
         String txId = MDC.get("transactionId");
         if (lastName == null || lastName.isEmpty()) {
             LOGGER.warn("[{}] Last name cannot be empty", txId);
-            throw new IllegalArgumentException("Invalid credentials");
+            return Optional.of("lastName");
         }
 
         if (lastName.matches(".*\\d.*")) {
             LOGGER.warn("Last name cannot contain digits: {}", lastName);
-            throw new IllegalArgumentException("Invalid credentials");
+            return Optional.of("lastName");
         }
+        return Optional.empty();
     }
 
     public void validateExistingUsername(String username) {
@@ -110,7 +116,17 @@ public class ValidatorService {
     }
 
     public void validate(User user) {
-        validateFirstName(user.getFirstName());
-        validateLastName(user.getLastName());
+        String txId = MDC.get("transactionId");
+
+        List<String> invalidFields = new ArrayList<>();
+
+        validateFirstName(user.getFirstName()).ifPresent(invalidFields::add);
+        validateLastName(user.getLastName()).ifPresent(invalidFields::add);
+
+        if (!invalidFields.isEmpty()) {
+            String message = String.format("Missing or invalid fields: %s", String.join(", ", invalidFields));
+            LOGGER.warn("[{}] {}", txId, message);
+            throw new IllegalArgumentException(message);
+        }
     }
 }

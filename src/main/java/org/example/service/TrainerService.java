@@ -90,8 +90,13 @@ public class TrainerService {
         Trainer trainer = trainerDao.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("Trainer not found"));
         LOGGER.info("[{}] Validation passed for changing active status", txId);
-        trainer.setActive(isActive);
+        if (trainer.isActive() == isActive) {
+            throw new IllegalStateException(
+                    "Trainer is already " + (isActive ? "active" : "inactive")
+            );
+        }
         LOGGER.warn("[{}] Changing active status {} for trainer {}", txId, isActive, username);
+        trainer.setActive(isActive);
         trainerDao.updateProfile(trainer);
     }
 

@@ -17,18 +17,11 @@ public class UserCredentials {
     )
     private String password;
 
-    @Schema(
-            description = "Generated jwt for trainee",
-            example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30"
-    )
-    private String token;
-
     public UserCredentials() {}
 
-    public UserCredentials(String username, String password, String token) {
+    public UserCredentials(String username, String password) {
         this.username = username;
         this.password = password;
-        this.token = token;
     }
 
     public String getUsername() {
@@ -45,12 +38,5 @@ public class UserCredentials {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
     }
 }

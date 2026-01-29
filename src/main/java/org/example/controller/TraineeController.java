@@ -11,7 +11,6 @@ import org.example.entities.Training;
 import org.example.entities.TrainingType;
 import org.example.mapper.TraineeMapper;
 import org.example.service.TraineeService;
-import org.example.utilities.JwtUtil;
 import org.example.utilities.TrainingSearchCriteria;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,10 +32,8 @@ public class TraineeController {
 
     private final TraineeService traineeService;
     private final TraineeMapper mapper;
-    private final JwtUtil jwtUtil;
 
-    public TraineeController(JwtUtil jwtUtil, TraineeService traineeService, TraineeMapper mapper) {
-        this.jwtUtil = jwtUtil;
+    public TraineeController(TraineeService traineeService, TraineeMapper mapper) {
         this.traineeService = traineeService;
         this.mapper = mapper;
     }
@@ -63,11 +60,9 @@ public class TraineeController {
                     true
             );
             Trainee created = traineeService.createTrainee(trainee);
-            String token = jwtUtil.generateToken(created.getUsername());
             UserCredentials response = new UserCredentials(
                     created.getUsername(),
-                    created.getRawPassword(),
-                    token
+                    created.getRawPassword()
             );
             LOGGER.info("[{}] registerTrainee success - 201 CREATED - username={}", txId, created.getUsername());
             return response;
@@ -264,13 +259,12 @@ public class TraineeController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PatchMapping("{username}/activation")
-    public void updateTraineeActivation(
+    public void activateTraineeActivation(
             @PathVariable String username,
             @Valid @RequestBody Boolean isActive) {
 
         String txId = MDC.get("transactionId");
         LOGGER.info("[{}] PATCH /trainees/{}/activation - isActive={}", txId, username, isActive);
-
         try {
             traineeService.updateActivationStatus(username, isActive);
 

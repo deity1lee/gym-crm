@@ -1,5 +1,6 @@
 package org.example.filter;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -7,6 +8,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.example.service.CustomUserDetailsService;
 import org.example.service.TokenBlacklistService;
 import org.example.utilities.JwtUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,6 +21,8 @@ import java.io.IOException;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -41,13 +46,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = header.substring(7);
 
             if (tokenBlacklistService.isBlacklisted(token)) {
-                filterChain.doFilter(request, response);
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
 
-            if (jwtUtil.isTokenValid(token)) {
+            try {
                 String username = jwtUtil.extractUsername(token);
-
                 UserDetails userDetails =
                         userDetailsService.loadUserByUsername(username);
 
@@ -55,8 +59,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         new UsernamePasswordAuthenticationToken(
                                 userDetails, null, userDetails.getAuthorities()
                         );
-
                 SecurityContextHolder.getContext().setAuthentication(auth);
+                LOGGER.info("User was successfully authenticated.");
+            } catch (JwtException | IllegalArgumentException ex) {
+                LOGGER.debug("Failed to authenticate JWT", ex);
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
             }
         }
 

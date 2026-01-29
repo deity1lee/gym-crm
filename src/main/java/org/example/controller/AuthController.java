@@ -16,6 +16,7 @@ import org.example.utilities.SecurityConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -50,9 +51,9 @@ public class AuthController {
         this.loginAttemptService = loginAttemptService;
         this.authService = authService;
         this.authenticationManager = authenticationManager;
-            this.successfulLoginCounter = Counter.builder("gym_successful_logins_total")
-                    .description("Total number of successful logins")
-                    .register(meterRegistry);
+        this.successfulLoginCounter = Counter.builder("gym_successful_logins_total")
+                .description("Total number of successful logins")
+                .register(meterRegistry);
     }
     @Operation(
             summary = "Login user",
@@ -84,7 +85,9 @@ public class AuthController {
                 authService.updateUser(user);
             });
             String token = jwtUtil.generateToken(username);
-            return ResponseEntity.ok(token);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                    .body("Login successful");
         }
         catch (BruteForceAttemptException ex) {
             throw ex;
@@ -109,14 +112,8 @@ public class AuthController {
     @Operation(summary = "Logout user")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Logout successful"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpServletRequest request) {
-        String header = request.getHeader("Authorization");
-        if (header != null && header.startsWith("Bearer ")) {
-            tokenBlacklistService.blacklist(header.substring(7));
-        }
-        return ResponseEntity.noContent().build();
+    public void logout(HttpServletRequest request) {
     }
 }

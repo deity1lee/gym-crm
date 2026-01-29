@@ -72,7 +72,7 @@ public class AuthService {
             throw new UnauthorizedException("Invalid credentials");
         }        if (!validatorService.isStrongPassword(newPassword)) {
             LOGGER.warn("[{}] Password was not updated. Provided password is not strong", tx);
-            return;
+            throw new IllegalArgumentException("Provided password is not strong");
         }
         User user = findByUsername(username).orElseThrow(() -> new UnauthorizedException("User not found"));
         String encoded = passwordEncoder.encode(newPassword);
