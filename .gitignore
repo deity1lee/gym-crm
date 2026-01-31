@@ -1,0 +1,28 @@
+# --- Build Output ---
+target/
+bin/
+build/
+out/
+
+# --- IntelliJ IDEA ---
+.idea/
+*.iml
+*.iws
+*.ipr
+# If you want to keep your run configurations, you can use: !.idea/runConfigurations/
+
+# --- Eclipse / STS ---
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+
+# --- VS Code ---
+.vscode/
+
+# --- OS Junk ---
+.DS_Store
+Thumbs.db
