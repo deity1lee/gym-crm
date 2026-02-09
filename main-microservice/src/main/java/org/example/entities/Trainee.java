@@ -1,7 +1,7 @@
 package org.example.entities;
 
 import jakarta.persistence.*;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -11,7 +11,7 @@ public class Trainee extends User {
 
     @Column(name = "date_of_birth")
     @Temporal(TemporalType.DATE)
-    private Date dateOfBirth;
+    private LocalDate dateOfBirth;
 
     private String address;
 
@@ -28,7 +28,7 @@ public class Trainee extends User {
 
     public Trainee() {}
 
-    public Trainee(String firstName, String lastName, Date dateOfBirth, String address, boolean isActive) {
+    public Trainee(String firstName, String lastName, LocalDate dateOfBirth, String address, boolean isActive) {
         super(firstName, lastName, isActive);
         this.dateOfBirth = dateOfBirth;
         this.address = address;
@@ -39,7 +39,7 @@ public class Trainee extends User {
     public void setId(Long id) {
         super.setId(id);
     }
-    public void setDateOfBirth(Date dateOfBirth) {
+    public void setDateOfBirth(LocalDate dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
     }
     public String getAddress() {
@@ -58,8 +58,16 @@ public class Trainee extends User {
         return trainers;
     }
 
-    public Date getDateOfBirth() {
+    public LocalDate getDateOfBirth() {
         return dateOfBirth;
+    }
+
+    public List<Training> getTrainings() {
+        return trainings;
+    }
+
+    public void setTrainings(List<Training> trainings) {
+        this.trainings = trainings;
     }
 }
 

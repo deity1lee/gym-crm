@@ -1,7 +1,7 @@
 package org.example.entities;
 
 import jakarta.persistence.*;
-import java.util.Date;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "trainings")
@@ -27,14 +27,14 @@ public class Training {
 
     @Temporal(TemporalType.DATE)
     @Column(name = "training_date", nullable = false)
-    private Date date;
+    private LocalDate date;
 
     @Column(name = "training_duration", nullable = false)
     private Long duration;
 
     public Training() {}
 
-    public Training(Trainee trainee, Trainer trainer, String name, TrainingType type, Date date, Long duration) {
+    public Training(Trainee trainee, Trainer trainer, String name, TrainingType type, LocalDate date, Long duration) {
         this.trainee = trainee;
         this.trainer = trainer;
         this.name = name;
@@ -83,11 +83,11 @@ public class Training {
         this.trainingType = trainingType;
     }
 
-    public Date getDate() {
+    public LocalDate getDate() {
         return date;
     }
 
-    public void setDate(Date date) {
+    public void setDate(LocalDate date) {
         this.date = date;
     }
 

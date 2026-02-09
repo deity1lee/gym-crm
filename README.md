@@ -173,10 +173,84 @@ To authorize requests in Swagger call the Login or Create Profile endpoint. Copy
 Authorization: Bearer <JWT_TOKEN>
 in all protected requests.
 
-## CORS Configuration
+### CORS Configuration
 
 -CORS is configured, different port for ui can be considered.
 
 -Authorization headers are allowed
 
 -The application supports stateless JWT-based requests from browsers and API tools
+
+
+
+### Architecture Overview
+
+The system consists of:
+
+Main Microservice
+
+Secondary Microservice
+
+Discovery Service
+
+
+### Secondary Microservice
+Purpose:
+
+-Every time a training session is added or deleted, the Main Microservice sends data to the
+Secondary Microservice. Here endpoints are protected and API key is needed to access them.
+
+The microservice:
+
+-Calculates trainer working hours
+
+-Aggregates workload per month / per year
+
+-Stores data in an in-memory h2 database (to access go to http://localhost:8081/h2-console/login.jsp, and find the db password in application.properties file in service's resource folder)
+
+
+### Service Discovery (Eureka)
+
+-All microservices register themselves automatically
+
+-Services communicate using logical service names, not hardcoded URLs
+
+-Make sur this service is up before any other is started
+
+### Circuit Breaker & Reliability Strategy
+
+The system uses a Circuit Breaker combined with the Transactional Outbox pattern to ensure reliable inter-service communication.
+
+How it works
+
+When a training is added or deleted, a workload update event is:
+
+-Stored in the workload_outbox table
+
+-Marked as PENDING
+
+-A scheduled job runs every 5 seconds and:
+
+-Reads all pending outbox records
+
+-Sends them to the Secondary Microservice
+
+-The remote call is protected by a Resilience4j Circuit Breaker:
+
+-If the secondary service is slow or unavailable, the circuit opens
+
+-Calls are immediately rejected while the circuit is OPEN
+
+If the call fails:
+
+-The outbox record remains PENDING
+
+-No data is lost
+
+-The scheduler retries automatically later
+
+When the call succeeds:
+
+-The outbox record is marked as SENT
+
+-The transaction is completed

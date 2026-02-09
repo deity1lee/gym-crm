@@ -1,11 +1,14 @@
 package org.example.service;
 
-import org.example.dao.TraineeDao;
-import org.example.dao.TrainerDao;
-import org.example.dao.TrainingDao;
-import org.example.dao.TrainingTypeDao;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.dao.*;
+import org.example.dto.ActionType;
+import org.example.dto.TrainerWorkloadRequest;
+import org.example.entities.Trainer;
 import org.example.entities.Training;
 import org.example.entities.TrainingType;
+import org.example.entities.WorkloadOutbox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -13,7 +16,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
-import java.util.*;
+
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Service
 @Transactional
@@ -27,6 +33,7 @@ public class TrainingService {
     private TraineeDao traineeDao;
     private TrainerDao trainerDao;
     private TrainingTypeDao trainingTypeDao;
+    private OutboxDao outboxDao;
 
     @Autowired
     public void setTrainerService(TrainerService trainerService) {
@@ -58,15 +65,20 @@ public class TrainingService {
         this.trainerDao = trainerDao;
     }
 
+    @Autowired
+    public void setOutboxDao(OutboxDao outboxDao) {
+        this.outboxDao = outboxDao;
+    }
+
     public void addTraining(String traineeUsername,
                             String trainerUsername,
                             String trainingName,
                             TrainingType trainingType,
-                            Date trainingDate,
+                            LocalDate trainingDate,
                             Long duration) {
 
         String txId = MDC.get("transactionId");
-
+        LOGGER.info("[{}] Persisting training", txId);
         if (traineeUsername == null || traineeUsername.isBlank()) {
             LOGGER.warn("[{}] traineeUsername is missing in request", txId);
             throw new IllegalArgumentException("traineeUsername is required");
@@ -101,19 +113,55 @@ public class TrainingService {
 
         LOGGER.info("[{}] Validation for addTraining() passed successfully", txId);
 
+        Trainer trainer = trainerService.selectTrainerByUsername(trainerUsername);
         Training training = new Training(
                 traineeService.selectTraineeByUsername(traineeUsername),
-                trainerService.selectTrainerByUsername(trainerUsername),
+                trainer,
                 trainingName,
                 trainingType,
                 trainingDate,
                 duration
         );
         trainingDao.addTraining(training);
+        LOGGER.info(
+                "[{}] Training persisted id={} trainer={}",
+                txId,
+                training.getId(),
+                training.getTrainer().getUsername()
+        );
+        LOGGER.info("[{}] Notifying workload service", txId);
+
+        TrainerWorkloadRequest request = new TrainerWorkloadRequest(training, ActionType.ADD);
+
+       outboxDao.createPendingRequest(request);
+    }
+
+    public void deleteTraining(Long id) {
+        String txId = MDC.get("transactionId");
+        LOGGER.info("[{}] Trying to delete training by id", txId);
+
+        Training training = findTrainingById(id);
+
+        TrainerWorkloadRequest request = new TrainerWorkloadRequest(training, ActionType.DELETE);
+
+        trainingDao.deleteTraining(training);
+
+        outboxDao.createPendingRequest(request);
+        LOGGER.info("[{}] Request for decreasing trainer workload was created", txId);
     }
 
     public TrainingType findTrainingTypeById(Long id) {
+        String txId = MDC.get("transactionId");
+        LOGGER.info("[{}] Searching training type by id", txId);
+
         return trainingTypeDao.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid training type id"));
+    }
+
+    public Training findTrainingById(Long id) {
+        String txId = MDC.get("transactionId");
+        LOGGER.info("[{}] Searching training type by id", txId);
+
+        return trainingDao.findTrainingById(id);
     }
 }

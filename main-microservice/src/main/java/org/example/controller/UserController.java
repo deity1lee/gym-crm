@@ -23,13 +23,18 @@ import java.util.List;
 @RestController
 @RequestMapping
 public class UserController {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(UserController.class);
 
-    private TrainingService trainingService;
-    private TrainingTypeService trainingTypeService;
-    private AuthService authService;
+    private final TrainingService trainingService;
+    private final TrainingTypeService trainingTypeService;
+    private final AuthService authService;
 
-    public UserController(TrainingService trainingService, TrainingTypeService trainingTypeService, AuthService authService) {
+    public UserController(
+            TrainingService trainingService,
+            TrainingTypeService trainingTypeService,
+            AuthService authService
+    ) {
         this.trainingService = trainingService;
         this.trainingTypeService = trainingTypeService;
         this.authService = authService;
@@ -42,27 +47,46 @@ public class UserController {
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
             @ApiResponse(responseCode = "403", description = "Forbidden"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
-
     })
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/trainings")
     public void addTraining(@Valid @RequestBody TrainingCreationRequest request) {
 
         String txId = MDC.get("transactionId");
-        LOGGER.info("[{}] POST /trainings - addTraining(trainee={}, trainer={}, typeId={})",
-                txId, request.getTraineeUsername(), request.getTrainerUsername(), request.getTrainingTypeId());
+        LOGGER.info("[{}] POST /trainings request [{}]", txId, request);
 
         trainingService.addTraining(
-                    request.getTraineeUsername(),
-                    request.getTrainerUsername(),
-                    request.getTrainingName(),
-                    trainingService.findTrainingTypeById(request.getTrainingTypeId()),
-                    request.getTrainingDate(),
-                    request.getTrainingDuration()
-            );
+                request.getTraineeUsername(),
+                request.getTrainerUsername(),
+                request.getTrainingName(),
+                trainingService.findTrainingTypeById(request.getTrainingTypeId()),
+                request.getTrainingDate(),
+                request.getTrainingDuration()
+        );
 
-            LOGGER.info("[{}] addTraining success - 201 CREATED", txId);
+        LOGGER.info("[{}] {} {}", txId,
+                HttpStatus.CREATED.value(),
+                HttpStatus.CREATED.getReasonPhrase());
+    }
 
+    @Operation(summary = "Delete training")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Deleted successfully"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    @DeleteMapping("/trainings/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteTraining(@PathVariable Long id) {
+
+        String txId = MDC.get("transactionId");
+        LOGGER.info("[{}] DELETE /trainings/{}", txId, id);
+
+        trainingService.deleteTraining(id);
+
+        LOGGER.info("[{}] {} {}", txId,
+                HttpStatus.NO_CONTENT.value(),
+                HttpStatus.NO_CONTENT.getReasonPhrase());
     }
 
     @Operation(summary = "Get all training types", description = "Returns the list of available training types")
@@ -75,17 +99,17 @@ public class UserController {
     public List<TrainingType> getTrainingTypes() {
 
         String txId = MDC.get("transactionId");
-        LOGGER.info("[{}] GET /training-types - fetch all training types", txId);
+        LOGGER.info("[{}] GET /training-types", txId);
 
-        try {
-            List<TrainingType> types = trainingTypeService.getAllTrainingTypes();
-            LOGGER.info("[{}] getTrainingTypes success - {} types found", txId, types.size());
-            return types;
+        List<TrainingType> types = trainingTypeService.getAllTrainingTypes();
 
-        } catch (Exception ex) {
-            LOGGER.error("[{}] getTrainingTypes failed - {}", txId, ex.getMessage());
-            throw ex;
-        }
+        LOGGER.info("[{}] {} {} - {} types returned",
+                txId,
+                HttpStatus.OK.value(),
+                HttpStatus.OK.getReasonPhrase(),
+                types.size());
+
+        return types;
     }
 
     @Operation(
@@ -99,25 +123,26 @@ public class UserController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PutMapping("/users/{username}/password")
-    public String changePassword(@PathVariable String username, @Valid @RequestBody ChangePasswordRequest request) {
+    public String changePassword(
+            @PathVariable String username,
+            @Valid @RequestBody ChangePasswordRequest request
+    ) {
 
         String txId = MDC.get("transactionId");
-        LOGGER.info("[{}] PUT /users/{}/password - changePassword(username={})", txId, username, username);
+        LOGGER.info("[{}] PUT /users/{}/password", txId, username);
 
-        try {
-            LOGGER.debug("[{}] Trying to change password of user {}", txId, username);
+        authService.changePassword(
+                username,
+                request.getOldPassword(),
+                request.getNewPassword()
+        );
 
-            authService.changePassword(
-                    username,
-                    request.getOldPassword(),
-                    request.getNewPassword()
-            );
+        LOGGER.info("[{}] {} {} - password changed for user={}",
+                txId,
+                HttpStatus.OK.value(),
+                HttpStatus.OK.getReasonPhrase(),
+                username);
 
-            LOGGER.info("[{}] changePassword success - 200 OK - username={}", txId, username);
-            return "Password changed successfully";
-        } catch (Exception ex) {
-            LOGGER.error("[{}] changePassword failed - 400 BAD REQUEST - username={}", txId, username);
-            throw ex;
-        }
+        return "Password changed successfully";
     }
 }

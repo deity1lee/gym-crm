@@ -34,18 +34,17 @@ public class TraineeDao {
         LOGGER.info("[{}] Updated trainee profile with username {}", txId, trainee.getUsername());
     }
 
-    public void deleteTrainee(String username) {
+    public List<Training> deleteTrainee(String username) {
         String txId = MDC.get("transactionId");
+
         LOGGER.info("[{}] Trying to delete trainee profile with username '{}'", txId, username);
         Trainee trainee = findByUsername(username)
-                .orElseThrow(() -> {
-                    LOGGER.warn("[{}] Deletion failed: trainee '{}' not found", txId, username);
-                    return new IllegalArgumentException(String.format("Trainee not found: %s", username));
-                });
+                .orElseThrow(() -> new IllegalArgumentException("Trainee not found"));
 
+        List<Training> trainings = new ArrayList<>(trainee.getTrainings());
         em.remove(trainee);
-
         LOGGER.info("[{}] Deleted trainee and related trainings for username '{}'", txId, username);
+        return trainings;
     }
 
     public List<Training> findByTraineeUsernameAndCriteria(

@@ -3,7 +3,7 @@ package org.example.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import org.example.entities.TrainingType;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 public class TraineeProfileResponse {
@@ -12,7 +12,7 @@ public class TraineeProfileResponse {
     private String firstName;
     private String lastName;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private Date dateOfBirth;
+    private LocalDate dateOfBirth;
     private String address;
     private boolean active;
 
@@ -88,11 +88,11 @@ public class TraineeProfileResponse {
         this.lastName = lastName;
     }
 
-    public Date getDateOfBirth() {
+    public LocalDate getDateOfBirth() {
         return dateOfBirth;
     }
 
-    public void setDateOfBirth(Date dateOfBirth) {
+    public void setDateOfBirth(LocalDate dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
     }
 

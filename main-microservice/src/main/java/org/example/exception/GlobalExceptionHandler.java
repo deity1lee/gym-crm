@@ -3,6 +3,7 @@ package org.example.exception;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -10,6 +11,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+
+import java.io.IOException;
 
 
 @ControllerAdvice
@@ -26,6 +29,18 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<String> handleIllegalArgument(IllegalArgumentException ex) {
+
+        String transactionId = MDC.get("transactionId");
+
+        LOGGER.error("[{}] Validation/Business error - message = '{}'", transactionId, ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidDataAccessApiUsageException.class)
+    public ResponseEntity<String> handleIllegalArgument(InvalidDataAccessApiUsageException ex) {
 
         String transactionId = MDC.get("transactionId");
 
@@ -116,7 +131,7 @@ public class GlobalExceptionHandler {
 
         String transactionId = MDC.get("transactionId");
 
-        LOGGER.error("[{}] Unexpected error - {}", transactionId, ex.getMessage());
+        LOGGER.error("[{}] Unexpected error - {}", transactionId, ex.getClass().getName());
 
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)

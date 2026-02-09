@@ -3,17 +3,17 @@ package org.example.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import org.example.entities.TrainingType;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 public class TrainingInfoResponse {
     private String trainingName;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private Date trainingDate;
+    private LocalDate trainingDate;
     private TrainingType trainingType;
     private Long trainingDuration;
     private String trainerFullName;
 
-    public TrainingInfoResponse(String trainingName, Date trainingDate,
+    public TrainingInfoResponse(String trainingName, LocalDate trainingDate,
                                 TrainingType trainingType, Long trainingDuration,
                                 String trainerFullName) {
         this.trainingName = trainingName;
@@ -34,11 +34,11 @@ public class TrainingInfoResponse {
         this.trainingName = trainingName;
     }
 
-    public Date getTrainingDate() {
+    public LocalDate getTrainingDate() {
         return trainingDate;
     }
 
-    public void setTrainingDate(Date trainingDate) {
+    public void setTrainingDate(LocalDate trainingDate) {
         this.trainingDate = trainingDate;
     }
 

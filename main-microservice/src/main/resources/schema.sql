@@ -49,3 +49,12 @@ CREATE TABLE trainer_trainee (
                                  CONSTRAINT fk_tt_trainee FOREIGN KEY (trainee_id) REFERENCES trainees(user_id) ON DELETE CASCADE,
                                  CONSTRAINT fk_tt_trainer FOREIGN KEY (trainer_id) REFERENCES trainers(user_id) ON DELETE CASCADE
 );
+
+CREATE TABLE workload_outbox (
+                                 id BIGINT NOT NULL AUTO_INCREMENT,
+                                 transaction_id VARCHAR(255) NOT NULL,
+                                 payload TEXT NOT NULL,
+                                 status VARCHAR(50) NOT NULL,
+                                 created_at DATETIME NOT NULL,
+                                 PRIMARY KEY (id)
+);

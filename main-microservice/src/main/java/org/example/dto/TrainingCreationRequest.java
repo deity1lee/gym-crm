@@ -2,7 +2,7 @@ package org.example.dto;
 
 import jakarta.validation.constraints.*;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.Date;
+import java.time.LocalDate;
 
 @Schema(description = "Request body for training creation")
 public class TrainingCreationRequest {
@@ -45,7 +45,7 @@ public class TrainingCreationRequest {
             required = true
     )
     @NotNull(message = "Training date is required")
-    private Date trainingDate;
+    private LocalDate trainingDate;
 
     @Schema(
             description = "Training duration in minutes",
@@ -88,11 +88,11 @@ public class TrainingCreationRequest {
         this.trainingName = trainingName;
     }
 
-    public Date getTrainingDate() {
+    public LocalDate getTrainingDate() {
         return trainingDate;
     }
 
-    public void setTrainingDate(Date trainingDate) {
+    public void setTrainingDate(LocalDate trainingDate) {
         this.trainingDate = trainingDate;
     }
 
@@ -102,5 +102,17 @@ public class TrainingCreationRequest {
 
     public void setTrainingDuration(Long trainingDuration) {
         this.trainingDuration = trainingDuration;
+    }
+
+    @Override
+    public String toString() {
+        return "TrainingCreationRequest{" +
+                "trainerUsername='" + trainerUsername + '\'' +
+                ", traineeUsername='" + traineeUsername + '\'' +
+                ", trainingTypeId=" + trainingTypeId +
+                ", trainingName='" + trainingName + '\'' +
+                ", trainingDate=" + trainingDate +
+                ", trainingDuration=" + trainingDuration +
+                '}';
     }
 }

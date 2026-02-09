@@ -3,7 +3,7 @@ package org.example.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.Date;
+import java.time.LocalDate;
 
 @Schema(description = "Update trainee profile request")
 public class UpdateTraineeProfileRequest {
@@ -36,7 +36,7 @@ public class UpdateTraineeProfileRequest {
             description = "Date of birth of the trainee",
             example = "2010-03-11"
     )
-    private Date dateOfBirth;
+    private LocalDate dateOfBirth;
 
     @Schema(
             description = "Address of the trainee",
@@ -76,11 +76,11 @@ public class UpdateTraineeProfileRequest {
         this.lastName = lastName;
     }
 
-    public Date getDateOfBirth() {
+    public LocalDate getDateOfBirth() {
         return dateOfBirth;
     }
 
-    public void setDateOfBirth(Date dateOfBirth) {
+    public void setDateOfBirth(LocalDate dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
     }
 

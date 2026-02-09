@@ -19,8 +19,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
-import java.util.ArrayList;
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.List;
 
 @Tag(name = "Trainees")
@@ -38,8 +38,10 @@ public class TraineeController {
         this.mapper = mapper;
     }
 
-    @Operation(summary = "Register a new trainee",
-            description = "Creates a trainee profile and returns generated username and password")
+    @Operation(
+            summary = "Register a new trainee",
+            description = "Creates a trainee profile and returns generated username and password"
+    )
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Trainee successfully registered"),
             @ApiResponse(responseCode = "400", description = "Validation or business error"),
@@ -50,30 +52,32 @@ public class TraineeController {
     public UserCredentials registerTrainee(@Valid @RequestBody TraineeRegistrationRequest request) {
 
         String txId = MDC.get("transactionId");
-        LOGGER.info("[{}] POST /trainees - registerTrainee(firstName='{}', lastName='{}')", txId, request.getFirstName(), request.getLastName());
-        try {
-            Trainee trainee = new Trainee(
-                    request.getFirstName(),
-                    request.getLastName(),
-                    request.getDateOfBirth(),
-                    request.getAddress(),
-                    true
-            );
-            Trainee created = traineeService.createTrainee(trainee);
-            UserCredentials response = new UserCredentials(
-                    created.getUsername(),
-                    created.getRawPassword()
-            );
-            LOGGER.info("[{}] registerTrainee success - 201 CREATED - username={}", txId, created.getUsername());
-            return response;
-        } catch (Exception ex) {
-            LOGGER.error("[{}] registerTrainee failed - 400 BAD REQUEST", txId);
-            throw ex;
-        }
+        LOGGER.info("[{}] POST /trainees", txId);
+
+        Trainee trainee = new Trainee(
+                request.getFirstName(),
+                request.getLastName(),
+                request.getDateOfBirth(),
+                request.getAddress(),
+                true
+        );
+
+        Trainee created = traineeService.createTrainee(trainee);
+
+        LOGGER.info("[{}] {} {}", txId,
+                HttpStatus.CREATED.value(),
+                HttpStatus.CREATED.getReasonPhrase());
+
+        return new UserCredentials(
+                created.getUsername(),
+                created.getRawPassword()
+        );
     }
 
-    @Operation(summary = "Get trainee profile by username",
-            description = "Returns a trainee profile based on provided username")
+    @Operation(
+            summary = "Get trainee profile by username",
+            description = "Returns a trainee profile based on provided username"
+    )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Trainee profile retrieved successfully"),
             @ApiResponse(responseCode = "400", description = "Validation or business error"),
@@ -85,15 +89,15 @@ public class TraineeController {
     public TraineeProfileResponse getTraineeProfile(@PathVariable String username) {
 
         String txId = MDC.get("transactionId");
-        LOGGER.info("[{}] GET /trainee/{username} - getTraineeProfile(username={})", txId, username);
-        try {
-            Trainee trainee = traineeService.selectTraineeByUsername(username);
-            LOGGER.info("[{}] getTraineeProfile success - 200 OK - foundUsername={}", txId, trainee.getUsername());
-            return mapper.toResponse(trainee);
-        } catch (Exception ex) {
-            LOGGER.error("[{}] getTraineeProfile failed - error={}", txId, ex.getMessage());
-            throw ex;
-        }
+        LOGGER.info("[{}] GET /trainees/{}", txId, username);
+
+        Trainee trainee = traineeService.selectTraineeByUsername(username);
+
+        LOGGER.info("[{}] {} {}", txId,
+                HttpStatus.OK.value(),
+                HttpStatus.OK.getReasonPhrase());
+
+        return mapper.toResponse(trainee);
     }
 
     @Operation(summary = "Update trainee profile")
@@ -109,23 +113,24 @@ public class TraineeController {
             @Valid @RequestBody UpdateTraineeProfileRequest request) {
 
         String txId = MDC.get("transactionId");
-        LOGGER.info("[{}] PUT /trainees - updateTraineeProfile(usernameForUpdate={})", txId, request.getUsername());
-        try {
-            Trainee newTrainee = new Trainee(
-                    request.getFirstName(),
-                    request.getLastName(),
-                    request.getDateOfBirth(),
-                    request.getAddress(),
-                    request.getActive()
-            );
-            newTrainee.setUsername(request.getUsername());
-            Trainee updated = traineeService.updateTrainee(newTrainee);
-            LOGGER.info("[{}] updateTraineeProfile success - 200 OK - updatedUsername={}", txId, updated.getUsername());
-            return mapper.toResponse(updated);
-        } catch (Exception ex) {
-            LOGGER.error("[{}] updateTraineeProfile failed - {}", txId, ex.getMessage());
-            throw ex;
-        }
+        LOGGER.info("[{}] PUT /trainees", txId);
+
+        Trainee trainee = new Trainee(
+                request.getFirstName(),
+                request.getLastName(),
+                request.getDateOfBirth(),
+                request.getAddress(),
+                request.getActive()
+        );
+        trainee.setUsername(request.getUsername());
+
+        Trainee updated = traineeService.updateTrainee(trainee);
+
+        LOGGER.info("[{}] {} {}", txId,
+                HttpStatus.OK.value(),
+                HttpStatus.OK.getReasonPhrase());
+
+        return mapper.toResponse(updated);
     }
 
     @Operation(summary = "Delete trainee profile")
@@ -133,21 +138,19 @@ public class TraineeController {
             @ApiResponse(responseCode = "200", description = "Deleted successfully"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
             @ApiResponse(responseCode = "403", description = "Forbidden"),
-            @ApiResponse(responseCode = "500", description = "Internal server error"),
-            @ApiResponse(responseCode = "501", description = "Unsupported operation")
+            @ApiResponse(responseCode = "400", description = "Validation error")
     })
     @DeleteMapping("/{username}")
     public void deleteTrainee(@PathVariable String username) {
 
         String txId = MDC.get("transactionId");
-        LOGGER.info("[{}] DELETE /trainee/{username} - deleteTrainee(username={})", txId, username);
-        try {
-            traineeService.deleteTraineeByUsername(username);
-            LOGGER.info("[{}] deleteTrainee success - 200 OK - deleted={}", txId, username);
-        } catch (Exception ex) {
-            LOGGER.error("[{}] deleteTrainee failed - {}", txId, ex.getMessage());
-            throw ex;
-        }
+        LOGGER.info("[{}] DELETE /trainees/{}", txId, username);
+
+        traineeService.deleteTraineeByUsername(username);
+
+        LOGGER.info("[{}] {} {}", txId,
+                HttpStatus.OK.value(),
+                HttpStatus.OK.getReasonPhrase());
     }
 
     @Operation(summary = "Get active trainers not assigned to trainee")
@@ -161,23 +164,24 @@ public class TraineeController {
     public List<TrainerInfoResponse> getUnassignedActiveTrainers(@PathVariable String username) {
 
         String txId = MDC.get("transactionId");
-        LOGGER.info("[{}] GET /trainee/{}/unassigned-trainers", txId, username);
-        try {
-            List<Trainer> trainers = traineeService.getUnassignedTrainers(username);
-            List<TrainerInfoResponse> response = trainers.stream()
-                    .map(t -> new TrainerInfoResponse(
-                            t.getUsername(),
-                            t.getFirstName(),
-                            t.getLastName(),
-                            t.getTrainingType()
-                    ))
-                    .toList();
-            LOGGER.info("[{}] getUnassignedActiveTrainers success - {} trainers", txId, response.size());
-            return response;
-        } catch (Exception ex) {
-            LOGGER.error("[{}] getUnassignedActiveTrainers failed - {}", txId, ex.getMessage());
-            throw ex;
-        }
+        LOGGER.info("[{}] GET /trainees/{}/unassigned-trainers", txId, username);
+
+        List<Trainer> trainers = traineeService.getUnassignedTrainers(username);
+
+        List<TrainerInfoResponse> response = trainers.stream()
+                .map(t -> new TrainerInfoResponse(
+                        t.getUsername(),
+                        t.getFirstName(),
+                        t.getLastName(),
+                        t.getTrainingType()
+                ))
+                .toList();
+
+        LOGGER.info("[{}] {} {}", txId,
+                HttpStatus.OK.value(),
+                HttpStatus.OK.getReasonPhrase());
+
+        return response;
     }
 
     @Operation(summary = "Update trainee's trainers")
@@ -188,28 +192,33 @@ public class TraineeController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PutMapping("/{username}/trainers")
-    public List<TrainerInfoResponse> updateTraineeTrainers(@PathVariable String username, @Valid @RequestBody UpdateTraineeTrainersRequest request) {
+    public List<TrainerInfoResponse> updateTraineeTrainers(
+            @PathVariable String username,
+            @Valid @RequestBody UpdateTraineeTrainersRequest request) {
+
         String txId = MDC.get("transactionId");
         LOGGER.info("[{}] PUT /trainees/{}/trainers", txId, username);
-        try {
-            List<String> usernames = request.getTrainers().stream()
-                    .map(UpdateTraineeTrainersRequest.TrainerUsernameRequest::getUsername)
-                    .toList();
-            List<Trainer> trainers = traineeService.updateTraineeTrainers(username, usernames);
-            List<TrainerInfoResponse> response = trainers.stream()
-                    .map(t -> new TrainerInfoResponse(
-                            t.getUsername(),
-                            t.getFirstName(),
-                            t.getLastName(),
-                            t.getTrainingType()
-                    )).toList();
 
-            LOGGER.info("[{}] updateTraineeTrainers success - {} trainers assigned", txId, response.size());
-            return response;
-        } catch (Exception ex) {
-            LOGGER.error("[{}] updateTraineeTrainers failed - {}", txId, ex.getMessage());
-            throw ex;
-        }
+        List<String> trainerUsernames = request.getTrainers().stream()
+                .map(UpdateTraineeTrainersRequest.TrainerUsernameRequest::getUsername)
+                .toList();
+
+        List<Trainer> trainers = traineeService.updateTraineeTrainers(username, trainerUsernames);
+
+        List<TrainerInfoResponse> response = trainers.stream()
+                .map(t -> new TrainerInfoResponse(
+                        t.getUsername(),
+                        t.getFirstName(),
+                        t.getLastName(),
+                        t.getTrainingType()
+                ))
+                .toList();
+
+        LOGGER.info("[{}] {} {}", txId,
+                HttpStatus.OK.value(),
+                HttpStatus.OK.getReasonPhrase());
+
+        return response;
     }
 
     @Operation(summary = "Get trainee's trainings")
@@ -229,26 +238,27 @@ public class TraineeController {
         String txId = MDC.get("transactionId");
         LOGGER.info("[{}] GET /trainees/{}/trainings", txId, username);
 
-        try {
-            TrainingSearchCriteria criteria = new TrainingSearchCriteria(periodFrom, periodTo, trainerUsername, username, trainingTypeId);
-            List<Training> trainings = traineeService.getTraineeTrainings(username, criteria);
-            List<TrainingInfoResponse> response = new ArrayList<>();
+        TrainingSearchCriteria criteria =
+                new TrainingSearchCriteria(periodFrom, periodTo, trainerUsername, username, trainingTypeId);
 
-            for (Training t : trainings) {
-                response.add(new TrainingInfoResponse(
-                        t.getName(),
-                        t.getDate(),
-                        new TrainingType(t.getTrainingType().getTrainingTypeName()),
-                        t.getDuration(),
-                        t.getTrainee().getFirstName() + " " + t.getTrainee().getLastName()
-                ));
-            }
-            LOGGER.info("[{}] getTraineeTrainings success - {} trainings", txId, response.size());
-            return response;
-        } catch (Exception ex) {
-            LOGGER.error("[{}] getTraineeTrainings failed - {}", txId, ex.getMessage());
-            throw ex;
+        List<Training> trainings = traineeService.getTraineeTrainings(username, criteria);
+
+        List<TrainingInfoResponse> response = new ArrayList<>();
+        for (Training t : trainings) {
+            response.add(new TrainingInfoResponse(
+                    t.getName(),
+                    t.getDate(),
+                    new TrainingType(t.getTrainingType().getTrainingTypeName()),
+                    t.getDuration(),
+                    t.getTrainee().getFirstName() + " " + t.getTrainee().getLastName()
+            ));
         }
+
+        LOGGER.info("[{}] {} {}", txId,
+                HttpStatus.OK.value(),
+                HttpStatus.OK.getReasonPhrase());
+
+        return response;
     }
 
     @Operation(summary = "Activate or deactivate trainee")
@@ -258,21 +268,18 @@ public class TraineeController {
             @ApiResponse(responseCode = "403", description = "Forbidden"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    @PatchMapping("{username}/activation")
+    @PatchMapping("/{username}/activation")
     public void activateTraineeActivation(
             @PathVariable String username,
             @Valid @RequestBody Boolean isActive) {
 
         String txId = MDC.get("transactionId");
-        LOGGER.info("[{}] PATCH /trainees/{}/activation - isActive={}", txId, username, isActive);
-        try {
-            traineeService.updateActivationStatus(username, isActive);
+        LOGGER.info("[{}] PATCH /trainees/{}/activation", txId, username);
 
-            LOGGER.info("[{}] updateTraineeActivation success - 200 OK", txId);
+        traineeService.updateActivationStatus(username, isActive);
 
-        } catch (Exception ex) {
-            LOGGER.error("[{}] updateTraineeActivation failed - {}", txId, ex.getMessage());
-            throw ex;
-        }
+        LOGGER.info("[{}] {} {}", txId,
+                HttpStatus.OK.value(),
+                HttpStatus.OK.getReasonPhrase());
     }
 }
