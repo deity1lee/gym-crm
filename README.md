@@ -187,18 +187,18 @@ in all protected requests.
 
 The system consists of:
 
-Main Microservice
+User Service
 
-Secondary Microservice
+Trainer Workload Service
 
 Discovery Service
 
 
-### Secondary Microservice
+### Trainer Workload Service
 Purpose:
 
--Every time a training session is added or deleted, the Main Microservice sends data to the
-Secondary Microservice. Here endpoints are protected and API key is needed to access them.
+-Every time a training session is added or deleted, the Trainer Workload Service sends data to the
+Trainer Workload Service. Here endpoints are protected and API key is needed to access them.
 
 The microservice:
 
@@ -233,11 +233,11 @@ When a training is added or deleted, a workload update event is:
 
 -Reads all pending outbox records
 
--Sends them to the Secondary Microservice
+-Sends them to the Trainer Workload Service
 
 -The remote call is protected by a Resilience4j Circuit Breaker:
 
--If the secondary service is slow or unavailable, the circuit opens
+-If the Trainer Workload Service is slow or unavailable, the circuit opens
 
 -Calls are immediately rejected while the circuit is OPEN
 
