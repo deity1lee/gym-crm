@@ -1,4 +1,4 @@
-package unit;
+package org.example.unit;
 
 import org.example.actuator.health.TrainerOverloadHealthIndicator;
 import org.example.dao.TrainerDao;

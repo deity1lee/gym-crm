@@ -1,4 +1,4 @@
-package unit;
+package org.example.unit;
 
 import org.example.actuator.health.UnassignedTrainerHealthIndicator;
 import org.example.dao.TrainerDao;

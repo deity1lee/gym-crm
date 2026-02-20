@@ -277,3 +277,19 @@ If you are going to start application using docker, consider using profile "loca
 
 If an issue persists try to add this vm option:
 -Djava.rmi.server.hostname=localhost
+
+## Component & Integration tests
+
+You can run Component & Integration tests using IDEA or run them from command line.
+
+For running the component tests you do not need to start any of the services, just use you editor or following commands to run the tests!
+
+1. go to "gym-service" folder (command: "cd gym-service") 
+2. do "mvn test -Dtest=CucumberComponentTests" to run the component tests
+
+To run the integration tests the trainer workload service (using "integration-test" profile), discovery service, ActiveMQ and MongoDB ti be up.
+
+then do similar commands to run the tests:
+
+1. go to "gym-service" folder (command: "cd gym-service")
+2. do "mvn test -Dtest=CucumberIntegrationTests" to run the component tests

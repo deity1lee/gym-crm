@@ -1,4 +1,4 @@
-package unit;
+package org.example.unit;
 
 import org.example.dao.*;
 import org.example.entities.*;

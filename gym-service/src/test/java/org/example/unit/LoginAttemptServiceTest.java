@@ -1,4 +1,4 @@
-package unit;
+package org.example.unit;
 
 import org.example.entities.User;
 import org.example.exception.BruteForceAttemptException;

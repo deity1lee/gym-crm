@@ -1,4 +1,4 @@
-package unit;
+package org.example.unit;
 
 import org.example.dto.TrainerWorkloadRequest;
 import org.example.exception.DownstreamServiceException;

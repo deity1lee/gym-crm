@@ -1,4 +1,4 @@
-package unit;
+package org.example.unit;
 
 import org.example.dao.TrainingTypeDao;
 import org.example.entities.TrainingType;

@@ -1,4 +1,4 @@
-package unit;
+package org.example.unit;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;

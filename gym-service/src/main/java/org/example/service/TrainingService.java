@@ -1,5 +1,6 @@
 package org.example.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.example.dao.*;
 import org.example.dto.TrainerWorkloadRequest;
 import org.example.entities.Trainee;
@@ -128,5 +129,9 @@ public class TrainingService {
         LOGGER.info("[{}] Searching training by id", txId);
 
         return trainingDao.findTrainingById(id);
+    }
+
+    public Training findTrainingByDateAndUsers(Long traineeId, Long trainerId, LocalDate trainingDate) {
+        return trainingDao.findTrainingByDateAndUsers(traineeId, trainerId, trainingDate).orElseThrow(EntityNotFoundException::new);
     }
 }
