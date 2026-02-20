@@ -4,13 +4,12 @@ import org.workload.entities.TrainerMonth;
 import org.workload.entities.TrainerWorkload;
 import org.workload.entities.TrainerYear;
 import org.workload.repository.TrainerWorkloadRepository;
+import org.workload.service.WorkloadService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.workload.service.WorkloadService;
-
 import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;

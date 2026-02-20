@@ -25,19 +25,18 @@ class ValidatorServiceTest {
     void testValidRequestReturnsTrue() {
         TrainerWorkloadRequest request = new TrainerWorkloadRequest();
         request.setTrainingDate(LocalDate.now().plusDays(1));
-        request.setTrainingDuration(60L);
+        request.setTrainingDuration(6L);
         request.setActionType(ActionType.ADD);
 
         boolean result = validatorService.validateAddRequest(request);
-
-        assertTrue(result, "Future ADD request should be valid");
+        assertTrue(result);
     }
 
     @Test
-    void testPastDateWithAddReturnsFalse() {
+    void testPastDateReturnsFalse() {
         TrainerWorkloadRequest request = new TrainerWorkloadRequest();
         request.setTrainingDate(LocalDate.now().minusDays(1));
-        request.setTrainingDuration(60L);
+        request.setTrainingDuration(6L);
         request.setActionType(ActionType.ADD);
 
         boolean result = validatorService.validateAddRequest(request);
@@ -49,7 +48,7 @@ class ValidatorServiceTest {
     void testPastDateWithDeleteReturnsTrue() {
         TrainerWorkloadRequest request = new TrainerWorkloadRequest();
         request.setTrainingDate(LocalDate.now().minusDays(1));
-        request.setTrainingDuration(60L);
+        request.setTrainingDuration(6L);
         request.setActionType(ActionType.DELETE);
 
         boolean result = validatorService.validateAddRequest(request);

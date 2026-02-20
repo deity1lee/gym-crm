@@ -42,6 +42,7 @@ class TrainingOrchestratorServiceTest {
 
     @Test
     void addTraining_success() {
+
         TrainingType type = new TrainingType();
         Trainee trainee = new Trainee();
         trainee.setUsername("trainee1");

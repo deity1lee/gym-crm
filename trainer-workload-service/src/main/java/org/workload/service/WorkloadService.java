@@ -1,6 +1,6 @@
 package org.workload.service;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.workload.repository.TrainerWorkloadRepository;
 import org.workload.entities.TrainerMonth;
 import org.slf4j.Logger;

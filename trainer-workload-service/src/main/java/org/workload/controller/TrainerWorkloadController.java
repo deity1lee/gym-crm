@@ -1,6 +1,5 @@
 package org.workload.controller;
 
-import org.workload.dto.TrainerWorkloadRequest;
 import org.workload.service.WorkloadService;
 import org.springframework.web.bind.annotation.*;
 

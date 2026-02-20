@@ -27,8 +27,9 @@ Before running the project, make sure you have the following installed:
 | **Maven**         | 3.9.10           | For building and dependency management                    |
 | **IntelliJ IDEA** | (optional)       | Recommended IDE for running and debugging the application |
 | **MySQL**         | 8.0.34           | Database engine                                           |
-| **Postman**       |         | For exploring/testing APIs (actuators and more)           |
+| **Postman**       |                  | For exploring/testing APIs (actuators and more)           |
 | **ActiveMQ**      | 6.2.0            | For messaging between services                            |
+| MongoDB           | 8.2.5            | For workload storing                                      |
 
 
 ---
@@ -59,9 +60,13 @@ Go to **bin** folder or downloaded ActiveMQ broker and run "activemq start" comm
 
 You can visit web console here: http://localhost:8161/admin/index.jsp
 
+### Connect to MongoDB
+Open downloaded MongoDB Compass (it will be downloaded in this step), you will see "localhost:27017" in connections tab, hover over it and you will see "CONNECT
+button, click it.
+
 ### Start Trainer workload service
 
-When DiscoveryService and ActiveMQ are running:
+When DiscoveryService, ActiveMQ, MongoDB are running:
 
 Go to "Run" from IntelliJ IDEA and run the TrainerWorkloadService
 
@@ -229,7 +234,7 @@ The microservice:
 
 -Aggregates workload per month / per year
 
--Stores data in an in-memory h2 database (to access go to http://localhost:8081/h2-console/login.jsp, and find the db password in application.properties file in service's resource folder)
+-Stores data in NoSQL store - MongoDB (uses indexes for faster data retrieval)
 
 
 ### Service Discovery (Eureka)

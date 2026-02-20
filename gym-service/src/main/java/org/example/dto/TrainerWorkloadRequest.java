@@ -19,7 +19,7 @@ public class TrainerWorkloadRequest {
 
     public TrainerWorkloadRequest(
             Training training,
-           ActionType actionType
+            ActionType actionType
     ) {
         this.trainerUsername = training.getTrainer().getUsername();
         this.trainerFirstName = training.getTrainer().getFirstName();

@@ -1,12 +1,12 @@
 package org.workload.service;
 
+import org.springframework.transaction.annotation.Transactional;
 import org.workload.dto.TrainerWorkloadRequest;
 import org.workload.entities.TrainerYear;
 import org.workload.repository.TrainerWorkloadRepository;
 import org.workload.entities.TrainerMonth;
 import org.workload.entities.TrainerWorkload;
 import org.workload.exception.WorkloadUpdateRequestAuthException;
-import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -89,7 +89,6 @@ public class TrainerWorkloadChangeListener {
 
     private boolean updateDuration(TrainerWorkload workload, TrainerWorkloadRequest request, Long delta) {
         String txId = MDC.get("transactionId");
-
         int yearValue = request.getTrainingDate().getYear();
         int monthValue = request.getTrainingDate().getMonthValue();
 

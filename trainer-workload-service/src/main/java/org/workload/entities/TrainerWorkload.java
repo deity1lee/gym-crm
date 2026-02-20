@@ -1,21 +1,23 @@
 package org.workload.entities;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
+@CompoundIndex(name = "trainer_name_index", def = "{'firstName': 1, 'lastName': 1}")
+@Document(collection = "trainer_workload")
 public class TrainerWorkload {
-
     @Id
+    private String id;
+    @Indexed(unique = true)
     private String trainerUsername;
-
     private String firstName;
     private String lastName;
     private boolean active;
-
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TrainerYear> years = new ArrayList<>();;
 
     public String getTrainerUsername() {

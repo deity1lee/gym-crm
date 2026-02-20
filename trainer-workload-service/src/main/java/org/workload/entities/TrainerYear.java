@@ -1,30 +1,12 @@
 package org.workload.entities;
 
-import jakarta.persistence.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
 public class TrainerYear {
 
-    @Id
-    @GeneratedValue
-    private Long id;
-
-    @Column(name = "calendar_year")
     private int year;
-
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TrainerMonth> months = new ArrayList<>();;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
+    private List<TrainerMonth> months = new ArrayList<>();
 
     public int getYear() {
         return year;
