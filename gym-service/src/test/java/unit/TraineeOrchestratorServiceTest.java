@@ -1,6 +1,5 @@
 package unit;
 
-import org.example.dto.ActionType;
 import org.example.dto.TrainerWorkloadRequest;
 import org.example.entities.Trainee;
 import org.example.entities.Trainer;
@@ -13,10 +12,7 @@ import org.example.service.TrainerWorkloadClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-
 import java.util.List;
-import java.util.stream.IntStream;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -29,87 +25,81 @@ class TraineeOrchestratorServiceTest {
     private TrainerWorkloadClient trainerWorkloadClient;
 
     @InjectMocks
-    private TraineeOrchestratorService orchestratorService;
+    private TraineeOrchestratorService orchestrator;
 
     @BeforeEach
-    void setUp() {
+    void setup() {
         MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    void deleteTraineeSaga_success() {
-        Trainee trainee = createTraineeWithTrainings("trainee1", 2);
-
-        when(traineeService.selectTraineeByUsername("trainee1"))
-                .thenReturn(trainee);
-
-        orchestratorService.deleteTraineeSaga("trainee1");
-
-        verify(trainerWorkloadClient, times(2))
-                .changeWorkingHours(any(TrainerWorkloadRequest.class));
-
-        verify(traineeService).deleteTrainee("trainee1");
-    }
-
-    @Test
-    void deleteTraineeSaga_downstreamFailure_triggersRollback() {
-        Trainee trainee = createTraineeWithTrainings("trainee1", 2);
-
-        when(traineeService.selectTraineeByUsername("trainee1"))
-                .thenReturn(trainee);
-
-        doThrow(new DownstreamServiceException("workload service down"))
-                .when(trainerWorkloadClient)
-                .changeWorkingHours(any(TrainerWorkloadRequest.class));
-
-        SagaFailedException ex = assertThrows(
-                SagaFailedException.class,
-                () -> orchestratorService.deleteTraineeSaga("trainee1")
-        );
-
-        assertEquals("Failed to complete trainee deletion saga", ex.getMessage());
-
-        verify(trainerWorkloadClient, atLeastOnce())
-                .changeWorkingHours(any(TrainerWorkloadRequest.class));
-
-        verify(traineeService, never()).deleteTrainee(anyString());
-    }
-
-    @Test
-    void deleteTraineeSaga_nonDownstreamFailure_rethrows() {
-        Trainee trainee = createTraineeWithTrainings("trainee1", 1);
-
-        when(traineeService.selectTraineeByUsername("trainee1"))
-                .thenReturn(trainee);
-
-        doThrow(new IllegalStateException("unexpected error"))
-                .when(trainerWorkloadClient)
-                .changeWorkingHours(any(TrainerWorkloadRequest.class));
-
-        assertThrows(
-                IllegalStateException.class,
-                () -> orchestratorService.deleteTraineeSaga("trainee1")
-        );
-
-        verify(traineeService, never()).deleteTrainee(anyString());
-    }
-
-    private Trainee createTraineeWithTrainings(String username, int trainingCount) {
+    void testDeleteTraineeSagaSuccess() {
         Trainee trainee = new Trainee();
-        trainee.setUsername(username);
 
-        List<Training> trainings = IntStream.range(0, trainingCount)
-                .mapToObj(i -> {
-                    Training t = new Training();
-                    t.setTrainee(trainee);
-                    Trainer trainer = new Trainer();
-                    trainer.setUsername("trainer" + i);
-                    t.setTrainer(trainer);
-                    return t;
-                })
-                .toList();
+        Trainer trainer1 = new Trainer();
+        Trainer trainer2 = new Trainer();
 
-        trainee.setTrainings(trainings);
-        return trainee;
+        Training training1 = new Training();
+        training1.setTrainer(trainer1);
+
+        Training training2 = new Training();
+        training2.setTrainer(trainer2);
+
+        trainee.setTrainings(List.of(training1, training2));
+        trainee.setTrainers(List.of(trainer1, trainer2));
+
+        when(traineeService.selectTraineeByUsername("alex"))
+                .thenReturn(trainee);
+
+        orchestrator.deleteTraineeSaga("alex");
+
+        verify(traineeService).deleteTrainee("alex");
+        verify(trainerWorkloadClient, times(2))
+                .changeTrainerWorkload(any(TrainerWorkloadRequest.class));
+    }
+
+    @Test
+    void testDeleteTraineeSagaDownstreamFailureTriggersRollback() {
+        Trainee trainee = new Trainee();
+        Trainer trainer = new Trainer();
+        Training training = new Training();
+        training.setTrainer(trainer);
+        trainee.setTrainings(List.of(training));
+        trainee.setTrainers(List.of(trainer));
+
+        when(traineeService.selectTraineeByUsername("alex"))
+                .thenReturn(trainee);
+
+        doThrow(new DownstreamServiceException("down", new RuntimeException()))
+                .when(trainerWorkloadClient)
+                .changeTrainerWorkload(any());
+
+        assertThrows(SagaFailedException.class,
+                () -> orchestrator.deleteTraineeSaga("alex"));
+
+        verify(traineeService, never()).deleteTrainee(any());
+        verify(traineeService, never()).createTrainee(any());
+        verify(trainerWorkloadClient, atLeastOnce())
+                .changeTrainerWorkload(any());
+    }
+
+    @Test
+    void testDeleteTraineeSagaNonDownstreamExceptionIsRethrown() {
+        Trainee trainee = new Trainee();
+        Trainer trainer = new Trainer();
+        Training training = new Training();
+        training.setTrainer(trainer);
+        trainee.setTrainings(List.of(training));
+        trainee.setTrainers(List.of(trainer));
+
+        when(traineeService.selectTraineeByUsername("alex"))
+                .thenReturn(trainee);
+
+        doThrow(new IllegalStateException("fail"))
+                .when(traineeService).deleteTrainee("alex");
+
+        assertThrows(IllegalStateException.class,
+                () -> orchestrator.deleteTraineeSaga("alex"));
+        verify(traineeService, never()).createTrainee(any());
     }
 }

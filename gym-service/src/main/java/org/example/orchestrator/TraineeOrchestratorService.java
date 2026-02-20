@@ -44,7 +44,7 @@ public class TraineeOrchestratorService {
         try {
             LOGGER.info("[{}] Trying to delete trainee and all trainings related to trainee", txId);
             for (Training training : trainings) {
-                trainerWorkloadClient.changeWorkingHours(new TrainerWorkloadRequest(training, ActionType.DELETE));
+                trainerWorkloadClient.changeTrainerWorkload(new TrainerWorkloadRequest(training, ActionType.DELETE));
                 processedTrainings.add(training);
             }
             traineeService.deleteTrainee(username);
@@ -52,7 +52,7 @@ public class TraineeOrchestratorService {
         } catch (Exception ex) {
             LOGGER.warn("[{}] Saga failed: Rolling back: trainee = {} and associated trainings were not deleted", txId, username);
             for (Training training : processedTrainings) {
-                trainerWorkloadClient.changeWorkingHours(new TrainerWorkloadRequest(training, ActionType.ADD));
+                trainerWorkloadClient.changeTrainerWorkload(new TrainerWorkloadRequest(training, ActionType.ADD));
             }
             if (ex instanceof DownstreamServiceException) {
                 throw new SagaFailedException("Failed to complete trainee deletion saga", ex);

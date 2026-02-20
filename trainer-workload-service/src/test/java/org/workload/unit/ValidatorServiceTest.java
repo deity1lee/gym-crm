@@ -1,5 +1,6 @@
 package org.workload.unit;
 
+import org.workload.dto.ActionType;
 import org.workload.dto.TrainerWorkloadRequest;
 import org.workload.service.ValidatorService;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,35 +22,25 @@ class ValidatorServiceTest {
     }
 
     @Test
-    void shouldPassValidationForFutureTrainingDate() {
+    void testValidRequestReturnsTrue() {
         TrainerWorkloadRequest request = new TrainerWorkloadRequest();
         request.setTrainingDate(LocalDate.now().plusDays(1));
+        request.setTrainingDuration(120L);
 
-        assertDoesNotThrow(() ->
-                validatorService.validateTrainerWorkloadRequest(request)
-        );
+        boolean result = validatorService.validateAddRequest(request);
+
+        assertTrue(result);
     }
 
     @Test
-    void shouldFailValidationForPastTrainingDate() {
+    void testPastDateReturnsFalse() {
         TrainerWorkloadRequest request = new TrainerWorkloadRequest();
         request.setTrainingDate(LocalDate.now().minusDays(1));
+        request.setTrainingDuration(60L);
+        request.setActionType(ActionType.ADD);
 
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
-                () -> validatorService.validateTrainerWorkloadRequest(request)
-        );
+        boolean result = validatorService.validateAddRequest(request);
 
-        assertEquals("Training has already taken place", exception.getMessage());
-    }
-
-    @Test
-    void shouldFailValidationForTodayDate() {
-        TrainerWorkloadRequest request = new TrainerWorkloadRequest();
-        request.setTrainingDate(LocalDate.now());
-
-        assertDoesNotThrow(() ->
-                validatorService.validateTrainerWorkloadRequest(request)
-        );
+        assertFalse(result);
     }
 }

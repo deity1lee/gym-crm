@@ -1,6 +1,6 @@
 package org.example.dao;
 
-import jakarta.persistence.Entity;
+import org.example.dto.TrainerWorkloadRequest;
 import org.example.dto.TrainingTypeCountPerTrainer;
 import org.example.entities.Training;
 import org.slf4j.Logger;
@@ -65,7 +65,8 @@ public class TrainingDao {
 
     public Optional<Training> findTrainingByDateAndUsers(Long traineeId, Long trainerId, LocalDate trainingDate) {
         return em.createQuery("""
-            SELECT t
+            
+                        SELECT t
             FROM Training t
             WHERE t.trainee.id = :traineeId
             AND t.trainer.id = :trainerId
@@ -75,6 +76,43 @@ public class TrainingDao {
                 .setParameter("trainerId", trainerId)
                 .setParameter("trainingDate", trainingDate)
                 .getResultStream()
-                .findFirst();
+                .
+                findFirst();
+        }
+
+    public Training findTrainingByTrainerWorkloadRequest(TrainerWorkloadRequest request) {
+        String txId = MDC.get("transactionId");
+
+        return em.createQuery(
+                        """
+                        select t
+                        from Training t
+                        where t.trainer.username = :username
+                          and t.trainer.firstName = :firstName
+                          and t.trainer.lastName = :lastName
+                          and t.trainer.isActive = :isActive
+                          and t.date = :trainingDate
+                          and t.duration = :trainingDuration
+                        """,
+                        Training.class
+                )
+                .setParameter("username", request.getTrainerUsername())
+                .setParameter("firstName", request.getTrainerFirstName())
+                .setParameter("lastName", request.getTrainerLastName())
+                .setParameter("isActive", request.isActive())
+                .setParameter("trainingDate", request.getTrainingDate())
+                .setParameter("trainingDuration", request.getTrainingDuration())
+                .getResultStream()
+                .findFirst()
+                .orElseThrow(() -> {
+                    LOGGER.debug(
+                            "[{}] Training not found for trainer '{} {}' on {}",
+                            txId,
+                            request.getTrainerFirstName(),
+                            request.getTrainerLastName(),
+                            request.getTrainingDate()
+                    );
+                    return new IllegalArgumentException("Training not found for given request");
+                });
     }
 }

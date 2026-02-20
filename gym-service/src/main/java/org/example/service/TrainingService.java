@@ -1,6 +1,7 @@
 package org.example.service;
 
 import org.example.dao.*;
+import org.example.dto.TrainerWorkloadRequest;
 import org.example.entities.Trainee;
 import org.example.entities.Trainer;
 import org.example.entities.Training;

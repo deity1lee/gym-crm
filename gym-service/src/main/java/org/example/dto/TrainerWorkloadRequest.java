@@ -1,5 +1,6 @@
 package org.example.dto;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import org.example.entities.Training;
 
 import java.time.LocalDate;
@@ -26,6 +27,25 @@ public class TrainerWorkloadRequest {
         this.isActive = training.getTrainer().isActive();
         this.trainingDate = training.getDate();
         this.trainingDuration = training.getDuration();
+        this.actionType = actionType;
+    }
+
+    @JsonCreator
+    public TrainerWorkloadRequest(
+            String trainerUsername,
+            String trainerFirstName,
+            String trainerLastName,
+            boolean isActive,
+            LocalDate trainingDate,
+            Long trainingDuration,
+            ActionType actionType
+    ) {
+        this.trainerUsername = trainerUsername;
+        this.trainerFirstName = trainerFirstName;
+        this.trainerLastName = trainerLastName;
+        this.isActive = isActive;
+        this.trainingDate = trainingDate;
+        this.trainingDuration = trainingDuration;
         this.actionType = actionType;
     }
 

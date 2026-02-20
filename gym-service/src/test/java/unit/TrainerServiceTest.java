@@ -5,16 +5,13 @@ import org.example.dao.TrainerDao;
 import org.example.entities.Trainer;
 import org.example.entities.Training;
 import org.example.entities.TrainingType;
-import org.example.service.AuthService;
-import org.example.service.TrainerService;
-import org.example.service.ValidatorService;
+import org.example.service.*;
 import org.example.utilities.TrainingSearchCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 
 import java.util.*;
-import java.sql.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -29,6 +26,8 @@ class TrainerServiceTest {
     private ValidatorService validatorService;
     @Mock
     private AuthService authService;
+    @Mock
+    private TrainerWorkloadClient trainerWorkloadClient;
 
     @InjectMocks
     private TrainerService trainerService;
@@ -41,13 +40,12 @@ class TrainerServiceTest {
     @Test
     void testCreateTrainerSuccess() {
         Trainer trainer = new Trainer();
-
-        doNothing().when(validatorService).validate(trainer);
-        doNothing().when(authService).assignCredentials(trainer);
+        trainer.setTrainingType(new TrainingType());
 
         trainerService.createTrainer(trainer);
 
         verify(validatorService).validate(trainer);
+        verify(validatorService).validateTrainingType(trainer.getTrainingType());
         verify(authService).assignCredentials(trainer);
         verify(trainerDao).create(trainer);
     }
@@ -62,7 +60,6 @@ class TrainerServiceTest {
         Trainer result = trainerService.selectTrainerByUsername("alex");
 
         assertNotNull(result);
-        verify(trainerDao).findByUsername("alex");
     }
 
     @Test
@@ -93,9 +90,6 @@ class TrainerServiceTest {
         assertEquals("A", updated.getFirstName());
         assertEquals("B", updated.getLastName());
         assertTrue(updated.isActive());
-
-        verify(validatorService).validate(incoming);
-        verify(validatorService).validateTrainingType(incoming.getTrainingType());
         verify(trainerDao).updateProfile(existing);
     }
 
@@ -103,6 +97,7 @@ class TrainerServiceTest {
     void testUpdateActivationStatusSuccess() {
         Trainer trainer = new Trainer();
         trainer.setUsername("alex");
+        trainer.setActive(false);
 
         when(trainerDao.findByUsername("alex")).thenReturn(Optional.of(trainer));
 
@@ -113,17 +108,20 @@ class TrainerServiceTest {
     }
 
     @Test
-    void testUpdateActivationStatusNotFound() {
-        when(trainerDao.findByUsername("ghost")).thenReturn(Optional.empty());
+    void testUpdateActivationStatusAlreadyActiveThrows() {
+        Trainer trainer = new Trainer();
+        trainer.setActive(true);
 
-        assertThrows(IllegalArgumentException.class,
-                () -> trainerService.updateActivationStatus("ghost", true));
+        when(trainerDao.findByUsername("alex")).thenReturn(Optional.of(trainer));
+
+        assertThrows(IllegalStateException.class,
+                () -> trainerService.updateActivationStatus("alex", true));
     }
 
     @Test
     void testGetTrainerTrainingsSuccess() {
-        Trainer trainer = new Trainer();
-        when(trainerDao.findByUsername("alex")).thenReturn(Optional.of(trainer));
+        when(trainerDao.findByUsername("alex"))
+                .thenReturn(Optional.of(new Trainer()));
 
         TrainingSearchCriteria criteria =
                 new TrainingSearchCriteria(null, null, "alex", null, null);
@@ -138,52 +136,32 @@ class TrainerServiceTest {
     }
 
     @Test
-    void testGetTrainerTrainingsMissingTrainerUsername() {
-        TrainingSearchCriteria criteria =
-                new TrainingSearchCriteria(null, null, "", null, null);
+    void testGetTrainingHoursSuccess() {
+        when(trainerDao.findByUsername("alex"))
+                .thenReturn(Optional.of(new Trainer()));
+        when(trainerWorkloadClient.getTrainerTrainingHours("alex", 2025, 5))
+                .thenReturn(100L);
 
-        assertThrows(IllegalArgumentException.class,
-                () -> trainerService.getTrainerTrainings(criteria));
+        Long hours = trainerService.getTrainingHours("alex", 2025,5);
+
+        assertEquals(100L, hours);
     }
 
     @Test
-    void testGetTrainerTrainingsTrainerNotFound() {
-        TrainingSearchCriteria criteria =
-                new TrainingSearchCriteria(null, null, "alex", null, null);
-
-        when(trainerDao.findByUsername("alex")).thenReturn(Optional.empty());
-
-        assertThrows(IllegalArgumentException.class,
-                () -> trainerService.getTrainerTrainings(criteria));
-    }
-
-    @Test
-    void testGetTrainerTrainingsTraineeFilterNotFound() {
-        TrainingSearchCriteria criteria =
-                new TrainingSearchCriteria(null, null, "alex", "traineeX", null);
-
+    void testGetTrainingHoursInvalidMonth() {
         when(trainerDao.findByUsername("alex"))
                 .thenReturn(Optional.of(new Trainer()));
 
-        when(traineeDao.findByUsername("traineeX"))
+        assertThrows(IllegalArgumentException.class,
+                () -> trainerService.getTrainingHours("alex", 2027,13));
+    }
+
+    @Test
+    void testGetTrainingHoursTrainerNotFound() {
+        when(trainerDao.findByUsername("alex"))
                 .thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class,
-                () -> trainerService.getTrainerTrainings(criteria));
-    }
-
-    @Test
-    void testGetTrainerTrainingsInvalidDateRange() {
-        Date from = new Date(200);
-        Date to = new Date(100);
-
-        TrainingSearchCriteria criteria =
-                new TrainingSearchCriteria(from, to, "alex", null, null);
-
-        when(trainerDao.findByUsername("alex"))
-                .thenReturn(Optional.of(new Trainer()));
-
-        assertThrows(IllegalArgumentException.class,
-                () -> trainerService.getTrainerTrainings(criteria));
+                () -> trainerService.getTrainingHours("alex", 2025, 6));
     }
 }

@@ -41,7 +41,7 @@ public class TrainingOrchestratorService {
         try {
             training = trainingService.addTraining(traineeUsername, trainerUsername, trainingName, trainingTypeById, trainingDate, trainingDuration);
             TrainerWorkloadRequest request = new TrainerWorkloadRequest(training, ActionType.ADD);
-            trainerWorkloadClient.changeWorkingHours(request);
+            trainerWorkloadClient.changeTrainerWorkload(request);
             LOGGER.info("[{}] Training with id={} was created", txId, training.getId());
         } catch (Exception ex){
             if (ex instanceof WorkloadServiceValidationException) {
@@ -67,7 +67,7 @@ public class TrainingOrchestratorService {
             training = trainingService.findTrainingById(id);
             trainingService.deleteTraining(id);
             TrainerWorkloadRequest request = new TrainerWorkloadRequest(training, ActionType.DELETE);
-            trainerWorkloadClient.changeWorkingHours(request);
+            trainerWorkloadClient.changeTrainerWorkload(request);
             LOGGER.info("[{}] Training with id={} was deleted", txId, training.getId());
         } catch (Exception ex){
             if (ex instanceof WorkloadServiceValidationException) {

@@ -59,12 +59,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         userDetails, null, userDetails.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(auth);
                 LOGGER.info("[{}] User was successfully authenticated.", MDC.get("transactionId"));
-            } catch (Exception ex) {
-                LOGGER.warn("[{}] Failed to authenticate the request - {}", MDC.get("transactionId"), ex.getMessage());
+            }
+            catch (JwtException | IllegalArgumentException ex) {
+                LOGGER.debug("[{}] Failed to authenticate JWT - {}", MDC.get("transactionId"), ex.getMessage());
             }
         }
 
         filterChain.doFilter(request, response);
     }
 }
-

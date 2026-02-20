@@ -28,6 +28,7 @@ Before running the project, make sure you have the following installed:
 | **IntelliJ IDEA** | (optional)       | Recommended IDE for running and debugging the application |
 | **MySQL**         | 8.0.34           | Database engine                                           |
 | **Postman**       |         | For exploring/testing APIs (actuators and more)           |
+| **ActiveMQ**      | 6.2.0            | For messaging between services                            |
 
 
 ---
@@ -35,6 +36,7 @@ Before running the project, make sure you have the following installed:
 
 ## Before running the app
 #### Make sure 8080 port is not used.
+#### Make sure 8081 port is not used.
 
 ### Create your schema for your preferred profile:
 CREATE DATABASE gymdb_'profile name';
@@ -45,8 +47,26 @@ CREATE DATABASE gymdb_prod;
 
 Drop the database if you want to run again.
 
-## How to Run the Application
-### Application supports different environments
+# How to Run the Application
+
+### Start Eureka discovery service
+
+Go to "Run" from IntelliJ IDEA and run the DiscoveryService.
+
+You can visit web console here: http://localhost:8761/
+### Start ActiveMq
+Go to **bin** folder or downloaded ActiveMQ broker and run "activemq start" command.
+
+You can visit web console here: http://localhost:8161/admin/index.jsp
+
+### Start Trainer workload service
+
+When DiscoveryService and ActiveMQ are running:
+
+Go to "Run" from IntelliJ IDEA and run the TrainerWorkloadService
+
+### Start User service
+#### User service supports different environments
 
 You can explore or edit application-<profile name>.properties. This application supports business logic for
 different environments. By changing active profile to "prod" you can see functionality like deleting a trainee disabled.
@@ -197,7 +217,7 @@ Discovery Service
 ### Trainer Workload Service
 Purpose:
 
--Every time a training session is added or deleted, the Trainer Workload Service sends data to the
+-Every time a training session is added or deleted, the User Service sends data to the
 Trainer Workload Service. Here endpoints are protected and API key is needed to access them.
 
 The microservice:
@@ -217,13 +237,35 @@ The microservice:
 
 -Make sur this service is up before any other is started
 
-### Circuit Breaker & Reliability Strategy
+### Distributed Consistency & Reliability Strategy
 
 The system uses a Circuit Breaker and Saga Orchestrator pattern to ensure reliable inter-service communication.
 As training add/delete action should make changes in both user and trainer workload services, compensation mechanism is used.
 
+The system utilizes the Saga Pattern combined with asynchronous messaging via ActiveMQ to ensure eventual consistency between the Training Service and the Trainer Workload Service.
+
+How it works
+When a training is added or deleted, the system initiates a distributed transaction:
+
+Asynchronous Event Dispatch: A workload update event is sent to an ActiveMQ queue.
+
+Fail-Fast Messaging: If the message cannot be successfully handed off to the message broker (ActiveMQ), the Saga fails immediately and the local transaction is rolled back.
+
+Asynchronous Consumption: The Trainer Workload Service consumes the message from the queue independently.
+
+Handling Failures & Rollbacks
+
+Business Logic Validation: If the Trainer Workload Service processes a message but determines it is invalid (e.g., business rule violation), it triggers a Compensating Transaction.
+
+If a Add request was invalid, the service deletes the newly created training.
+If a Delete request was invalid, the service restores the training record.
+
+Reliable Delivery: ActiveMQ ensures that once a message is accepted, it will be delivered even if the Trainer Workload Service is temporarily offline.
+
+
 ## Notes
 
 If you are going to start application using docker, consider using profile "local".
+
 If an issue persists try to add this vm option:
 -Djava.rmi.server.hostname=localhost

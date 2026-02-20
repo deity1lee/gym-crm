@@ -41,7 +41,7 @@ public class UserController {
 
     @Operation(summary = "Add a new training", description = "Creates a new training session for a trainee and trainer")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Training successfully created"),
+            @ApiResponse(responseCode = "201", description = "Training has been successfully created for now, but it may be canceled later."),
             @ApiResponse(responseCode = "400", description = "Validation or business rule error"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
             @ApiResponse(responseCode = "403", description = "Forbidden"),
@@ -63,7 +63,7 @@ public class UserController {
 
     @Operation(summary = "Delete training")
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "Deleted successfully"),
+            @ApiResponse(responseCode = "204", description = "Successfully deleted for now, however, it may be re-added due to service policy."),
             @ApiResponse(responseCode = "403", description = "Forbidden"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),

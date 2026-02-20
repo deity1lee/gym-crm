@@ -1,5 +1,7 @@
 package org.workload.dto;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 import java.time.LocalDate;
 
 public class TrainerWorkloadRequest {
@@ -12,6 +14,26 @@ public class TrainerWorkloadRequest {
     private Long trainingDuration;
     private ActionType actionType;
 
+    @JsonCreator
+    public TrainerWorkloadRequest(String trainerUsername,
+                                  String trainerFirstName,
+                                  String trainerLastName,
+                                  boolean isActive,
+                                  LocalDate trainingDate,
+                                  Long trainingDuration,
+                                  ActionType actionType
+    ) {
+        this.trainerUsername = trainerUsername;
+        this.trainerFirstName = trainerFirstName;
+        this.trainerLastName = trainerLastName;
+        this.isActive = isActive;
+        this.trainingDate = trainingDate;
+        this.trainingDuration = trainingDuration;
+        this.actionType = actionType;
+    }
+
+    public TrainerWorkloadRequest(){}
+    
     public String getTrainerUsername() {
         return trainerUsername;
     }

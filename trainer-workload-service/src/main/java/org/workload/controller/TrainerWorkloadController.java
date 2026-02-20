@@ -14,11 +14,6 @@ public class TrainerWorkloadController {
         this.workloadService = workloadService;
     }
 
-    @PostMapping
-    public void changeWorkload(@RequestBody TrainerWorkloadRequest request) {
-        workloadService.process(request);
-    }
-
     @GetMapping("/{username}/trainingHours")
     public Long getTrainerWorkingHours(@PathVariable String username, @RequestParam int year, @RequestParam int month) {
         return workloadService.getWorkingHours(username, year, month);
