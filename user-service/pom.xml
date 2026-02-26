@@ -8,7 +8,6 @@
         <groupId>com.gym.crm</groupId>
         <artifactId>gym-crm-system</artifactId>
         <version>1.0-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>user-service</artifactId>

@@ -131,7 +131,8 @@ public class TrainerController {
             @ApiResponse(responseCode = "400", description = "Validation or business error"),
             @ApiResponse(responseCode = "401", description = "Unauthorized / invalid credentials"),
             @ApiResponse(responseCode = "403", description = "Forbidden"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
+            @ApiResponse(responseCode = "500", description = "Internal server error"),
+            @ApiResponse(responseCode = "503", description = "Service side error occurred")
     })
     @GetMapping("/{username}/trainingHours/{month}")
     public Long getTrainerTrainingHours(@PathVariable String username,@PathVariable int month){

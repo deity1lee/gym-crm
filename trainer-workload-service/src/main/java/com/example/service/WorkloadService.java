@@ -1,6 +1,5 @@
 package com.example.service;
 
-import com.example.dto.ActionType;
 import com.example.dto.TrainerWorkloadRequest;
 import com.example.entities.TrainerYear;
 import com.example.repository.TrainerWorkloadRepository;
@@ -20,9 +19,11 @@ public class WorkloadService {
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkloadService.class);
 
     private final TrainerWorkloadRepository repository;
+    private final ValidatorService validatorService;
 
-    public WorkloadService(TrainerWorkloadRepository repository) {
+    public WorkloadService(TrainerWorkloadRepository repository, ValidatorService validatorService) {
         this.repository = repository;
+        this.validatorService = validatorService;
     }
 
     @Transactional
@@ -32,64 +33,83 @@ public class WorkloadService {
 
         LOGGER.info("[{}] Processing trainer workload request", txId);
 
-        Optional<TrainerWorkload> trainerOpt = repository.findByTrainerUsername(request.getTrainerUsername());
+        validatorService.validateTrainerWorkloadRequest(request);
 
-        if (trainerOpt.isEmpty() && request.getActionType() == ActionType.DELETE) {
-            LOGGER.info("[{}] DELETE ignored, trainer not found: {}", txId, request.getTrainerUsername());
-            return;
-        }
+        Optional<TrainerWorkload> trainerWorkloadOptional = repository.findByTrainerUsername(request.getTrainerUsername());
 
-        TrainerWorkload trainer = trainerOpt.orElseGet(() -> createTrainer(request));
-
-        int year = request.getTrainingDate().getYear();
-        int month = request.getTrainingDate().getMonth().getValue();
-
-        TrainerYear trainerYear = trainer.getYears()
-                .stream()
-                .filter(y -> y.getYear() == year)
-                .findFirst()
-                .orElseGet(() -> {
-                    TrainerYear y = new TrainerYear();
-                    y.setYear(year);
-                    trainer.getYears().add(y);
-                    return y;
-                });
-
-        TrainerMonth trainerMonth = trainerYear.getMonths()
-                .stream()
-                .filter(m -> m.getMonth() == month)
-                .findFirst()
-                .orElseGet(() -> {
-                    TrainerMonth m = new TrainerMonth();
-                    m.setMonth(month);
-                    m.setTotalDuration(0L);
-                    trainerYear.getMonths().add(m);
-                    return m;
-                });
-
-        Long delta = request.getActionType() == ActionType.ADD
-                ? request.getTrainingDuration()
-                : -request.getTrainingDuration();
-
-        long newTotal = trainerMonth.getTotalDuration() + delta;
-
-        if (newTotal <= 0) {
-            trainerYear.getMonths().remove(trainerMonth);
-
-            if (trainerYear.getMonths().isEmpty()) {
-                trainer.getYears().remove(trainerYear);
-
-                if (trainer.getYears().isEmpty()) {
-                    repository.delete(trainer);
+        switch (request.getActionType()) {
+            case DELETE -> {
+                if (trainerWorkloadOptional.isEmpty()) {
+                    LOGGER.info("[{}] DELETE ignored: trainer {} not found", txId, request.getTrainerUsername());
+                    return;
                 }
+                updateDuration(trainerWorkloadOptional.get(), request, -request.getTrainingDuration());
             }
-        } else {
-            trainerMonth.setTotalDuration(newTotal);
-            repository.save(trainer);
+            case ADD -> {
+                TrainerWorkload workload = trainerWorkloadOptional.orElseGet(() -> createTrainerWorkload(request));
+                updateDuration(workload, request, request.getTrainingDuration());
+            }
         }
     }
 
-    public TrainerWorkload createTrainer(TrainerWorkloadRequest request) {
+    private void updateDuration(TrainerWorkload workload, TrainerWorkloadRequest request, Long delta) {
+        String txId = MDC.get("transactionId");
+
+        int yearValue = request.getTrainingDate().getYear();
+        int monthValue = request.getTrainingDate().getMonthValue();
+
+        TrainerYear year = findOrCreateYear(workload, yearValue);
+        TrainerMonth month = findOrCreateMonth(year, monthValue);
+
+        long newTotal = month.getTrainingDuration() + delta;
+
+        if (newTotal == 0) {
+            handleRemoval(workload, year, month);
+        } else {
+            month.setTrainingDuration(newTotal);
+            repository.save(workload);
+        }
+        LOGGER.info("[{}] Trainer {} workload was successfully changed", txId, request.getTrainerUsername());
+    }
+
+    private void handleRemoval(TrainerWorkload workload, TrainerYear year, TrainerMonth month) {
+        year.getMonths().remove(month);
+        if (year.getMonths().isEmpty()) {
+            workload.getYears().remove(year);
+        }
+        if (workload.getYears().isEmpty()) {
+            repository.delete(workload);
+        } else {
+            repository.save(workload);
+        }
+    }
+
+    private TrainerYear findOrCreateYear(TrainerWorkload workload, int year) {
+        return workload.getYears().stream()
+                .filter(y -> y.getYear() == year)
+                .findFirst()
+                .orElseGet(() -> {
+                    TrainerYear newYear = new TrainerYear();
+                    newYear.setYear(year);
+                    workload.getYears().add(newYear);
+                    return newYear;
+                });
+    }
+
+    private TrainerMonth findOrCreateMonth(TrainerYear year, int month) {
+        return year.getMonths().stream()
+                .filter(m -> m.getMonth() == month)
+                .findFirst()
+                .orElseGet(() -> {
+                    TrainerMonth newMonth = new TrainerMonth();
+                    newMonth.setMonth(month);
+                    newMonth.setTrainingDuration(0L);
+                    year.getMonths().add(newMonth);
+                    return newMonth;
+                });
+    }
+
+    public TrainerWorkload createTrainerWorkload(TrainerWorkloadRequest request) {
         TrainerWorkload t = new TrainerWorkload();
         t.setTrainerUsername(request.getTrainerUsername());
         t.setFirstName(request.getTrainerFirstName());
@@ -106,7 +126,7 @@ public class WorkloadService {
                 .map(trainer -> trainer.getYears().stream()
                         .flatMap(year -> year.getMonths().stream())
                         .filter(m -> m.getMonth() == month)
-                        .map(TrainerMonth::getTotalDuration)
+                        .map(TrainerMonth::getTrainingDuration)
                         .findFirst()
                         .orElse(0L)
                 )

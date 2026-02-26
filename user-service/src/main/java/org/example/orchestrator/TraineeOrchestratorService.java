@@ -1,7 +1,6 @@
 package org.example.orchestrator;
 
 import org.example.dto.ActionType;
-import org.example.dto.TraineeSnapshot;
 import org.example.dto.TrainerWorkloadRequest;
 import org.example.entities.Trainee;
 import org.example.entities.Training;
@@ -15,6 +14,7 @@ import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -38,24 +38,25 @@ public class TraineeOrchestratorService {
         String txId = MDC.get("transactionId");
         LOGGER.info("[{}] LOCAL: Deleting trainee {}", txId, username);
         Trainee trainee = traineeService.selectTraineeByUsername(username);
-        TraineeSnapshot snapshot = TraineeSnapshot.from(trainee);
-        List<Training> processedTrainings = trainee.getTrainings();
+        List<Training> trainings = trainee.getTrainings();
+        List<Training> processedTrainings = new ArrayList<>();
 
         try {
             LOGGER.info("[{}] Trying to delete trainee and all trainings related to trainee", txId);
-            traineeService.deleteTrainee(username);
-            for (Training training : processedTrainings) {
-                TrainerWorkloadRequest request = new TrainerWorkloadRequest(training, ActionType.DELETE);
-                trainerWorkloadClient.changeWorkingHours(request);
+            for (Training training : trainings) {
+                trainerWorkloadClient.changeWorkingHours(new TrainerWorkloadRequest(training, ActionType.DELETE));
+                processedTrainings.add(training);
             }
+            traineeService.deleteTrainee(username);
             LOGGER.info("[{}] Trainee {} deleted successfully", txId, username);
         } catch (Exception ex) {
+            LOGGER.warn("[{}] Saga failed: Rolling back: trainee = {} and associated trainings were not deleted", txId, username);
+            for (Training training : processedTrainings) {
+                trainerWorkloadClient.changeWorkingHours(new TrainerWorkloadRequest(training, ActionType.ADD));
+            }
             if (ex instanceof DownstreamServiceException) {
-                LOGGER.error("[{}] Saga failed: Rolling back: Recreating deleted trainee = {} and associated trainings", txId, username);
-                traineeService.recreate(snapshot);
                 throw new SagaFailedException("Failed to complete trainee deletion saga", ex);
             } else {
-                LOGGER.warn("[{}] Trainee was not deleted, according trainings and trainer's workload was not changed", txId);
                 throw ex;
             }
         }

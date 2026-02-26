@@ -145,7 +145,7 @@ public class GlobalExceptionHandler {
         LOGGER.error("[{}] {}", transactionId, ex.getMessage());
         return ResponseEntity
                 .status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body("Trainer workload service unavailable.");
+                .body("Trainer workload service side error occurred.");
     }
 
     @ExceptionHandler(SagaFailedException.class)

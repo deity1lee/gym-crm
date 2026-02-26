@@ -14,11 +14,11 @@ public class TrainerWorkloadRequest {
     private LocalDate trainingDate;
     private Long trainingDuration;
 
-    private org.example.dto.ActionType actionType;
+    private ActionType actionType;
 
     public TrainerWorkloadRequest(
             Training training,
-            org.example.dto.ActionType actionType
+           ActionType actionType
     ) {
         this.trainerUsername = training.getTrainer().getUsername();
         this.trainerFirstName = training.getTrainer().getFirstName();

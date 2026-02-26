@@ -14,7 +14,7 @@ public class TrainerMonth {
 
     @Column(name = "calendar_month")
     private int month;
-    private Long totalDuration;
+    private Long trainingDuration;
 
     public Long getId() {
         return id;
@@ -32,11 +32,11 @@ public class TrainerMonth {
         this.month = month;
     }
 
-    public Long getTotalDuration() {
-        return totalDuration;
+    public Long getTrainingDuration() {
+        return trainingDuration;
     }
 
-    public void setTotalDuration(Long totalDuration) {
-        this.totalDuration = totalDuration;
+    public void setTrainingDuration(Long trainingDuration) {
+        this.trainingDuration = trainingDuration;
     }
 }

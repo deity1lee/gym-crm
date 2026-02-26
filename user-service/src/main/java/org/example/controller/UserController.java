@@ -46,7 +46,7 @@ public class UserController {
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
             @ApiResponse(responseCode = "403", description = "Forbidden"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
-            @ApiResponse(responseCode = "503", description = "Service unavailable")
+            @ApiResponse(responseCode = "503", description = "Service side error occurred")
     })
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/trainings")
@@ -67,7 +67,7 @@ public class UserController {
             @ApiResponse(responseCode = "403", description = "Forbidden"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "503", description = "Service unavailable")
+            @ApiResponse(responseCode = "503", description = "Service side error occurred")
     })
     @DeleteMapping("/trainings/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)

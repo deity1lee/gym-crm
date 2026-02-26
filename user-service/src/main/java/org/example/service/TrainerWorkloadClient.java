@@ -12,6 +12,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Optional;
+import java.util.UUID;
+
 @Component
 public class TrainerWorkloadClient {
 
@@ -22,6 +25,9 @@ public class TrainerWorkloadClient {
     @Value("${security.api-key}")
     private String apiKey;
 
+    @Value("${trainer.workload.service.url}")
+    private String trainerWorkloadServiceUrl;
+
     public TrainerWorkloadClient(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
@@ -31,15 +37,14 @@ public class TrainerWorkloadClient {
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-API-KEY", apiKey);
-
-        String txId = MDC.get("transactionId");
-        if (txId != null) {
-            headers.set("X-Transaction-Id", txId);
-        }
+        String txId = Optional.ofNullable(MDC.get("transactionId")).orElse(UUID.randomUUID().toString());
+        headers.set("X-Transaction-Id", txId);
 
         HttpEntity<TrainerWorkloadRequest> entity = new HttpEntity<>(request, headers);
+
+        LOGGER.info("[{}] Notifying workload service", txId);
         restTemplate.postForObject(
-                "http://trainer-workload-service/workload",
+                trainerWorkloadServiceUrl,
                 entity,
                 Void.class
         );
@@ -50,14 +55,13 @@ public class TrainerWorkloadClient {
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-API-KEY", apiKey);
-        String txId = MDC.get("transactionId");
-        if (txId != null) {
-            headers.set("X-Transaction-Id", txId);
-        }
+        String txId = Optional.ofNullable(MDC.get("transactionId")).orElse(UUID.randomUUID().toString());
+        headers.set("X-Transaction-Id", txId);
 
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
-        String url = String.format("http://trainer-workload-service/workload/%s/trainingHours/%s",
+        String url = String.format("%s/%s/trainingHours/%s",
+                trainerWorkloadServiceUrl,
                 username,
                 month
         );
@@ -75,7 +79,7 @@ public class TrainerWorkloadClient {
                 username,
                 month
         );
-        throw new DownstreamServiceException("Trainer workload service unavailable", ex);
+        throw new DownstreamServiceException("Trainer workload service is unavailable or Validation/Business error occurred", ex);
     }
 
     private void changeWorkingHoursFailure(TrainerWorkloadRequest request, Throwable ex) {
@@ -83,6 +87,6 @@ public class TrainerWorkloadClient {
                 MDC.get("transactionId"),
                 request.getTrainerUsername()
         );
-        throw new DownstreamServiceException("Trainer workload service unavailable", ex);
+        throw new DownstreamServiceException("Trainer workload service is unavailable or Validation/Business error occurred", ex);
     }
 }

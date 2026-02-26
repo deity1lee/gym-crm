@@ -6,8 +6,6 @@ import org.example.dao.TraineeDao;
 import org.example.dao.TrainerDao;
 import org.example.dao.TrainingDao;
 import org.example.dao.TrainingTypeDao;
-import org.example.dto.TraineeSnapshot;
-import org.example.dto.TrainingSnapshot;
 import org.example.entities.Trainee;
 import org.example.entities.Trainer;
 import org.example.entities.Training;
@@ -212,42 +210,5 @@ public class TraineeService {
             traineeDao.updateProfile(trainee);
             return newTrainers;
         });
-    }
-
-    public void recreate(TraineeSnapshot snapshot) {
-
-        Trainee trainee = new Trainee();
-        trainee.setUsername(snapshot.username);
-        trainee.setFirstName(snapshot.firstName);
-        trainee.setLastName(snapshot.lastName);
-        trainee.setDateOfBirth(snapshot.dateOfBirth);
-        trainee.setPassword(snapshot.password);
-        trainee.setAddress(snapshot.address);
-        trainee.setActive(snapshot.isActive);
-
-        traineeDao.create(trainee);
-
-        List<Trainer> trainers =
-                trainerDao.findAllById(snapshot.trainerIds);
-        trainee.setTrainers(trainers);
-
-        for (TrainingSnapshot ts : snapshot.trainings) {
-            Training training = new Training();
-            training.setTrainee(trainee);
-
-            Trainer trainer = trainerDao.findById(ts.trainerId)
-                    .orElseThrow(() -> new IllegalStateException("Trainer not found: " + ts.trainerId));
-            training.setTrainer(trainer);
-
-            TrainingType type = trainingTypeDao.findById(ts.trainingTypeId)
-                    .orElseThrow(() -> new IllegalStateException("TrainingType not found: " + ts.trainingTypeId));
-            training.setTrainingType(type);
-
-            training.setName(ts.name);
-            training.setDate(ts.date);
-            training.setDuration(ts.duration);
-
-            trainingDao.addTraining(training);
-        }
     }
 }

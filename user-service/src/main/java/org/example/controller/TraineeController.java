@@ -114,7 +114,7 @@ public class TraineeController {
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
             @ApiResponse(responseCode = "403", description = "Forbidden"),
             @ApiResponse(responseCode = "400", description = "Validation error"),
-            @ApiResponse(responseCode = "503", description = "Service unavailable")
+            @ApiResponse(responseCode = "503", description = "Service side error occurred")
     })
     @DeleteMapping("/{username}")
     public void deleteTrainee(@PathVariable String username) {

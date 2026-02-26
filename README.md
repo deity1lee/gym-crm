@@ -219,38 +219,5 @@ The microservice:
 
 ### Circuit Breaker & Reliability Strategy
 
-The system uses a Circuit Breaker combined with the Transactional Outbox pattern to ensure reliable inter-service communication.
-
-How it works
-
-When a training is added or deleted, a workload update event is:
-
--Stored in the workload_outbox table
-
--Marked as PENDING
-
--A scheduled job runs every 5 seconds and:
-
--Reads all pending outbox records
-
--Sends them to the Trainer Workload Service
-
--The remote call is protected by a Resilience4j Circuit Breaker:
-
--If the Trainer Workload Service is slow or unavailable, the circuit opens
-
--Calls are immediately rejected while the circuit is OPEN
-
-If the call fails:
-
--The outbox record remains PENDING
-
--No data is lost
-
--The scheduler retries automatically later
-
-When the call succeeds:
-
--The outbox record is marked as SENT
-
--The transaction is completed
+The system uses a Circuit Breaker and Saga Orchestrator pattern to ensure reliable inter-service communication.
+As training add/delete action should make changes in both user and trainer workload services, compensation mechanism is used.

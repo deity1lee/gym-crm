@@ -15,11 +15,11 @@ public class TrainerWorkloadController {
     }
 
     @PostMapping
-    public void acceptWorkload(@RequestBody TrainerWorkloadRequest request) {
+    public void changeWorkload(@RequestBody TrainerWorkloadRequest request) {
         workloadService.process(request);
     }
 
-    @GetMapping("{username}/trainingHours/{month}")
+    @GetMapping("/{username}/trainingHours/{month}")
     public Long getTrainerWorkingHours(@PathVariable String username, @PathVariable int month) {
         return workloadService.getWorkingHours(username, month);
     }
