@@ -13,7 +13,7 @@ import org.springframework.security.web.access.ExceptionTranslationFilter;
 @Configuration
 public class SecurityConfig {
 
-    AuthenticationEntryPoint customAuthenticationEntryPoint;
+    private AuthenticationEntryPoint customAuthenticationEntryPoint;
 
     public SecurityConfig(AuthenticationEntryPoint customAuthenticationEntryPoint) {
         this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;

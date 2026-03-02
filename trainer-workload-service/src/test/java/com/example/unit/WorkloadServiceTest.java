@@ -6,6 +6,7 @@ import com.example.entities.TrainerMonth;
 import com.example.entities.TrainerWorkload;
 import com.example.entities.TrainerYear;
 import com.example.repository.TrainerWorkloadRepository;
+import com.example.service.ValidatorService;
 import com.example.service.WorkloadService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,12 +23,16 @@ class WorkloadServiceTest {
     @Mock
     private TrainerWorkloadRepository repository;
 
+    @Mock
+    private ValidatorService validatorService;
+
     @InjectMocks
     private WorkloadService service;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        doNothing().when(validatorService).validateTrainerWorkloadRequest(any());
     }
 
     @Test

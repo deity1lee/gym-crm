@@ -37,7 +37,6 @@ public class ApiKeyFilter extends OncePerRequestFilter {
             LOGGER.info("Authenticated request");
             filterChain.doFilter(request, response);
         } else {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             LOGGER.info("Unauthorized request: Invalid API key");
             throw new BadCredentialsException("Invalid API key");
         }
