@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -33,11 +34,12 @@ public class ApiKeyFilter extends OncePerRequestFilter {
 
         String requestKey = request.getHeader(HEADER_NAME);
 
+        String txId = MDC.get("transactionId");
         if (apiKey != null && apiKey.equals(requestKey)) {
-            LOGGER.info("Authenticated request");
+            LOGGER.info("[{}] Authenticated request", txId);
             filterChain.doFilter(request, response);
         } else {
-            LOGGER.info("Unauthorized request: Invalid API key");
+            LOGGER.info("[{}] Unauthorized request: Invalid API key", txId);
             throw new BadCredentialsException("Invalid API key");
         }
     }

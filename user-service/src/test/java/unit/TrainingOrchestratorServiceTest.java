@@ -106,7 +106,7 @@ class TrainingOrchestratorServiceTest {
                 .thenThrow(new IllegalArgumentException("validation failed"));
 
         assertThrows(
-                SagaFailedException.class,
+                IllegalArgumentException.class,
                 () -> orchestratorService.addTraining(
                         "trainee1",
                         "trainer1",

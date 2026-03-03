@@ -46,10 +46,11 @@ public class TrainingOrchestratorService {
             if (ex instanceof DownstreamServiceException) {
                 LOGGER.warn("[{}] Failed to add working hours of training's trainer with training id={}, deleting created training", txId, training.getId());
                 trainingService.deleteTraining(training.getId());
+                throw new SagaFailedException("Failed to create the training", ex);
             } else {
                 LOGGER.warn("[{}] Training was not created, according trainer's workload was not changed", txId);
+                throw ex;
             }
-            throw new SagaFailedException("Failed to create the training", ex);
         }
     }
 

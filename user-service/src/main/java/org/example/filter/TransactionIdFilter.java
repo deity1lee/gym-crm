@@ -7,21 +7,22 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import jakarta.servlet.*;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.UUID;
 
-public class TransactionIdFilter implements Filter {
+@Component
+public class TransactionIdFilter extends OncePerRequestFilter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TransactionIdFilter.class);
 
     @Override
-    public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
-            throws IOException, ServletException {
+    public void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain) throws IOException, ServletException {
 
-        HttpServletRequest request = (HttpServletRequest) req;
-        HttpServletResponse response = (HttpServletResponse) res;
 
         String txId = UUID.randomUUID().toString();
         MDC.put("transactionId", txId);
@@ -30,10 +31,10 @@ public class TransactionIdFilter implements Filter {
         LOGGER.info("[{}] Incoming request", txId);
 
         try {
-            LOGGER.info("[{}] {} {}", txId, request.getMethod(), request.getRequestURI());
+            LOGGER.info("[{}] {} {}", txId, req.getMethod(), req.getRequestURI());
             chain.doFilter(req, res);
         } finally {
-            HttpStatus status = HttpStatus.valueOf(response.getStatus());
+            HttpStatus status = HttpStatus.valueOf(res.getStatus());
             LOGGER.info("[{}] {} {}", txId, status, status.getReasonPhrase());
             LOGGER.info("[{}] Finished request", txId);
             MDC.clear();
