@@ -1,13 +1,13 @@
-package com.example.unit;
+package org.workload.unit;
 
-import com.example.dto.ActionType;
-import com.example.dto.TrainerWorkloadRequest;
-import com.example.entities.TrainerMonth;
-import com.example.entities.TrainerWorkload;
-import com.example.entities.TrainerYear;
-import com.example.repository.TrainerWorkloadRepository;
-import com.example.service.ValidatorService;
-import com.example.service.WorkloadService;
+import org.workload.dto.ActionType;
+import org.workload.dto.TrainerWorkloadRequest;
+import org.workload.entities.TrainerMonth;
+import org.workload.entities.TrainerWorkload;
+import org.workload.entities.TrainerYear;
+import org.workload.repository.TrainerWorkloadRepository;
+import org.workload.service.ValidatorService;
+import org.workload.service.WorkloadService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;

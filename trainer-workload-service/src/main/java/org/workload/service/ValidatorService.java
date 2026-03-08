@@ -1,6 +1,6 @@
-package com.example.service;
+package org.workload.service;
 
-import com.example.dto.TrainerWorkloadRequest;
+import org.workload.dto.TrainerWorkloadRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;

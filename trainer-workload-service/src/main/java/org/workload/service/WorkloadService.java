@@ -1,10 +1,10 @@
-package com.example.service;
+package org.workload.service;
 
-import com.example.dto.TrainerWorkloadRequest;
-import com.example.entities.TrainerYear;
-import com.example.repository.TrainerWorkloadRepository;
-import com.example.entities.TrainerMonth;
-import com.example.entities.TrainerWorkload;
+import org.workload.dto.TrainerWorkloadRequest;
+import org.workload.entities.TrainerYear;
+import org.workload.repository.TrainerWorkloadRepository;
+import org.workload.entities.TrainerMonth;
+import org.workload.entities.TrainerWorkload;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,4 +1,4 @@
-package com.example.filter;
+package org.workload.filter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -12,8 +12,6 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.UUID;
 
-import jakarta.servlet.*;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;

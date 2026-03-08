@@ -1,7 +1,7 @@
-package com.example.config;
+package org.workload.config;
 
-import com.example.filter.ApiKeyFilter;
-import com.example.filter.TransactionIdFilter;
+import org.workload.filter.ApiKeyFilter;
+import org.workload.filter.TransactionIdFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

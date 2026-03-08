@@ -1,4 +1,4 @@
-package com.example.dto;
+package org.workload.dto;
 
 import java.time.LocalDate;
 

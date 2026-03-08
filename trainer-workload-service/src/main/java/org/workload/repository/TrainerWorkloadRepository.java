@@ -1,6 +1,6 @@
-package com.example.repository;
+package org.workload.repository;
 
-import com.example.entities.TrainerWorkload;
+import org.workload.entities.TrainerWorkload;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

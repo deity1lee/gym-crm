@@ -1,4 +1,4 @@
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
                        id BIGINT AUTO_INCREMENT PRIMARY KEY,
                        first_name VARCHAR(255) NOT NULL,
                        last_name VARCHAR(255) NOT NULL,
@@ -10,26 +10,26 @@ CREATE TABLE users (
                        account_non_locked BOOLEAN DEFAULT TRUE
 );
 
-CREATE TABLE training_types (
+CREATE TABLE IF NOT EXISTS training_types (
                                 id BIGINT AUTO_INCREMENT PRIMARY KEY,
                                 training_type_name VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE trainees (
+CREATE TABLE IF NOT EXISTS trainees (
                           user_id BIGINT PRIMARY KEY,
                           date_of_birth DATE,
                           address VARCHAR(255),
                           CONSTRAINT fk_trainee_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE TABLE trainers (
+CREATE TABLE IF NOT EXISTS trainers (
                           user_id BIGINT PRIMARY KEY,
                           training_type_id BIGINT NOT NULL,
                           CONSTRAINT fk_trainer_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
                           CONSTRAINT fk_trainer_type FOREIGN KEY (training_type_id) REFERENCES training_types(id)
 );
 
-CREATE TABLE trainings (
+CREATE TABLE IF NOT EXISTS trainings (
                            id BIGINT AUTO_INCREMENT PRIMARY KEY,
                            trainee_id BIGINT NOT NULL,
                            trainer_id BIGINT NOT NULL,
@@ -42,7 +42,7 @@ CREATE TABLE trainings (
                            CONSTRAINT fk_training_type FOREIGN KEY (training_type_id) REFERENCES training_types(id)
 );
 
-CREATE TABLE trainer_trainee (
+CREATE TABLE IF NOT EXISTS trainer_trainee (
                                  trainee_id BIGINT NOT NULL,
                                  trainer_id BIGINT NOT NULL,
                                  PRIMARY KEY (trainee_id, trainer_id),

@@ -1,7 +1,7 @@
-package com.example.controller;
+package org.workload.controller;
 
-import com.example.dto.TrainerWorkloadRequest;
-import com.example.service.WorkloadService;
+import org.workload.dto.TrainerWorkloadRequest;
+import org.workload.service.WorkloadService;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

@@ -1,4 +1,4 @@
-package com.example.exception;
+package org.workload.exception;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

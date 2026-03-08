@@ -1,7 +1,7 @@
-package com.example.unit;
+package org.workload.unit;
 
-import com.example.dto.TrainerWorkloadRequest;
-import com.example.service.ValidatorService;
+import org.workload.dto.TrainerWorkloadRequest;
+import org.workload.service.ValidatorService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
