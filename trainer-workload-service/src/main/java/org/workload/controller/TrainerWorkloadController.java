@@ -19,8 +19,8 @@ public class TrainerWorkloadController {
         workloadService.process(request);
     }
 
-    @GetMapping("/{username}/trainingHours/{month}")
-    public Long getTrainerWorkingHours(@PathVariable String username, @PathVariable int month) {
-        return workloadService.getWorkingHours(username, month);
+    @GetMapping("/{username}/trainingHours")
+    public Long getTrainerWorkingHours(@PathVariable String username, @RequestParam int year, @RequestParam int month) {
+        return workloadService.getWorkingHours(username, year, month);
     }
 }

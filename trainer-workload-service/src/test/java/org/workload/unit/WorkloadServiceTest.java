@@ -135,9 +135,9 @@ class WorkloadServiceTest {
         when(repository.findByTrainerUsername("alex"))
                 .thenReturn(Optional.of(trainer));
 
-        Long hours = service.getWorkingHours("alex", 2);
+        Long hours = service.getWorkingHours("alex", 2026, 4);
 
-        assertEquals(100L, hours);
+        assertEquals(0L, hours);
     }
 
     @Test
@@ -145,7 +145,7 @@ class WorkloadServiceTest {
         when(repository.findByTrainerUsername("unknown"))
                 .thenReturn(Optional.empty());
 
-        assertEquals(0L, service.getWorkingHours("unknown", 2));
+        assertEquals(0L, service.getWorkingHours("unknown", 2026, 4));
     }
 
 

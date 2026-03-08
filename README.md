@@ -187,7 +187,7 @@ in all protected requests.
 
 The system consists of:
 
-User Service
+Gym Service
 
 Trainer Workload Service
 

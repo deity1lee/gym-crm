@@ -1,0 +1,158 @@
+package org.example.service;
+
+import org.example.dao.TraineeDao;
+import org.example.dao.TrainerDao;
+import org.example.entities.Trainer;
+import org.example.entities.Training;
+import org.example.utilities.TrainingSearchCriteria;
+import org.hibernate.Hibernate;
+import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import jakarta.transaction.Transactional;
+import java.util.*;
+
+@Transactional
+@Service
+public class TrainerService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(TrainerService.class);
+
+    private TrainerDao trainerDao;
+    private TraineeDao traineeDao;
+    private AuthService authService;
+    private ValidatorService validatorService;
+    private TrainerWorkloadClient trainerWorkloadClient;
+
+    @Autowired
+    public void setValidatorService(ValidatorService validatorService) {
+        this.validatorService = validatorService;
+    }
+
+    @Autowired
+    public void setAuthService(AuthService authService) {
+        this.authService = authService;
+    }
+
+    @Autowired
+    public void setTrainerDao(TrainerDao trainerDao) {
+        this.trainerDao = trainerDao;
+    }
+
+    @Autowired
+    public void setTraineeDao(TraineeDao traineeDao) {
+        this.traineeDao = traineeDao;
+    }
+
+    @Autowired
+    public void setTrainerWorkloadClient(TrainerWorkloadClient trainerWorkloadClient) {
+        this.trainerWorkloadClient = trainerWorkloadClient;
+    }
+
+    public Trainer createTrainer(Trainer trainer) {
+        validatorService.validate(trainer);
+        validatorService.validateTrainingType(trainer.getTrainingType());
+        authService.assignCredentials(trainer);
+        trainerDao.create(trainer);
+        LOGGER.info("Created trainee profile for username: {}", trainer.getUsername());
+        return trainer;
+    }
+
+    public Trainer selectTrainerByUsername(String usernameForSearch) {
+        String txId = MDC.get("transactionId");
+        LOGGER.debug("[{}] Fetching trainer with username '{}'", txId, usernameForSearch);
+
+        Trainer trainer = trainerDao.findByUsername(usernameForSearch)
+                .orElseThrow(() -> {
+                    LOGGER.warn("[{}] Trainer '{}' not found", txId, usernameForSearch);
+                    return new IllegalArgumentException(String.format("Trainer not found: %s", usernameForSearch));
+                });
+
+        LOGGER.info("[{}] Trainer '{}' found successfully", txId, usernameForSearch);
+
+        Hibernate.initialize(trainer.getTrainees());
+
+        return trainer;
+    }
+
+    public Trainer updateTrainer(Trainer newTrainer) {
+        validatorService.validate(newTrainer);
+        validatorService.validateTrainingType(newTrainer.getTrainingType());
+        Trainer existing = selectTrainerByUsername(newTrainer.getUsername());
+        existing.setFirstName(newTrainer.getFirstName());
+        existing.setLastName(newTrainer.getLastName());
+        existing.setActive(newTrainer.isActive());
+        existing.setTrainingType(newTrainer.getTrainingType());
+        trainerDao.updateProfile(existing);
+        Hibernate.initialize(existing.getTrainees());
+        return existing;
+    }
+
+    public void updateActivationStatus(String username, boolean isActive) {
+        String txId = MDC.get("transactionId");
+        Trainer trainer = trainerDao.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Trainer not found"));
+        LOGGER.info("[{}] Validation passed for changing active status", txId);
+        if (trainer.isActive() == isActive) {
+            throw new IllegalStateException(
+                    "Trainer is already " + (isActive ? "active" : "inactive")
+            );
+        }
+        LOGGER.warn("[{}] Changing active status {} for trainer {}", txId, isActive, username);
+        trainer.setActive(isActive);
+        trainerDao.updateProfile(trainer);
+    }
+
+    public List<Training> getTrainerTrainings(TrainingSearchCriteria criteria) {
+
+        String txId = MDC.get("transactionId");
+
+        if (criteria.getTrainerUsername() == null || criteria.getTrainerUsername().isBlank()) {
+            LOGGER.warn("[{}] Missing trainerUsername in request", txId);
+            throw new IllegalArgumentException("trainerUsername is required");
+        }
+        trainerDao.findByUsername(criteria.getTrainerUsername())
+                .orElseThrow(() -> {
+                    LOGGER.warn("[{}] Trainer '{}' not found in DB", txId, criteria.getTrainerUsername());
+                    return new IllegalArgumentException(String.format("Trainer not found: %s", criteria.getTrainerUsername()));
+                });
+
+        if (criteria.getTraineeUsername() != null && !criteria.getTraineeUsername().isBlank()) {
+            traineeDao.findByUsername(criteria.getTraineeUsername())
+                    .orElseThrow(() -> {
+                        LOGGER.warn("[{}] Trainee '{}' filter is invalid (not found)",
+                                txId, criteria.getTraineeUsername());
+                        return new IllegalArgumentException(String.format("Trainee not found: %s", criteria.getTraineeUsername()));
+                    });
+        }
+        if (criteria.getFromDate() != null && criteria.getToDate() != null) {
+            if (criteria.getFromDate().after(criteria.getToDate())) {
+                LOGGER.warn("[{}] Invalid date range: fromDate={} after toDate={}",
+                        txId, criteria.getFromDate(), criteria.getToDate());
+                throw new IllegalArgumentException("fromDate must be before toDate");
+            }
+        }
+        List<Training> trainings = trainerDao.findByTrainerUsernameAndCriteria(criteria);
+        LOGGER.info("[{}] Training names for trainer {}:", txId, criteria.getTrainerUsername());
+        trainings.forEach(t ->
+                LOGGER.info(" - {}", t.getName()));
+
+        return trainings;
+    }
+
+    public Long getTrainingHours(String username, int year, int month) {
+        String txId = MDC.get("transactionId");
+        trainerDao.findByUsername(username)
+                .orElseThrow(() -> {
+                    LOGGER.warn("[{}] Trainer '{}' not found", txId, username);
+                    return new IllegalArgumentException(String.format("Trainer not found: %s", username));
+                });
+        if (month > 12 || month < 1) {
+            throw new IllegalArgumentException("Invalid month value");
+        }
+        return trainerWorkloadClient.getTrainerTrainingHours(username, year, month);
+    }
+}

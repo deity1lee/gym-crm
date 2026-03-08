@@ -63,7 +63,7 @@ public class WorkloadService {
 
         long newTotal = month.getTrainingDuration() + delta;
 
-        if (newTotal == 0) {
+        if (newTotal <= 0) {
             handleRemoval(workload, year, month);
         } else {
             month.setTrainingDuration(newTotal);
@@ -118,13 +118,14 @@ public class WorkloadService {
         return t;
     }
 
-    public Long getWorkingHours(String username, int month) {
+    public Long getWorkingHours(String username, int year, int month) {
         String txId = MDC.get("transactionId");
-        LOGGER.info("[{}] Getting working hours for trainer {} month {}", txId, username, month);
+        LOGGER.info("[{}] Getting working hours for trainer {} year {} month {}", txId, username, year, month);
 
         return repository.findByTrainerUsername(username)
                 .map(trainer -> trainer.getYears().stream()
-                        .flatMap(year -> year.getMonths().stream())
+                        .filter(y -> y.getYear() == year)
+                        .flatMap(y -> y.getMonths().stream())
                         .filter(m -> m.getMonth() == month)
                         .map(TrainerMonth::getTrainingDuration)
                         .findFirst()
