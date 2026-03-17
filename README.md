@@ -118,6 +118,9 @@ Go to postman and send get request with URI:
 1. http://localhost:8080/actuator/health/trainerOverload
 2. http://localhost:8080/actuator/health/trainerTrainingTypeOveruse
 3. http://localhost:8080/actuator/health/unassignedTrainer
+
+You can also go to http://localhost:8081/actuator/health to check health of trainer workload service
+
 ### Custom metrics using Prometheus.
 
 1. LoginMetrics - Total number of successful logins

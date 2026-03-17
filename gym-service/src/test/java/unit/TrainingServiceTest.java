@@ -158,7 +158,7 @@ class TrainingServiceTest {
                 )
         );
 
-        assertEquals("trainingDuration must be positive", ex.getMessage());
+        assertEquals(String.format("Invalid trainingDuration: must be between 1 and 8 hours, but was %s", -10L), ex.getMessage());
     }
 
     @Test

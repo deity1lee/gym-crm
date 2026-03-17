@@ -85,7 +85,7 @@ public class TrainingService {
 
         if (duration == null || duration <= 0 || duration > 8) {
             LOGGER.warn("[{}] Invalid trainingDuration: {}", txId, duration);
-            throw new IllegalArgumentException("trainingDuration must be positive");
+            throw new IllegalArgumentException("Invalid trainingDuration: must be between 1 and 8 hours, but was " + duration);
         }
 
         if (trainingDao.findTrainingByDateAndUsers(trainee.getId(), trainer.getId(), trainingDate).isPresent()) {
