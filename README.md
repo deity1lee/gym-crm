@@ -173,10 +173,57 @@ To authorize requests in Swagger call the Login or Create Profile endpoint. Copy
 Authorization: Bearer <JWT_TOKEN>
 in all protected requests.
 
-## CORS Configuration
+### CORS Configuration
 
 -CORS is configured, different port for ui can be considered.
 
 -Authorization headers are allowed
 
 -The application supports stateless JWT-based requests from browsers and API tools
+
+
+
+### Architecture Overview
+
+The system consists of:
+
+Gym Service
+
+Trainer Workload Service
+
+Discovery Service
+
+
+### Trainer Workload Service
+Purpose:
+
+-Every time a training session is added or deleted, the Trainer Workload Service sends data to the
+Trainer Workload Service. Here endpoints are protected and API key is needed to access them.
+
+The microservice:
+
+-Calculates trainer working hours
+
+-Aggregates workload per month / per year
+
+-Stores data in an in-memory h2 database (to access go to http://localhost:8081/h2-console/login.jsp, and find the db password in application.properties file in service's resource folder)
+
+
+### Service Discovery (Eureka)
+
+-All microservices register themselves automatically
+
+-Services communicate using logical service names, not hardcoded URLs
+
+-Make sur this service is up before any other is started
+
+### Circuit Breaker & Reliability Strategy
+
+The system uses a Circuit Breaker and Saga Orchestrator pattern to ensure reliable inter-service communication.
+As training add/delete action should make changes in both user and trainer workload services, compensation mechanism is used.
+
+## Notes
+
+If you are going to start application using docker, consider using profile "local".
+If an issue persists try to add this vm option:
+-Djava.rmi.server.hostname=localhost

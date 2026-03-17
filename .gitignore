@@ -1,38 +1,28 @@
-### Build output ###
+# --- Build Output ---
 target/
-!**/src/main/**/target/
-!**/src/test/**/target/
+bin/
+build/
+out/
 
-### Maven wrapper ###
-!.mvn/wrapper/maven-wrapper.jar
-
-### IntelliJ IDEA ###
+# --- IntelliJ IDEA ---
 .idea/
 *.iml
-*.ipr
 *.iws
+*.ipr
+# If you want to keep your run configurations, you can use: !.idea/runConfigurations/
 
-### Eclipse ###
+# --- Eclipse / STS ---
 .apt_generated
 .classpath
 .factorypath
 .project
-.settings
+.settings/
 .springBeans
-.sts4-cache
+.sts4-cache/
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-/build/
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### VS Code ###
+# --- VS Code ---
 .vscode/
 
-### macOS ###
+# --- OS Junk ---
 .DS_Store
+Thumbs.db
