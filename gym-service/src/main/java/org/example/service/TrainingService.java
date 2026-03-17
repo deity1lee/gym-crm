@@ -82,7 +82,7 @@ public class TrainingService {
             throw new IllegalArgumentException("trainingDate is required");
         }
 
-        if (duration == null || duration <= 0) {
+        if (duration == null || duration <= 0 || duration > 8) {
             LOGGER.warn("[{}] Invalid trainingDuration: {}", txId, duration);
             throw new IllegalArgumentException("trainingDuration must be positive");
         }

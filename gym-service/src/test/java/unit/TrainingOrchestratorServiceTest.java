@@ -54,7 +54,7 @@ class TrainingOrchestratorServiceTest {
                 "Yoga",
                 new TrainingType(),
                 LocalDate.now(),
-                60L
+                6L
         );
 
         verify(trainingService).addTraining(
@@ -63,7 +63,7 @@ class TrainingOrchestratorServiceTest {
                 eq("Yoga"),
                 any(TrainingType.class),
                 any(LocalDate.class),
-                eq(60L)
+                eq(6L)
         );
 
         verify(trainerWorkloadClient)
@@ -91,7 +91,7 @@ class TrainingOrchestratorServiceTest {
                         "Yoga",
                         new TrainingType(),
                         LocalDate.now(),
-                        60L
+                        6L
                 )
         );
 
@@ -113,7 +113,7 @@ class TrainingOrchestratorServiceTest {
                         "Yoga",
                         new TrainingType(),
                         LocalDate.now(),
-                        60L
+                        6L
                 )
         );
 
@@ -157,7 +157,7 @@ class TrainingOrchestratorServiceTest {
                 eq("Yoga"),
                 any(),
                 any(),
-                eq(60L)
+                eq(6L)
         );
     }
 
@@ -188,7 +188,7 @@ class TrainingOrchestratorServiceTest {
         training.setName("Yoga");
         training.setTrainingType(new TrainingType());
         training.setDate(LocalDate.now());
-        training.setDuration(60L);
+        training.setDuration(6L);
 
         return training;
     }

@@ -62,7 +62,7 @@ class TrainingServiceTest {
                 "Yoga",
                 type,
                 date,
-                60L
+                6L
         );
 
         assertNotNull(result);
@@ -71,7 +71,7 @@ class TrainingServiceTest {
         assertEquals(trainer, result.getTrainer());
         assertEquals(type, result.getTrainingType());
         assertEquals(date, result.getDate());
-        assertEquals(60L, result.getDuration());
+        assertEquals(6L, result.getDuration());
 
         verify(trainingDao).addTraining(result);
     }
@@ -88,7 +88,7 @@ class TrainingServiceTest {
                         "Yoga",
                         new TrainingType(),
                         LocalDate.now(),
-                        60L
+                        6L
                 )
         );
 

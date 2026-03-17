@@ -221,3 +221,9 @@ The microservice:
 
 The system uses a Circuit Breaker and Saga Orchestrator pattern to ensure reliable inter-service communication.
 As training add/delete action should make changes in both user and trainer workload services, compensation mechanism is used.
+
+## Notes
+
+If you are going to start application using docker, consider using profile "local".
+If an issue persists try to add this vm option:
+-Djava.rmi.server.hostname=localhost
