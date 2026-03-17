@@ -25,15 +25,16 @@ class ValidatorServiceTest {
     void testValidRequestReturnsTrue() {
         TrainerWorkloadRequest request = new TrainerWorkloadRequest();
         request.setTrainingDate(LocalDate.now().plusDays(1));
-        request.setTrainingDuration(120L);
+        request.setTrainingDuration(60L);
+        request.setActionType(ActionType.ADD);
 
         boolean result = validatorService.validateAddRequest(request);
 
-        assertTrue(result);
+        assertTrue(result, "Future ADD request should be valid");
     }
 
     @Test
-    void testPastDateReturnsFalse() {
+    void testPastDateWithAddReturnsFalse() {
         TrainerWorkloadRequest request = new TrainerWorkloadRequest();
         request.setTrainingDate(LocalDate.now().minusDays(1));
         request.setTrainingDuration(60L);
@@ -41,6 +42,36 @@ class ValidatorServiceTest {
 
         boolean result = validatorService.validateAddRequest(request);
 
-        assertFalse(result);
+        assertFalse(result, "Past ADD request should be invalid");
+    }
+
+    @Test
+    void testPastDateWithDeleteReturnsTrue() {
+        TrainerWorkloadRequest request = new TrainerWorkloadRequest();
+        request.setTrainingDate(LocalDate.now().minusDays(1));
+        request.setTrainingDuration(60L);
+        request.setActionType(ActionType.DELETE);
+
+        boolean result = validatorService.validateAddRequest(request);
+
+        assertTrue(result, "Past DELETE request should be valid");
+    }
+
+    @Test
+    void testWorkloadWithinLimitReturnsTrue() {
+        boolean result = validatorService.validateWorkloadLimit(100L);
+        assertTrue(result, "Workload below max limit should be valid");
+    }
+
+    @Test
+    void testWorkloadExactlyAtLimitReturnsTrue() {
+        boolean result = validatorService.validateWorkloadLimit(120L);
+        assertTrue(result, "Workload exactly at max limit should be valid");
+    }
+
+    @Test
+    void testWorkloadExceedsLimitReturnsFalse() {
+        boolean result = validatorService.validateWorkloadLimit(121L);
+        assertFalse(result, "Workload above max limit should be invalid");
     }
 }

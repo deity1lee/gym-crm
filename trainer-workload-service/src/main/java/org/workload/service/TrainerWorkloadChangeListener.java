@@ -49,16 +49,7 @@ public class TrainerWorkloadChangeListener {
             throw new WorkloadUpdateRequestAuthException("Invalid API key");
         }
         if (!validatorService.validateAddRequest(request)) {
-            jmsTemplate.convertAndSend(
-                    "invalid.trainer.workload",
-                    request,
-                    message -> {
-                        message.setStringProperty("X-Transaction-Id", txId);
-                        message.setStringProperty("X-API-KEY", requestKey);
-                        return message;
-                    }
-            );
-            LOGGER.info("[{}] Request was moved to specified queue", txId);
+            sendToInvalidQueue(request, txId, requestKey);
             return;
         }
 
@@ -74,13 +65,29 @@ public class TrainerWorkloadChangeListener {
             }
             case ADD -> {
                 TrainerWorkload workload = trainerWorkloadOptional.orElseGet(() -> createTrainerWorkload(request));
-                updateDuration(workload, request, request.getTrainingDuration());
+                boolean updated = updateDuration(workload, request, request.getTrainingDuration());
+                if (!updated) {
+                    sendToInvalidQueue(request, txId, requestKey);
+                    return;
+                }
             }
         }
         LOGGER.info("[{}] Trainer={} workload was updated", txId, request.getTrainerUsername());
     }
+    private void sendToInvalidQueue(TrainerWorkloadRequest request, String txId, String requestKey) {
+        jmsTemplate.convertAndSend(
+                "invalid.trainer.workload",
+                request,
+                message -> {
+                    message.setStringProperty("X-Transaction-Id", txId);
+                    message.setStringProperty("X-API-KEY", requestKey);
+                    return message;
+                }
+        );
+        LOGGER.info("[{}] Request was moved to specified queue", txId);
+    }
 
-    private void updateDuration(TrainerWorkload workload, TrainerWorkloadRequest request, Long delta) {
+    private boolean updateDuration(TrainerWorkload workload, TrainerWorkloadRequest request, Long delta) {
         String txId = MDC.get("transactionId");
 
         int yearValue = request.getTrainingDate().getYear();
@@ -91,6 +98,9 @@ public class TrainerWorkloadChangeListener {
 
         long newTotal = month.getTrainingDuration() + delta;
 
+        if (!validatorService.validateWorkloadLimit(newTotal)) {
+            return false;
+        }
         if (newTotal <= 0) {
             handleRemoval(workload, year, month);
         } else {
@@ -98,6 +108,7 @@ public class TrainerWorkloadChangeListener {
             repository.save(workload);
         }
         LOGGER.info("[{}] Trainer {} workload was successfully changed", txId, request.getTrainerUsername());
+        return true;
     }
 
     private void handleRemoval(TrainerWorkload workload, TrainerYear year, TrainerMonth month) {

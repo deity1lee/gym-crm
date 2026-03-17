@@ -23,4 +23,14 @@ public class ValidatorService {
         LOGGER.info("[{}] Trainer workload request was successfully validated", txId);
         return true;
     }
+
+    public boolean validateWorkloadLimit(long newTotal) {
+        String txId = MDC.get("transactionId");
+        if (newTotal > 120) {
+            LOGGER.warn("[{}] Trainer workload has reached its maximum limit", txId);
+            return false;
+        }
+        LOGGER.info("[{}] Trainer has some free working hours", txId);
+        return true;
+    }
 }
