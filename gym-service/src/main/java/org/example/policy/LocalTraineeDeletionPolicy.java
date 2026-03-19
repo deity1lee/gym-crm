@@ -11,7 +11,7 @@ import org.slf4j.MDC;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
-@Profile("local")
+@Profile({"local", "component-test", "integration-test"})
 @Service
 public class LocalTraineeDeletionPolicy implements TraineeDeletionPolicy {
 

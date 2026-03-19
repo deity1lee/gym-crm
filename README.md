@@ -282,14 +282,14 @@ If an issue persists try to add this vm option:
 
 You can run Component & Integration tests using IDEA or run them from command line.
 
-For running the component tests you do not need to start any of the services, just use you editor or following commands to run the tests!
+For running the component tests you do not need to start any of the services, but make sure "gymdb_test" exists in your MySQL, then just use you editor or following commands to run the tests!
 
 1. go to "gym-service" folder (command: "cd gym-service") 
 2. do "mvn test -Dtest=CucumberComponentTests" to run the component tests
 
 To run the integration tests the trainer workload service (using "integration-test" profile), discovery service, ActiveMQ and MongoDB ti be up.
 
-then do similar commands to run the tests:
+then do similar commands to run the integration tests:
 
 1. go to "gym-service" folder (command: "cd gym-service")
 2. do "mvn test -Dtest=CucumberIntegrationTests" to run the component tests
