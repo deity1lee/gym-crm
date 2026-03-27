@@ -25,6 +25,8 @@
         <cucumber.version>7.34.3</cucumber.version>
         <junit.platform.suite.version>1.10.0</junit.platform.suite.version>
         <cucumber.junit.platform.engine.version>7.15.0</cucumber.junit.platform.engine.version>
+        <test.container.version>2.0.4</test.container.version>
+        <test.container.jupiter.version>1.19.7</test.container.jupiter.version>
         <cucumber.filter.tags></cucumber.filter.tags>
         <maven.compiler.parameters>true</maven.compiler.parameters>
     </properties>
