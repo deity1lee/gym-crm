@@ -299,3 +299,34 @@ then do similar commands to run the integration tests:
 
 1. go to "gym-service" folder (command: "cd gym-service")
 2. do "mvn test -Dtest=CucumberIntegrationTests" to run the component tests
+
+## Containerization with Docker
+
+**Make sure the ports 8080, 8081, 8761, 3306, 27017, 61616 are free.
+To build all three services manually, from the root of the project do:**
+
+docker build -f discovery-service/Dockerfile -t discovery-service .
+
+docker build -f gym-service/Dockerfile -t gym-service .
+
+docker build -f trainer-workload-service/Dockerfile -t trainer-workload-service .
+
+**To run the application do:**
+
+docker compose up -d
+
+**To check the application logs, first check running containers, do:**
+
+docker ps
+
+**find the container id (service) which logs you want to view, and do:**
+
+docker logs <container-id>
+
+**or**
+
+docker compose logs -f <service-name>-service
+
+**To stop the application do:**
+
+docker compose down

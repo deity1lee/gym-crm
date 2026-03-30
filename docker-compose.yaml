@@ -1,0 +1,77 @@
+version: "3.9"
+
+services:
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: gymdb_local
+    ports:
+      - "3306:3306"
+    networks:
+      - gym-network
+    restart: always
+  mongodb:
+    image: mongo:6
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    networks:
+      - gym-network
+
+  activemq:
+    image: rmohr/activemq:latest
+    container_name: activemq
+    ports:
+      - "61616:61616"
+      - "8161:8161"
+    networks:
+      - gym-network
+
+  discovery:
+    build:
+      context: .
+      dockerfile: discovery-service/Dockerfile
+    container_name: discovery
+    ports:
+      - "8761:8761"
+    networks:
+      - gym-network
+
+  trainer-workload:
+    build:
+      context: .
+      dockerfile: trainer-workload-service/Dockerfile
+    container_name: trainer-workload
+    depends_on:
+      - mongodb
+      - activemq
+      - discovery
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+    ports:
+      - "8081:8081"
+    networks:
+      - gym-network
+
+  gym-service:
+    build:
+      context: .
+      dockerfile: gym-service/Dockerfile
+    container_name: gym-service
+    depends_on:
+      - mysql
+      - activemq
+      - discovery
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+    ports:
+      - "8080:8080"
+    networks:
+      - gym-network
+
+networks:
+  gym-network:
+    driver: bridge

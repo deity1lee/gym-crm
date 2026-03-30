@@ -30,8 +30,8 @@ public class SecurityConfig {
     private final JwtLogoutHandler jwtLogoutHandler;
     private final TransactionIdFilter transactionIdFilter;
 
-    @Value("${app.cors.allowed-origins}")
-    private List<String> allowedOrigins;
+//    @Value("${app.cors.allowed-origins}")
+//    private List<String> allowedOrigins;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, JwtLogoutHandler jwtLogoutHandler, TransactionIdFilter transactionIdFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
@@ -79,7 +79,7 @@ public class SecurityConfig {
 
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOrigins(allowedOrigins);
+//        config.setAllowedOrigins(allowedOrigins);
 
         config.setAllowedMethods(List.of(
                 "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
