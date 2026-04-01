@@ -11,7 +11,7 @@ import org.slf4j.MDC;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
-@Profile("stg")
+@Profile({"stg", "docker"})
 @Service
 public class StgTraineeDeletionPolicy implements TraineeDeletionPolicy {
 

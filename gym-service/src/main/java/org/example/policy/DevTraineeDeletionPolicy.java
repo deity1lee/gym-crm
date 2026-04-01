@@ -12,7 +12,7 @@ import org.slf4j.MDC;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
-@Profile("dev")
+@Profile({"dev", "docker"})
 @Transactional
 @Service
 public class DevTraineeDeletionPolicy implements TraineeDeletionPolicy{

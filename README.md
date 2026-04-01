@@ -302,7 +302,20 @@ then do similar commands to run the integration tests:
 
 ## Containerization with Docker
 
-**Make sure the ports 8080, 8081, 8761, 3306, 27017, 61616 are free.
+**Install Docker:**
+Linux: Docker Engine
+Windows / macOS: Docker Desktop
+**Verify installation:**
+
+docker --version
+
+docker compose version
+
+**Docker Must Be Running**
+
+Make sure the Docker daemon is up before running the project.
+
+**Make sure the ports 8080, 8081, 8761, 3306, 27017, 61616 are not in use.
 To build all three services manually, from the root of the project do:**
 
 docker build -f discovery-service/Dockerfile -t discovery-service .

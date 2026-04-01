@@ -7,12 +7,12 @@ services:
     container_name: mysql
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: gymdb_local
+      MYSQL_DATABASE: gymdb_docker
     ports:
       - "3306:3306"
     networks:
       - gym-network
-    restart: always
+
   mongodb:
     image: mongo:6
     container_name: mongodb
@@ -50,7 +50,7 @@ services:
       - activemq
       - discovery
     environment:
-      SPRING_PROFILES_ACTIVE: local
+      SPRING_PROFILES_ACTIVE: docker
     ports:
       - "8081:8081"
     networks:
@@ -66,7 +66,7 @@ services:
       - activemq
       - discovery
     environment:
-      SPRING_PROFILES_ACTIVE: local
+      SPRING_PROFILES_ACTIVE: docker
     ports:
       - "8080:8080"
     networks:
