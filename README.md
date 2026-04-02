@@ -316,13 +316,6 @@ docker compose version
 Make sure the Docker daemon is up before running the project.
 
 **Make sure the ports 8080, 8081, 8761, 3306, 27017, 61616 are not in use.
-To build all three services manually, from the root of the project do:**
-
-docker build -f discovery-service/Dockerfile -t discovery-service .
-
-docker build -f gym-service/Dockerfile -t gym-service .
-
-docker build -f trainer-workload-service/Dockerfile -t trainer-workload-service .
 
 **To run the application do:**
 

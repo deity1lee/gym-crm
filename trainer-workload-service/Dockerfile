@@ -1,6 +1,6 @@
 FROM maven:3.9.10-eclipse-temurin-17 AS build
 WORKDIR /build
-COPY .. .
+COPY . .
 RUN mvn -pl trainer-workload-service -am clean package -DskipTests
 
 FROM eclipse-temurin:17-jdk
